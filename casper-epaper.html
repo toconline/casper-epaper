@@ -8,7 +8,7 @@
         display: block;
       }
     </style>
-    <canvas width="[[width]]" height="[[height]]"></canvas>
+    <canvas width="[[width]]" height="[[height]]" id="canvas"></canvas>
   </template>
 
   <script>
@@ -24,17 +24,64 @@
           type: Number,
           value: 842
         },
+        url: {
+          type: String,
+          value: undefined
+        },
+        port: {
+          type: String,
+          value: undefined
+        },
+        asset_url: {
+          type: String,
+          value: undefined
+        },
+        asset_digest: {
+          type: String,
+          value: undefined
+        },
+        asset_debug: {
+          type: Boolean,
+          value: false
+        }
       },
 
       created: function () {
-        this.name = 'papirus';
+        console.log('a new epaper renderer was born');
+      },
 
-        this._socket            = new EPaperSocket(this, a_url, a_port, a_uri);
+      /*
+       * Constants
+       */
+      BTN_SIZE:        24,
+      KAPPA:           .5522848,
+      BOLD_MASK:       0x01,
+      ITALIC_MASK:     0x02,
+      UNDERLINE_MASK:  0x04,
+      STRIKEOUT_MASK:  0x08,
+      BOLD_INDEX:      0,
+      ITALIC_INDEX:    1,
+      SIZE_INDEX:      2,
+      FONT_NAME_INDEX: 4,
+      PUNCTURE_HEIGHT: 16,
+
+      ready: function () {
+
+        // var a_url       = 'localhost';
+        // var a_port      = '3001';
+        // var a_uri       = 'epaper';
+        // var a_asset_url = undefined;
+
+        this.calculate_attribute_defaults();
+
+        this._socket            = new EPaperSocket(this, this.url, this.port, this.uri);
         this._listener          = undefined;
-        this._canvas            = a_canvas;
-        this._canvas_width      = a_canvas.width;
-        this._canvas_height     = a_canvas.height;
-        this._scroll_container_ = a_scroll_container;
+        this._canvas            = this.$.canvas;
+        this._canvas_width      = this._canvas.width;
+        this._canvas_height     = this._canvas.height;
+
+        //this._scroll_container_ = a_scroll_container; TODO how to bind to SC
+
         this._ctx               = this._canvas.getContext('2d', {alpha: false});
         this._initial_pointer   = this._canvas.style.cursor;
         this._ctx.globalCompositeOperation = 'copy';
@@ -77,16 +124,7 @@
         this._ratio = devicePixelRatio / backingStoreRatio;
         console.log("=== devicePixelRatio: " + devicePixelRatio + " backingStoreRatio: " + backingStoreRatio + " ratio: " + this._ratio);
 
-        // ... config assets url and then load the assets ...
-        if ( a_asset_url === undefined ) {
-          if ( window.location.origin !== undefined ) {
-            a_asset_url = window.location.origin;
-          } else {
-            a_asset_url = window.location.protocol + "//" + window.location.host;
-          }
-        }
-        a_asset_digest = a_asset_digest || '';
-        this.load_assets(a_asset_url, a_asset_digest);
+        this.load_assets(this.asset_url, this.asset_digest);
 
         this._edition   = false;
         this._input_box = new EPaperInput(this);
@@ -131,29 +169,97 @@
         this.create_tear_buttons();
         this._input_box._open_combo_button.send_to_front();
         this._input_box._edit_subdocument_button.send_to_front();
-      },
 
-      /*
-       * Constants
-       */
-      BTN_SIZE:        24,
-      KAPPA:           .5522848,
-      BOLD_MASK:       0x01,
-      ITALIC_MASK:     0x02,
-      UNDERLINE_MASK:  0x04,
-      STRIKEOUT_MASK:  0x08,
-      BOLD_INDEX:      0,
-      ITALIC_INDEX:    1,
-      SIZE_INDEX:      2,
-      FONT_NAME_INDEX: 4,
-      PUNCTURE_HEIGHT: 16,
-
-      ready: function() {
-        console.log("Hello my name is " + this.name);
       },
 
       attached: function() {
         console.log("Hello my name is " + this.name);
+      },
+
+      on_socket_open: function (a_message) {
+        console.log('On open the server says ' + a_message);
+      },
+
+      on_socket_close: function (a_message) {
+        console.log('On close the server says ' + a_message);
+      },
+
+      /**
+       * @brief Assing defaults to undefined component attributes
+       */
+      calculate_attribute_defaults: function () {
+
+        if ( this.url === undefined ) {
+          if ( window.location.protocol === "https:" ) {
+            this.url = "wss://" + window.location.hostname;
+          } else {
+            this.url = "ws://" + window.location.hostname;
+          }
+        }
+
+        this.port = this.port || window.location.port;
+        this.uri  = this.uri  || 'epaper';
+
+        if ( this.asset_url === undefined ) {
+          if ( window.location.origin !== undefined ) {
+            this.asset_url = window.location.origin;
+          } else {
+            this.asset_url = window.location.protocol + "//" + window.location.host;
+          }
+        }
+      },
+
+      /**
+       * @brief Initialize the context with the same defaults used by the server
+       *
+       * After server and client align the render contexts the server use diferential updates
+       */
+      reset_render_state: function () {
+        this._fill_color      = '#FFFFFF';
+        this._text_color      = '#000000';
+        this._font_spec       = ['', '', 10, 'px ', 'DejaVu Sans Condensed'];
+        this._font_mask       = 0;
+        this._ctx.strokeStyle = '#000000';
+        this._ctx.lineWidth   = 1.0;
+        this._ctx.font        = this._font_spec.join('');
+      },
+
+      /**
+       * @brief Called at startup to start the deferred loading of the auxiliary graphic assets
+       *
+       * @param a_asset_url URL of the static asset server
+       * @param a_digest    Hash generated by asset pipeline
+       */
+      load_assets: function (a_asset_url, a_digest) {
+
+        this._puncture_static_img  = this.load_asset(a_asset_url , 'puncture_static' + a_digest + '.png');
+        this._top_puncture_img     = this.load_asset(a_asset_url , 'top_puncture'    + a_digest + '.png');
+        this._bottom_puncture_img  = this.load_asset(a_asset_url , 'bottom_puncture' + a_digest + '.png');
+
+        root.EPaperOverlayButton.load_assets(this, this.asset_debug, a_asset_url, a_digest);
+      },
+
+      /**
+       * @brief Loads an auxiliary image resource
+       *
+       * @param a_asset_url URL of the static asset server
+       * @param a_image_path file name relative to the asset URL
+       *
+       * @return  a_image the variable that will hold the image object
+       */
+      load_asset: function (a_asset_url, a_image_path) {
+        var image = new Image();
+
+        image.onload = function () {
+          if ( this.asset_debug ) {
+            console.log("Loaded " + a_image_path + " " + this.width + "x" + this.height);
+          }
+        };
+        image.onerror = function () {
+          alert("Missing resource " + this.src);
+        }
+        image.src = a_asset_url + a_image_path;
+        return image;
       },
 
     });

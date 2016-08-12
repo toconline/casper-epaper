@@ -22,7 +22,7 @@
 
     root.EPaperSocket = function (a_epaper, a_host, a_port, a_uri) {
       this._epaper = a_epaper;
-      this._ws_uri = (window.location.protocol == 'https:' ? "wss://" : "ws://") + a_host + (a_port != undefined ? ':' + a_port : '') + '/' + a_uri;
+      this._ws_uri = /*(window.location.protocol == 'https:' ? "wss://" : "ws://") +*/ a_host + (a_port != undefined ? ':' + a_port : '') + '/' + a_uri;
       this.connect();
     }
 
