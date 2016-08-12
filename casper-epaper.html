@@ -46,149 +46,19 @@
         }
       },
 
-      created: function () {
-        console.log('a new epaper renderer was born');
-      },
-
-      /*
-       * Constants
-       */
-      BTN_SIZE:        24,
-      KAPPA:           .5522848,
-      BOLD_MASK:       0x01,
-      ITALIC_MASK:     0x02,
-      UNDERLINE_MASK:  0x04,
-      STRIKEOUT_MASK:  0x08,
-      BOLD_INDEX:      0,
-      ITALIC_INDEX:    1,
-      SIZE_INDEX:      2,
-      FONT_NAME_INDEX: 4,
-      PUNCTURE_HEIGHT: 16,
-
       ready: function () {
-
-        // var a_url       = 'localhost';
-        // var a_port      = '3001';
-        // var a_uri       = 'epaper';
-        // var a_asset_url = undefined;
-
         this.calculate_attribute_defaults();
-
-        this._socket            = new EPaperSocket(this, this.url, this.port, this.uri);
-        this._listener          = undefined;
-        this._canvas            = this.$.canvas;
-        this._canvas_width      = this._canvas.width;
-        this._canvas_height     = this._canvas.height;
-
-        //this._scroll_container_ = a_scroll_container; TODO how to bind to SC
-
-        this._ctx               = this._canvas.getContext('2d', {alpha: false});
-        this._initial_pointer   = this._canvas.style.cursor;
-        this._ctx.globalCompositeOperation = 'copy';
-        this._page_count        = 0;
-        this._page_number       = 1;
-        this._message           = '';
-        this._r_idx             = 0.0;
-        this._bands             = undefined;
-        this._document_id       = undefined;
-        this._widgets           = [];
-        this._images            = {};
-        this._widget_under_mice = undefined;
-        this._is_focused        = false;
-        this._focused_band_id   = undefined;
-        this._redraw_timer_key  = '_epaper_redraw_timer_key';
-        this.reset_render_state();
-
-        this._page_width  = 595.0;
-        this._page_height = 842.0;
-        this._grid_major  = 0.0;
-        this._grid_minor  = 0.0;
-
-        this._is_socket_open = false;
-
-        // Variables to save the object context
-        this._saved_idx         = 0.0;
-        this._saved_draw_string = '';
-
-        var devicePixelRatio  = window.devicePixelRatio || 1;
-        if (devicePixelRatio > 1.6) {
-          devicePixelRatio = 2;
-        } else {
-          devicePixelRatio = 1;
-        }
-        var backingStoreRatio = this._ctx.webkitBackingStorePixelRatio ||
-                                this._ctx.mozBackingStorePixelRatio ||
-                                this._ctx.msBackingStorePixelRatio ||
-                                this._ctx.oBackingStorePixelRatio ||
-                                this._ctx.backingStorePixelRatio || 1;
-        this._ratio = devicePixelRatio / backingStoreRatio;
-        console.log("=== devicePixelRatio: " + devicePixelRatio + " backingStoreRatio: " + backingStoreRatio + " ratio: " + this._ratio);
-
-        this.load_assets(this.asset_url, this.asset_digest);
-
-        this._edition   = false;
-        this._input_box = new EPaperInput(this);
-
-        // ... Install handlers ...
-        this._canvas.addEventListener('mousemove', this.create_move_handler(this));
-        this._canvas.addEventListener('mousedown', this.create_mouse_down_handler(this));
-        this._canvas.addEventListener('mouseup'  , this.create_mouse_up_handler(this));
-        this._canvas.addEventListener('focus'    , this.create_focus_handler(this));
-        this._canvas.addEventListener('blur'     , this.create_blur_handler(this));
-        this._canvas.addEventListener('focusout' , this.create_blur_handler(this));
-        this._canvas.addEventListener('paste'    , this.create_html_onpaste_handler(this));
-        this._canvas.onkeydown  = this.create_onkeydown_handler(this);
-        this._canvas.onkeypress = this.create_onkeypress_handler(this);
-        this._canvas.contentEditable = false;
-
-        this._canvas.addEventListener ("textInput", function(a_event) {  }, true );
-
-        // ... clear band tearing control variables ...
-        this.reset_band_tearing();
-
-        // ... clear the page before we start ...
-        this.setup_scale();
-
-        // ... FOUT Mitigation @TODO proper FOUT mitigation ...
-        var styles    = ['', 'bold ', 'italic ', 'italic bold '];
-        var y = 175;
-        this._ctx.save();
-        this._ctx.fillStyle = "#F0F0F0"
-        this._ctx.textAlign="center";
-        this._font_spec[this.SIZE_INDEX] = 20;
-        for ( var i = 0; i < styles.length; i++ ) {
-          this._font_spec[this.BOLD_INDEX] = styles[i];
-          this._ctx.font = this._font_spec.join('');
-          this._ctx.fillText("Powered by Skunk e-Paper", this._canvas.width / 2, y);
-          y += 35;
-        }
-        this._ctx.restore();
-
-        // ... create the overlay widgetery ...
-        this.create_line_context_menu();
-        this.create_tear_buttons();
-        this._input_box._open_combo_button.send_to_front();
-        this._input_box._edit_subdocument_button.send_to_front();
-
+        this._epaper = new EPaper(this.url, this.port, this.uri, this.$.canvas, undefined, this.asset_url, this.asset_digest);
       },
 
       attached: function() {
-        console.log("Hello my name is " + this.name);
-      },
-
-      on_socket_open: function (a_message) {
-        console.log('On open the server says ' + a_message);
-      },
-
-      on_socket_close: function (a_message) {
-        console.log('On close the server says ' + a_message);
+        console.log("Hello my name is paper");
       },
 
       /**
        * @brief Assing defaults to undefined component attributes
        */
       calculate_attribute_defaults: function () {
-
         if ( this.url === undefined ) {
           if ( window.location.protocol === "https:" ) {
             this.url = "wss://" + window.location.hostname;
@@ -196,70 +66,12 @@
             this.url = "ws://" + window.location.hostname;
           }
         }
-
         this.port = this.port || window.location.port;
         this.uri  = this.uri  || 'epaper';
-
         if ( this.asset_url === undefined ) {
-          if ( window.location.origin !== undefined ) {
-            this.asset_url = window.location.origin;
-          } else {
-            this.asset_url = window.location.protocol + "//" + window.location.host;
-          }
+          this.asset_url = this.resolveUrl('casper-epaper.html').replace('casper-epaper.html','assets') + '/';
         }
-      },
-
-      /**
-       * @brief Initialize the context with the same defaults used by the server
-       *
-       * After server and client align the render contexts the server use diferential updates
-       */
-      reset_render_state: function () {
-        this._fill_color      = '#FFFFFF';
-        this._text_color      = '#000000';
-        this._font_spec       = ['', '', 10, 'px ', 'DejaVu Sans Condensed'];
-        this._font_mask       = 0;
-        this._ctx.strokeStyle = '#000000';
-        this._ctx.lineWidth   = 1.0;
-        this._ctx.font        = this._font_spec.join('');
-      },
-
-      /**
-       * @brief Called at startup to start the deferred loading of the auxiliary graphic assets
-       *
-       * @param a_asset_url URL of the static asset server
-       * @param a_digest    Hash generated by asset pipeline
-       */
-      load_assets: function (a_asset_url, a_digest) {
-
-        this._puncture_static_img  = this.load_asset(a_asset_url , 'puncture_static' + a_digest + '.png');
-        this._top_puncture_img     = this.load_asset(a_asset_url , 'top_puncture'    + a_digest + '.png');
-        this._bottom_puncture_img  = this.load_asset(a_asset_url , 'bottom_puncture' + a_digest + '.png');
-
-        root.EPaperOverlayButton.load_assets(this, this.asset_debug, a_asset_url, a_digest);
-      },
-
-      /**
-       * @brief Loads an auxiliary image resource
-       *
-       * @param a_asset_url URL of the static asset server
-       * @param a_image_path file name relative to the asset URL
-       *
-       * @return  a_image the variable that will hold the image object
-       */
-      load_asset: function (a_asset_url, a_image_path) {
-        var image = new Image();
-
-        image.onload = function () {
-          if ( this.asset_debug ) {
-            console.log("Loaded " + a_image_path + " " + this.width + "x" + this.height);
-          }
-        };
-        image.onerror = function () {
-          alert("Missing resource " + this.src);
-        }
-        image.src = a_asset_url + a_image_path;
-        return image;
+        this.asset_digest = this.asset_digest || '';
       },
 
     });
