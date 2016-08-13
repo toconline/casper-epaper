@@ -2396,9 +2396,9 @@
     );
   };
 
- /**
-  * @param a_success_handler
-  */
+  /**
+   * @param a_success_handler
+   */
   EPaper.prototype.reload_document = function (a_success_handler) {
     this.call_rpc('reload', 'document reload;', function(a_epaper, a_message) {
         if ( undefined !== a_success_handler ) {
