@@ -18,16 +18,16 @@
  *-------------------------------------------------------------------------*/
 "use strict";
 
-(function(root) {
+function EPaperSocket_Initialize (a_root) {
 
-    root.EPaperSocket = function (a_epaper, a_host, a_port, a_uri) {
+    a_root.EPaperSocket = function (a_epaper, a_host, a_port, a_uri) {
       this._epaper = a_epaper;
-      this._ws_uri = /*(window.location.protocol == 'https:' ? "wss://" : "ws://") +*/ a_host + (a_port != undefined ? ':' + a_port : '') + '/' + a_uri;
+      this._ws_uri = a_host + (a_port != undefined ? ':' + a_port : '') + '/' + a_uri;
       this.connect();
     }
 
-    root.EPaperSocket.prototype = {
-      constructor: root.EpaperSocket,
+    EPaperSocket.prototype = {
+      constructor: a_root.EpaperSocket,
 
       connect: function () {
 
@@ -70,4 +70,4 @@
 
     };
 
-})(this);
+}

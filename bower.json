@@ -4,7 +4,8 @@
   "main": "casper-epaper.html",
   "dependencies": {
     "polymer": "Polymer/polymer#^1.4.0",
-    "iron-component-page": "^1.1.7"
+    "iron-component-page": "^1.1.7",
+    "promise-polyfill": "polymerlabs/promise-polyfill#^1.0.0"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",

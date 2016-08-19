@@ -18,14 +18,14 @@
  *-------------------------------------------------------------------------*/
 "use strict";
 
-(function(root) {
+var EPaperComboBoxList_Initialize = function (a_root) {
 
   /**
    * @brief Input box constructor
    *
    * @param a_epaper Parent EPaper object
    */
-  root.EPaperComboBoxList = function (a_epaper) {
+  a_root.EPaperComboBoxList = function (a_epaper) {
     EPaperWidget.call(this, a_epaper, '#FFFFFF', '#000000');
     this._font           = a_epaper._ctx.font;
     this._display_fields = undefined;
@@ -600,4 +600,4 @@
     }
   };
 
-})(this);
+}

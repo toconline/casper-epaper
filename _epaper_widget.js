@@ -18,7 +18,9 @@
  *-------------------------------------------------------------------------*/
 "use strict";
 
-(function(root) {
+var EPaperWidget_Initialize = function(a_root) {
+
+  console.log("Loading EPaperWidget_Initialize");
 
   /**
    * @brief Constructor for widget base class
@@ -27,7 +29,7 @@
    * @param a_background color for widget body
    * @param a_foreground Typically defines text and decoration colors
    */
-  root.EPaperWidget = function (a_epaper, a_background, a_foreground) {
+  a_root.EPaperWidget = function (a_epaper, a_background, a_foreground) {
     this._epaper        = a_epaper;
     this._ctx           = a_epaper._ctx;
     this._bg_color      = a_background;
@@ -449,5 +451,4 @@
     return chars.join('');
   };
 
-
-})(this);
+}

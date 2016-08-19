@@ -18,14 +18,14 @@
  *-------------------------------------------------------------------------*/
 "use strict";
 
-(function(root) {
+var EPaperTooltip_Initialize = function(a_root) {
 
   /**
    * @brief Input box constructor
    *
    * @param a_epaper     Parent EPaper object
    */
-  root.EPaperTooltip = function (a_epaper, a_background, a_foreground) {
+  a_root.EPaperTooltip = function (a_epaper, a_background, a_foreground) {
 
     EPaperWidget.call(this, a_epaper, a_background || "#000000", a_foreground || "#FFFFFF");
 
@@ -267,4 +267,4 @@
     }
   };
 
-})(this);
+}

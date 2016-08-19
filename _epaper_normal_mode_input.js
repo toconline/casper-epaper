@@ -18,7 +18,7 @@
  *-------------------------------------------------------------------------*/
 "use strict";
 
-(function(root) {
+function EPaperInputNormalMode_Initialize (a_root) {
 
   /**
    * @brief Handler for control keys
@@ -28,7 +28,7 @@
    * @return @li true if key is consumed
    *         @li false if the key is not consumed
    */
-  root.EPaperInput.prototype.on_key_down_normal_mode = function (a_key) {
+  a_root.EPaperInput.prototype.on_key_down_normal_mode = function (a_key) {
 
     if ( this._initial_selection === true ) {
       if ( a_key === 'left' || a_key === 'right' || a_key === 'up' || a_key === 'down' ) {
@@ -57,7 +57,7 @@
    * @return @li true if key is consumed
    *         @li false if the key is not consumed
    */
-  root.EPaperInput.prototype.on_key_press_normal_mode = function (a_character) {
+  EPaperInput.prototype.on_key_press_normal_mode = function (a_character) {
     this._initial_selection = false;
     return this.on_key_press(a_character);
   };
@@ -72,7 +72,7 @@
    *
    * @return true if the widget consumes the mouse event, false if the click is ignored
    */
-  root.EPaperInput.prototype.on_mouse_down_handler_normal_mode = function (a_x, a_y) {
+  EPaperInput.prototype.on_mouse_down_handler_normal_mode = function (a_x, a_y) {
     if ( a_x < this._bb_x || a_x > (this._bb_x + this._bb_w) || a_y < this._bb_y || a_y > (this._bb_y + this._bb_h) ) {
 
       return false;
@@ -104,7 +104,7 @@
    * @return true if the widget consumes the mouse event, false if the click is ignored
    */
 
-  root.EPaperInput.prototype.on_mouse_up_handler_normal_mode =  function (a_x, a_y) {
+  EPaperInput.prototype.on_mouse_up_handler_normal_mode =  function (a_x, a_y) {
     if ( a_x < this._bb_x || a_x > (this._bb_x + this._bb_w) || a_y < this._bb_y || a_y > (this._bb_y + this._bb_h) ) {
       this.commit_value_to_server();
       return false;
@@ -118,7 +118,7 @@
    *
    * @param a_x X coordinate of the mouse event (relative to canvas)
    */
-  root.EPaperInput.prototype.set_cursor_pos_with_mouse = function (a_x) {
+  EPaperInput.prototype.set_cursor_pos_with_mouse = function (a_x) {
     var min, mid, max, relative_x, delta, best_delta, delta, len, idx, font;
 
     font = this._ctx.font;
@@ -165,7 +165,7 @@
    *
    * @return true if the widget consumes the mouse event, false if the click is ignored
    */
-  root.EPaperInput.prototype.on_mouse_over_handler_normal_mode = function (a_x, a_y) {
+  EPaperInput.prototype.on_mouse_over_handler_normal_mode = function (a_x, a_y) {
 
     if ( this._enabled &&
          a_x > this._bb_x && a_x < this._bb_x + this._bb_w &&
@@ -180,7 +180,7 @@
   /**
    * @brief Draws selection background
    */
-  root.EPaperInput.prototype.draw_selection_background = function () {
+  EPaperInput.prototype.draw_selection_background = function () {
     if ( this._epaper.is_focused() ) {
       if ( this._selection_px_length !== 0 ) {
         this._ctx.fillStyle = this._selection_background;
@@ -192,7 +192,7 @@
   /**
    * @brief Default Paint method for input box
    */
-  root.EPaperInput.prototype.paint_normal_mode = function () {
+  EPaperInput.prototype.paint_normal_mode = function () {
 
     // ... update the cursor location ...
     var up2cursor_length = this._ctx.measureText((this._display_value || '').substring(0, this._cursor_pos)).width;
@@ -238,4 +238,4 @@
     this._ctx.restore();
   };
 
-})(this);
+}

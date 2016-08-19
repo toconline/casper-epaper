@@ -18,7 +18,7 @@
  *-------------------------------------------------------------------------*/
 "use strict";
 
-(function(root) {
+function EPaperInputRadioButtonMode_Initialize (a_root) {
 
   /**
    * @brief Handler for control keys
@@ -28,7 +28,7 @@
    * @return @li true if key is consumed
    *         @li false if the key is not consumed
    */
-  root.EPaperInput.prototype.on_key_down_radio_button_mode = function (a_key) {
+  a_root.EPaperInput.prototype.on_key_down_radio_button_mode = function (a_key) {
 
     if ( a_key === 'left' || a_key === 'right' || a_key === 'up' || a_key === 'down' ) {
       /* focus keys */
@@ -55,7 +55,7 @@
    * @return @li true if key is consumed
    *         @li false if the key is not consumed
    */
-  root.EPaperInput.prototype.on_key_press_radio_button_mode = function (a_character) {
+  EPaperInput.prototype.on_key_press_radio_button_mode = function (a_character) {
     return true;
   };
 
@@ -67,7 +67,7 @@
    *
    * @return true if the widget consumes the mouse event, false if the click is ignored
    */
-  root.EPaperInput.prototype.on_mouse_down_handler_radio_button_mode = function (a_x, a_y) {
+  EPaperInput.prototype.on_mouse_down_handler_radio_button_mode = function (a_x, a_y) {
     return false;
   };
 
@@ -79,7 +79,7 @@
    *
    * @return true if the widget consumes the mouse event, false if the click is ignored
    */
-  root.EPaperInput.prototype.on_mouse_up_handler_radio_button_mode = function (a_x, a_y) {
+  EPaperInput.prototype.on_mouse_up_handler_radio_button_mode = function (a_x, a_y) {
     return false;
   };
 
@@ -91,7 +91,7 @@
    *
    * @return true if the widget consumes the mouse event, false if the click is ignored
    */
-  root.EPaperInput.prototype.on_mouse_over_handler_radio_button_mode = function (a_x, a_y) {
+  EPaperInput.prototype.on_mouse_over_handler_radio_button_mode = function (a_x, a_y) {
 
     if ( this._enabled &&
          a_x > this._bb_x && a_x < this._bb_x + this._bb_w &&
@@ -106,7 +106,7 @@
   /**
    * @brief Default Paint method for input box
    */
-  root.EPaperInput.prototype.paint_radio_button_mode = function () {
+  EPaperInput.prototype.paint_radio_button_mode = function () {
 
     // ... update the cursor location ...
     var up2cursor_length = this._ctx.measureText((this._display_value || '').substring(0, this._cursor_pos)).width;
@@ -152,4 +152,4 @@
     this._ctx.restore();
   };
 
-})(this);
+}

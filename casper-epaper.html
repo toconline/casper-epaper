@@ -13,6 +13,15 @@
 
   <script>
 
+    EPaperSocket_Initialize(window);
+    EPaperWidget_Initialize(window);
+    EPaperTooltip_Initialize(window);
+    EPaperComboBoxList_Initialize(window);
+    EPaperOverlayButton_Initialize(window);
+    EPaperServertipHelper_Initialize(window);
+    EPaperInputNormalMode_Initialize(window);
+    EPaperInputRadioButtonMode_Initialize(window);
+
     Polymer({
       is: 'casper-epaper',
       properties: {
@@ -47,12 +56,33 @@
       },
 
       ready: function () {
+        // Lazy load JS stuff
         this.calculate_attribute_defaults();
         this._epaper = new EPaper(this.url, this.port, this.uri, this.$.canvas, undefined, this.asset_url, this.asset_digest);
       },
 
-      attached: function() {
+      attached: function () {
         console.log("Hello my name is paper");
+      },
+
+      //<!-- EPaper.prototype.load_document = function (a_base_url, a_params, a_is_subdocument, a_edition, a_success_handler) -->
+      load: function (a_cmd) {
+        this._epaper.load_document(a_cmd["path"], a_cmd['params'], false, false, undefined);
+      },
+
+      // EPaper.prototype.open_document = function (a_jrxml, a_locale, a_jsonapi_prefix, a_schema, a_table_prefix, a_edition, a_is_subdocument, a_success_handler) -->
+      open: function (a_cmd) {
+        a_cmd['locale']       = a_cmd['locale']       || 'pt-PT';
+        a_cmd['schema']       = a_cmd['schema']       || '';
+        a_cmd['table_prefix'] = a_cmd['table_prefix'] || '';
+        this._epaper.open_document(a_cmd['jrxml'],
+                                   a_cmd['locale'],
+                                   a_cmd['prefix'],
+                                   a_cmd['schema'],
+                                   a_cmd['table_prefix'],
+                                   false,
+                                   false,
+                                   undefined);
       },
 
       /**
@@ -60,10 +90,10 @@
        */
       calculate_attribute_defaults: function () {
         if ( this.url === undefined ) {
-          if ( window.location.protocol === "https:" ) {
-            this.url = "wss://" + window.location.hostname;
+          if ( window.location.protocol === 'https:' ) {
+            this.url = 'wss://' + window.location.hostname;
           } else {
-            this.url = "ws://" + window.location.hostname;
+            this.url = 'ws://' + window.location.hostname;
           }
         }
         this.port = this.port || window.location.port;

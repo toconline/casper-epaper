@@ -18,7 +18,7 @@
  *-------------------------------------------------------------------------*/
 "use strict";
 
-(function(root) {
+function EPaperServertipHelper_Initialize (a_root) {
 
   /**
    * @brief Input box constructor
@@ -26,7 +26,7 @@
    * @param a_epaper Parent EPaper object
    * @param a_input_box The input box that manages the tooltip
    */
-  root.EPaperServertipHelper = function (a_epaper, a_input_box) {
+  a_root.EPaperServertipHelper = function (a_epaper, a_input_box) {
 
     EPaperWidget.call(this, a_epaper);
 
@@ -201,4 +201,4 @@
     // empty This component is always transparent
   };
 
-})(this);
+}
