@@ -30,8 +30,6 @@ function EPaperSocket_Initialize (a_root) {
       constructor: a_root.EpaperSocket,
 
       connect: function () {
-
-        console.log("e-paper initialize");
         if (typeof MozWebSocket != "undefined") {
           this._socket = new MozWebSocket(this._ws_uri, "skunk-epaper");
         } else {

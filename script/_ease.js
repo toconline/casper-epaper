@@ -21,6 +21,30 @@
 
 (function(root) {
 
+  root.EPaper = function () {
+
+  },
+
+  root.EPaper.BTN_SIZE = 24;  // Size is in pixels not pt
+
+  root.EPaper.prototype = {
+    constructor: root.Epaper,
+
+    /*
+     * Constants
+     */
+    KAPPA:           .5522848,
+    BOLD_MASK:       0x01,
+    ITALIC_MASK:     0x02,
+    UNDERLINE_MASK:  0x04,
+    STRIKEOUT_MASK:  0x08,
+    BOLD_INDEX:      0,
+    ITALIC_INDEX:    1,
+    SIZE_INDEX:      2,
+    FONT_NAME_INDEX: 4,
+    PUNCTURE_HEIGHT: 16,
+  },
+
   /**
    * @brief An exponential approximation of the default CSS transition timing function.
    *
