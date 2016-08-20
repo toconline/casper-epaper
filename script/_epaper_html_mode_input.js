@@ -18,7 +18,7 @@
  *-------------------------------------------------------------------------*/
 "use strict";
 
-(function(root) {
+function EPaperInputHtmlMode_Initialize (a_root) {
 
   /**
    * @brief Handler for control keys
@@ -28,7 +28,7 @@
    * @return @li true if key is consumed
    *         @li false if the key is not consumed
    */
-  root.EPaperInput.prototype.on_key_down_html_mode = function (a_key) {
+  a_root.EPaperInput.prototype.on_key_down_html_mode = function (a_key) {
 
     if ( this._initial_selection === true ) {
       if ( a_key === 'left' || a_key === 'right' || a_key === 'up' || a_key === 'down' ) {
@@ -329,4 +329,4 @@
     document.body.appendChild(this._html_input);
   };
 
-})(this);
+}

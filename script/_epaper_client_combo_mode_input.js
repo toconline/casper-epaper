@@ -18,7 +18,7 @@
  *-------------------------------------------------------------------------*/
 "use strict";
 
-(function(root) {
+function EPaperInputClientComboMode_Initialize (a_root) {
 
   /**
    * @brief Handler for control keys
@@ -28,7 +28,7 @@
    * @return @li true if key is consumed
    *         @li false if the key is not consumed
    */
-  root.EPaperInput.prototype.on_key_down_client_combo_mode = function (a_key) {
+  a_root.EPaperInput.prototype.on_key_down_client_combo_mode = function (a_key) {
 
     if ( this._initial_selection === true ) {
 
@@ -343,4 +343,4 @@
     this._ctx.restore();
   };
 
-})(this);
+}

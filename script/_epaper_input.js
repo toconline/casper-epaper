@@ -22,14 +22,14 @@
 // http://marijnhaverbeke.nl/blog/browser-input-reading.html - very complex project ...
 // https://disqus.com/home/discussion/goldfire/canvasinput_html5_canvas_text_input/
 
-(function(root) {
+function EPaperInput_Initialize (a_root) {
 
   /**
    * @brief Input box constructor
    *
    * @param e_epaper Parent EPaper object
    */
-  root.EPaperInput = function (a_epaper) {
+  a_root.EPaperInput = function (a_epaper) {
 
     this._epaper      = a_epaper;
     this._ctx         = a_epaper._ctx;
@@ -119,7 +119,7 @@
   EPaperInput.NULLABLE_LIST        = 0x0800;
 
   EPaperInput.prototype = {
-    constructor: root.EPaperInput,
+    constructor: EPaperInput,
 
     /**
      * @brief Reset attributes to safe defaults, used by constructor and stop_editor
@@ -987,4 +987,4 @@
     return a_text.split('"').join('""');
   };
 
-})(this);
+}

@@ -19,7 +19,7 @@
 
 "use strict";
 
-(function(root) {
+function EPaperInputTreeMode_Initialize (a_root) {
 
   /**
    * @brief Start the text editor
@@ -316,4 +316,4 @@
     }
   };
 
-})(this);
+}

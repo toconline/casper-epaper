@@ -19,9 +19,7 @@
 
 "use strict";
 
-function EPaperOverlayButton_Initialize (a_root)
-{
-  console.log('Hello cruel JS world');
+function EPaperOverlayButton_Initialize (a_root) {
 
   /**
    * @brief Overlay button constructor
