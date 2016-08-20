@@ -25,40 +25,24 @@
 
   },
 
-  root.EPaper.BTN_SIZE = 24;  // Size is in pixels not pt
-
   root.EPaper.prototype = {
     constructor: root.Epaper,
 
-    /*
-     * Constants
+    /**
+     * @brief An exponential approximation of the default CSS transition timing function.
+     *
+     * @param a_t parametic t between 0 and 1
      */
-    KAPPA:           .5522848,
-    BOLD_MASK:       0x01,
-    ITALIC_MASK:     0x02,
-    UNDERLINE_MASK:  0x04,
-    STRIKEOUT_MASK:  0x08,
-    BOLD_INDEX:      0,
-    ITALIC_INDEX:    1,
-    SIZE_INDEX:      2,
-    FONT_NAME_INDEX: 4,
-    PUNCTURE_HEIGHT: 16,
-  },
+    ease: function (a_t) {
 
-  /**
-   * @brief An exponential approximation of the default CSS transition timing function.
-   *
-   * @param a_t parametic t between 0 and 1
-   */
-  root.EPaper.prototype.ease = function (a_t) {
-
-    return (
+      return (
         a_t <= 0 ? 0 :
         a_t >= 1 ? 1 :
         1.0042954579734844 * Math.exp(
           -6.4041738958415664 * Math.exp(
             -7.2908241330981340 * a_t))
-    );
-  };
+      );
+    },
+  }
 
 })(this);

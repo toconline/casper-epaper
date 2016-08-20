@@ -1,21 +1,22 @@
 /*-------------------------------------------------------------------------*
-  * Copyright (c) 2010-2016 Neto Ranito & Seabra LDA. All rights reserved.
+ * Copyright (c) 2014-2016 Neto Ranito & Seabra LDA. All rights reserved.
  *
- * This file is part of casper.
+ * This file is part of casper-epaper.
  *
- * casper is free software: you can redistribute it and/or modify
+ * casper-epaper is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * casper  is distributed in the hope that it will be useful,
+ * casper-epaper  is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with casper.  If not, see <http://www.gnu.org/licenses/>.
+ * along with casper-epaper.  If not, see <http://www.gnu.org/licenses/>.
  *-------------------------------------------------------------------------*/
+
 "use strict";
 
 function EPaperInputNormalMode_Initialize (a_root) {
