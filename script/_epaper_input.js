@@ -92,7 +92,7 @@ function EPaperInput_Initialize (a_root) {
     this._tooltip_helper.set_visible(false);
 
     // ... size the buttons ...
-    var size = this._epaper..BTN_SIZE * this._epaper._ratio;
+    var size = this._epaper.BTN_SIZE * this._epaper._ratio;
 
     this._open_combo_button.set_size(size, size);
     this._clear_combo_button.set_size(size, size);
