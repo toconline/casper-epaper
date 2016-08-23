@@ -21,6 +21,16 @@
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../casper-epaper/casper-epaper-imports.html">
 
+<!--
+  `<awesome-sauce>` injects a healthy dose of awesome into your page.
+
+   In typical use, just slap some `<awesome-sauce>` at the top of your body:
+
+       <body>
+         <awesome-sauce></awesome-sauce>
+
+   Wham! It's all awesome now!
+-->
 <dom-module id="casper-epaper">
   <template>
     <style>
@@ -49,18 +59,22 @@
     Polymer({
       is: 'casper-epaper',
       properties: {
+        /** component width in px */
         width: {
           type: Number,
           value: 595
         },
+        /** component height in px */
         height: {
           type: Number,
           value: 842
         },
+        /** */
         url: {
           type: String,
           value: undefined
         },
+        /** websocket port number, defaults to current page port */
         port: {
           type: String,
           value: undefined
@@ -73,6 +87,7 @@
           type: String,
           value: undefined
         },
+        /** when true prints debug messages when assets are loaded */
         asset_debug: {
           type: Boolean,
           value: false
@@ -82,18 +97,17 @@
       /*
        * Constants
        */
-      BTN_SIZE:        24,  // Size is in pixels not pt
-      KAPPA:           .5522848,
-      BOLD_MASK:       0x01,
-      ITALIC_MASK:     0x02,
-      UNDERLINE_MASK:  0x04,
-      STRIKEOUT_MASK:  0x08,
-      BOLD_INDEX:      0,
-      ITALIC_INDEX:    1,
-      SIZE_INDEX:      2,
-      FONT_NAME_INDEX: 4,
-      PUNCTURE_HEIGHT: 16,
-
+      _BTN_SIZE:        24,  // Size is in pixels not pt
+      _KAPPA:           .5522848,
+      _BOLD_MASK:       0x01,
+      _ITALIC_MASK:     0x02,
+      _UNDERLINE_MASK:  0x04,
+      _STRIKEOUT_MASK:  0x08,
+      _BOLD_INDEX:      0,
+      _ITALIC_INDEX:    1,
+      _SIZE_INDEX:      2,
+      _FONT_NAME_INDEX: 4,
+      _PUNCTURE_HEIGHT: 16,
 
       /*****************************************************************************************/
       /*                                                                                       */
@@ -101,7 +115,7 @@
       /*                                                                                       */
       /*****************************************************************************************/
 
-      validate_response: function (a_expected_response, a_response) {
+      _validate_response: function (a_expected_response, a_response) {
         var expected_start;
 
         expected_start = 'S:ok:' + a_expected_response;
@@ -150,7 +164,7 @@
           return new Promise(function (a_resolve, a_reject) {
             self = a_epaper;
 
-            self.make_widgets_invisble();
+            self._make_widgets_invisible();
             if ( self._subdocument === true ) {
               self._close_tear_button.set_visible(true);
             }
@@ -158,20 +172,20 @@
               return a_resolve(self);
             }
             self.send_command('document open "' + self._jrxml + '","' + self._locale + '",' + self._subdocument + ',false;', function (a_response) {
-              var response = self.validate_response('open', a_response);
+              var response = self._validate_response('open', a_response);
               if ( response instanceof Error ) {
                 a_reject(response);
               } else {
 
                 self._message     = response;
                 self._r_idx       = 0;
-                self._document_id = self.get_double();
-                self._page_width  = self.get_double();
-                self._page_height = self.get_double();
+                self._document_id = self._get_double();
+                self._page_width  = self._get_double();
+                self._page_height = self._get_double();
                 if ( isNaN(self._page_height) ) {
                   self._page_height = 4000;
                 }
-                self._right_margin = self.get_double();
+                self._right_margin = self._get_double();
 
                 a_resolve(self);
               }
@@ -183,7 +197,7 @@
           return new Promise(function (a_resolve, a_reject) {
             self = a_epaper;
             self.send_command('document config json_api "' + self._prefix + '","' + self._schema + '","' + self._table_prefix + '";', function (a_response) {
-              var response = self.validate_response('json_api', a_response);
+              var response = self._validate_response('json_api', a_response);
 
               if ( response instanceof Error ) {
                 a_reject(response);
@@ -204,7 +218,7 @@
             self.send_command('document load ' + '"' + self._path + '"' + (self._params !== undefined ? ',"' + self._params + '"' : '') + ','
                               + self._sx.toFixed(4) + ',' + self._sy.toFixed(4) + ',' + self._subdocument + ',' + self._edition + ';',
                               function (a_response) {
-                                var response = self.validate_response('load', a_response);
+                                var response = self._validate_response('load', a_response);
                                 if ( response instanceof Error ) {
                                   a_reject(response);
                                 } else {
@@ -234,7 +248,7 @@
 
 
       close_document: function (a_success_handler) {
-        this.make_widgets_invisble();
+        this._make_widgets_invisible();
         this.call_rpc('close', 'document close "' + this._document_id + '";', function(a_epaper, a_message) {
             var expected_response = 'S:ok:close:' + a_epaper._document_id;
             if ( a_message.indexOf(expected_response) === 0 ) {
@@ -269,30 +283,27 @@
         );
       },
 
-    call_rpc: function (a_invoke_id, a_command, a_success_handler, a_failure_handler) {
+      call_rpc: function (a_invoke_id, a_command, a_success_handler, a_failure_handler) {
 
-      a_failure_handler = a_failure_handler || function (a_epaper, a_message) {
-        if ( a_epaper._listener !== undefined ) {
-          a_epaper._listener.on_error(a_message);
-        } else {
-          alert(a_message);
-        }
-      }
-
-      this.send_command(a_command, function (a_message) {
-
-        if ( a_message.indexOf('S:error:') === 0 || a_message.indexOf('S:exception:') === 0 ) {
-          a_failure_handler(this, a_message);
-          return;
+        a_failure_handler = a_failure_handler || function (a_epaper, a_message) {
+          if ( a_epaper._listener !== undefined ) {
+            a_epaper._listener.on_error(a_message);
+          } else {
+            alert(a_message);
+          }
         }
 
-        if ( a_message.indexOf('S:ok:' + a_invoke_id) === 0 ) {
-          a_success_handler(this, a_message);
-        }
+        this.send_command(a_command, function (a_message) {
+          if ( a_message.indexOf('S:error:') === 0 || a_message.indexOf('S:exception:') === 0 ) {
+            a_failure_handler(this, a_message);
+            return;
+          }
+          if ( a_message.indexOf('S:ok:' + a_invoke_id) === 0 ) {
+            a_success_handler(this, a_message);
+          }
 
-      });
-
-    },
+        });
+      },
 
       /*****************************************************************************************/
       /*                                                                                       */
@@ -301,7 +312,7 @@
       /*****************************************************************************************/
 
       ready: function () {
-        this.calculate_attribute_defaults();
+        this._calculate_attribute_defaults();
 
         this._socket            = new EPaperSocket(this, this.url, this.port, this.uri);
         this._listener          = undefined;
@@ -324,7 +335,7 @@
         this._is_focused        = false;
         this._focused_band_id   = undefined;
         this._redraw_timer_key  = '_epaper_redraw_timer_key';
-        this.reset_render_state();
+        this._reset_render_state();
 
         this._page_width  = 595.0;
         this._page_height = 842.0;
@@ -337,33 +348,33 @@
         this._saved_idx         = 0.0;
         this._saved_draw_string = '';
 
-        this.setup_pixel_ratio();
+        this._setup_pixel_ratio();
 
         // ... config assets url and then load the assets ...
-        this.load_assets(this.asset_url, this.asset_digest);
+        this._load_assets(this.asset_url, this.asset_digest);
 
         this._edition   = false;
         this._input_box = new EPaperInput(this);
 
         // ... Install handlers ...
-        this._canvas.addEventListener('mousemove', this.create_move_handler(this));
-        this._canvas.addEventListener('mousedown', this.create_mouse_down_handler(this));
-        this._canvas.addEventListener('mouseup'  , this.create_mouse_up_handler(this));
-        this._canvas.addEventListener('focus'    , this.create_focus_handler(this));
-        this._canvas.addEventListener('blur'     , this.create_blur_handler(this));
-        this._canvas.addEventListener('focusout' , this.create_blur_handler(this));
-        this._canvas.addEventListener('paste'    , this.create_html_onpaste_handler(this));
-        this._canvas.onkeydown  = this.create_onkeydown_handler(this);
-        this._canvas.onkeypress = this.create_onkeypress_handler(this);
+        this._canvas.addEventListener('mousemove', this._create_move_handler(this));
+        this._canvas.addEventListener('mousedown', this._create_mouse_down_handler(this));
+        this._canvas.addEventListener('mouseup'  , this._create_mouse_up_handler(this));
+        this._canvas.addEventListener('focus'    , this._create_focus_handler(this));
+        this._canvas.addEventListener('blur'     , this._create_blur_handler(this));
+        this._canvas.addEventListener('focusout' , this._create_blur_handler(this));
+        this._canvas.addEventListener('paste'    , this._create_html_onpaste_handler(this));
+        this._canvas.onkeydown  = this._create_onkeydown_handler(this);
+        this._canvas.onkeypress = this._create_onkeypress_handler(this);
         this._canvas.contentEditable = false;
 
         this._canvas.addEventListener ("textInput", function(a_event) {  }, true );
 
         // ... clear band tearing control variables ...
-        this.reset_band_tearing();
+        this._reset_band_tearing();
 
         // ... clear the page before we start ...
-        this.setup_scale();
+        this._setup_scale();
 
         // ... FOUT Mitigation @TODO proper FOUT mitigation ...
         var styles    = ['', 'bold ', 'italic ', 'italic bold '];
@@ -371,9 +382,9 @@
         this._ctx.save();
         this._ctx.fillStyle = "#F0F0F0"
         this._ctx.textAlign="center";
-        this._font_spec[this.SIZE_INDEX] = 20;
+        this._font_spec[this._SIZE_INDEX] = 20;
         for ( var i = 0; i < styles.length; i++ ) {
-          this._font_spec[this.BOLD_INDEX] = styles[i];
+          this._font_spec[this._BOLD_INDEX] = styles[i];
           this._ctx.font = this._font_spec.join('');
           this._ctx.fillText("Powered by Skunk e-Paper", this._canvas.width / 2, y);
           y += 35;
@@ -381,8 +392,8 @@
         this._ctx.restore();
 
         // ... create the overlay widgetery ...
-        this.create_line_context_menu();
-        this.create_tear_buttons();
+        this._create_line_context_menu();
+        this._create_tear_buttons();
         this._input_box._open_combo_button.send_to_front();
         this._input_box._edit_subdocument_button.send_to_front();
       },
@@ -390,7 +401,7 @@
       /**
        * @brief Assing defaults to undefined component attributes
        */
-      calculate_attribute_defaults: function () {
+      _calculate_attribute_defaults: function () {
         if ( this.url === undefined ) {
           if ( window.location.protocol === 'https:' ) {
             this.url = 'wss://' + window.location.hostname;
@@ -409,7 +420,7 @@
       /**
        * @brief Determine the device pixel ratio: 1 on classical displays 2 on retina/UHD displays
        */
-      setup_pixel_ratio: function () {
+      _setup_pixel_ratio: function () {
         var devicePixelRatio  = window.devicePixelRatio || 1;
         if (devicePixelRatio > 1.6) {
           devicePixelRatio = 2;
@@ -431,7 +442,7 @@
        *
        * After server and client align the render contexts the server uses diferential updates
        */
-      reset_render_state: function () {
+      _reset_render_state: function () {
         this._fill_color      = '#FFFFFF';
         this._text_color      = '#000000';
         this._font_spec       = ['', '', 10, 'px ', 'DejaVu Sans Condensed'];
@@ -447,10 +458,10 @@
        * @param a_asset_url URL of the static asset server
        * @param a_digest    Hash generated by asset pipeline
        */
-      load_assets: function (a_asset_url, a_digest) {
-        this._puncture_static_img  = this.load_asset(this.asset_debug, a_asset_url , 'puncture_static' + a_digest + '.png');
-        this._top_puncture_img     = this.load_asset(this.asset_debug, a_asset_url , 'top_puncture'    + a_digest + '.png');
-        this._bottom_puncture_img  = this.load_asset(this.asset_debug, a_asset_url , 'bottom_puncture' + a_digest + '.png');
+      _load_assets: function (a_asset_url, a_digest) {
+        this._puncture_static_img  = this._load_asset(this.asset_debug, a_asset_url , 'puncture_static' + a_digest + '.png');
+        this._top_puncture_img     = this._load_asset(this.asset_debug, a_asset_url , 'top_puncture'    + a_digest + '.png');
+        this._bottom_puncture_img  = this._load_asset(this.asset_debug, a_asset_url , 'bottom_puncture' + a_digest + '.png');
 
         EPaperOverlayButton.load_assets(this, this.asset_debug, a_asset_url, a_digest);
       },
@@ -464,7 +475,7 @@
        *
        * @return  a_image the variable that will hold the image object
        */
-      load_asset: function (a_asset_debug, a_asset_url, a_image_path) {
+      _load_asset: function (a_asset_debug, a_asset_url, a_image_path) {
         var image = new Image();
 
         image.onload = function () {
@@ -490,20 +501,20 @@
       /*                                                                                       */
       /*****************************************************************************************/
 
-      create_focus_handler: function (a_epaper) {
+      _create_focus_handler: function (a_epaper) {
         return function(a_event) {
           a_epaper._is_focused = true;
           a_epaper._input_box._on_focus_handler();
-          a_epaper.repaint_page();
+          a_epaper._repaint_page();
           console.log('++++ Epaper GOT focus ++++');
         }
       },
 
-      create_blur_handler: function (a_epaper) {
+      _create_blur_handler: function (a_epaper) {
         return function(a_event) {
           a_epaper._is_focused = false;
           a_epaper._input_box._on_blur_handler();
-          a_epaper.repaint_page();
+          a_epaper._repaint_page();
           console.log('---- Epaper LOST focus ----');
         }
       },
@@ -516,7 +527,7 @@
         }
       },
 
-      create_html_onpaste_handler: function (a_epaper) {
+      _create_html_onpaste_handler: function (a_epaper) {
         return function (a_event) {
           a_epaper._input_box.paste_from_canvas(a_event);
         }
@@ -531,31 +542,31 @@
       /**
        * @brief Creates the handler that listens to mouse movements
        */
-      create_move_handler: function (a_epaper) {
+      _create_move_handler: function (a_epaper) {
         return function (a_event) {
           var x = a_event.offsetX * a_epaper._ratio;
           var y = a_event.offsetY * a_epaper._ratio;
 
           y -= a_epaper._translate_y;
           a_epaper._ctx.save();
-          a_epaper.apply_translation();
+          a_epaper._apply_translation();
 
-          if ( a_epaper.mouse_over_widgets(x, y, a_event) === false ) {
+          if ( a_epaper._mouse_over_widgets(x, y, a_event) === false ) {
             if ( a_epaper._input_box._on_mouse_over_handler !== undefined ) {
               if ( a_epaper._input_box._on_mouse_over_handler(x,y) === false ) {
                 a_epaper.reset_cursor();
               }
               if ( a_epaper._edition ) {
-                a_epaper.update_context_menu(y);
+                a_epaper._update_context_menu(y);
               }
             }
           }
-          a_epaper.repaint_widgets();
+          a_epaper._repaint_widgets();
           a_epaper._ctx.restore();
         };
       },
 
-      create_mouse_down_handler: function (a_epaper) {
+      _create_mouse_down_handler: function (a_epaper) {
         return function (a_event) {
           var x = a_event.offsetX * a_epaper._ratio;
           var y = a_event.offsetY * a_epaper._ratio;
@@ -563,13 +574,13 @@
           y -= a_epaper._translate_y;
 
           a_epaper._ctx.save();
-          a_epaper.apply_translation();
-          if ( a_epaper.mouse_click_widgets(x, y, true) === false ) {
+          a_epaper._apply_translation();
+          if ( a_epaper._mouse_click_widgets(x, y, true) === false ) {
             if ( a_epaper._input_box._on_mouse_down_handler !== undefined ) {
                a_epaper._input_box._on_mouse_down_handler(x,y);
             }
           }
-          a_epaper.repaint_widgets();
+          a_epaper._repaint_widgets();
           a_epaper._ctx.restore();
           if ( a_epaper._input_box.prevent_mouse_default() ) {
             a_event.preventDefault();
@@ -577,7 +588,7 @@
         }
       },
 
-      create_mouse_up_handler: function (a_epaper) {
+      _create_mouse_up_handler: function (a_epaper) {
         return function (a_event) {
           var x = a_event.offsetX * a_epaper._ratio;
           var y = a_event.offsetY * a_epaper._ratio;
@@ -585,7 +596,7 @@
           y -= a_epaper._translate_y;
 
           a_epaper._ctx.save();
-          if ( a_epaper.mouse_click_widgets(x, y, false) === false ) {
+          if ( a_epaper._mouse_click_widgets(x, y, false) === false ) {
 
             if (    a_epaper._input_box._on_mouse_up_handler === undefined
                  || a_epaper._input_box._on_mouse_up_handler(x,y) === false ) {
@@ -595,8 +606,8 @@
               a_epaper.send_command("set click " + x.toString().replace(',', '.') + ', ' + y.toString().replace(',', '.') + ';');
             }
           }
-          a_epaper.apply_translation();
-          a_epaper.repaint_widgets();
+          a_epaper._apply_translation();
+          a_epaper._repaint_widgets();
           a_epaper._ctx.restore();
         }
       },
@@ -619,9 +630,9 @@
       /*                                                                                       */
       /*****************************************************************************************/
 
-      create_onkeydown_handler: function(a_epaper) {
+      _create_onkeydown_handler: function(a_epaper) {
         return function (a_event) {
-          var key = a_epaper.keycode_to_vkey(a_event);
+          var key = a_epaper._keycode_to_vkey(a_event);
 
           if ( a_event.keyCode === 32 ) {
 
@@ -646,7 +657,7 @@
         }
       },
 
-      create_onkeypress_handler: function (a_epaper) {
+      _create_onkeypress_handler: function (a_epaper) {
         return function (a_event) {
           var unicode_char = a_event.which || a_event.keyCode;
 
@@ -665,7 +676,7 @@
        *
        * @return the virtual key name or null if there no mapping
        */
-      keycode_to_vkey: function (a_event) {
+      _keycode_to_vkey: function (a_event) {
         switch (a_event.keyCode) {
         case  8: // backspace
           return 'backspace';
@@ -741,7 +752,7 @@
       /*                                                                                       */
       /*****************************************************************************************/
 
-      paint_grid: function (a_major, a_minor) {
+      _paint_grid: function (a_major, a_minor) {
         var width  = this._canvas.width;
         var height = this._canvas.height;
         var x      = 0;
@@ -783,7 +794,7 @@
         this._ctx.strokeStyle = "#000000";
       },
 
-      get_double: function() {
+      _get_double: function() {
 
         var fractional    = 0.0;
         var whole         = 0.0;
@@ -836,14 +847,13 @@
         }
       },
 
-      on_paint_message: function (a_message) {
-
+      _on_paint_message: function (a_message) {
         this._r_idx   = 1;
         this._message = a_message;
-        this.paint_band();
+        this._paint_band();
       },
 
-      apply_translation: function () {
+      _apply_translation: function () {
         if ( this._translate_y !== 0 ) {
           this._ctx.setTransform(1, 0, 0, 1, 0, this._translate_y);
           this._ctx.rect(0,0,this._canvas.width, this._band_tear_gap);
@@ -854,11 +864,11 @@
       clear_page: function () {
         var saved_fill = this._ctx.fillStyle;
 
-        this.apply_translation();
+        this._apply_translation();
         this._ctx.fillStyle = this._background_color;
         this._ctx.fillRect(0, 0, this._canvas.width, this._canvas.height);
         if ( this._grid_major !== 0.0 ) {
-          this.paint_grid(this._grid_major, this._grid_minor);
+          this._paint_grid(this._grid_major, this._grid_minor);
         }
         this._ctx.fillStyle = saved_fill;
       },
@@ -871,10 +881,10 @@
        *
        * @note This function must keep the object context and canvas context unmodified
        */
-      repaint_page: function () {
+      _repaint_page: function () {
         var band;
 
-        this.reset_redraw_timer();
+        this._reset_redraw_timer();
 
         // ... prevent page updated when the tear animation is closing ...
         if ( this._band_tearing === false && this._band_tear_max_gap !== 0 ) {
@@ -884,7 +894,7 @@
         //console.time("repaint_page");
 
         // ... save context clear the complete canvas ...
-        this.save_paint_context();
+        this._save_paint_context();
         this._ctx.save();
         this.clear_page();
 
@@ -895,7 +905,7 @@
             band = this._bands[i];
             this._r_idx       = band._idx;
             this._message     = band._draw_string;
-            this.paint_band();
+            this._paint_band();
           }
         }
 
@@ -906,30 +916,29 @@
         }
 
         // ... at last refresh the widgets backgrounds forcing a repaint of all visible widgets ...
-        this.update_widgets_background();
-        this.repaint_widgets_martelado();
+        this._update_widgets_background();
+        this._repaint_widgets_martelado();
 
         this._ctx.restore();
-        this.restore_paint_context();
+        this._restore_paint_context();
 
         //console.timeEnd("repaint_page");
       },
 
-      save_paint_context: function () {
+      _save_paint_context: function () {
         this._saved_idx         = this._r_idx;
         this._saved_draw_string = this._message;
       },
 
-      restore_paint_context: function () {
+      _restore_paint_context: function () {
         this._r_idx           = this._saved_idx;
         this._message         = this._saved_draw_string;
       },
 
-      paint_string: function (a_draw_string) {
-
+      _paint_string: function (a_draw_string) {
         this._message = a_draw_string;
         this._r_idx   = 0;
-        this.paint_band();
+        this._paint_band();
       },
 
       /**
@@ -938,7 +947,7 @@
        * The paint instructions are in the _message string, this string is walked using _r_idx index handling each
        * command until the end of the message
        */
-      paint_band: function () {
+      _paint_band: function () {
 
         var do_paint   = true;
         var option     = '';
@@ -956,7 +965,7 @@
         var sw         = 0.0;
         var t1,t2,t3;
 
-        this.reset_render_state();
+        this._reset_render_state();
         while (this._r_idx < this._message.length) {
 
           switch ( this._message[this._r_idx++] ) {
@@ -967,7 +976,7 @@
             case 'Z':
 
               if ( this._message[this._r_idx] === 'd' ) {
-                this.reset_render_state();
+                this._reset_render_state();
                 this._r_idx++;
               } else {
                 this.clear_page();
@@ -985,19 +994,19 @@
             case 'b':
 
               option = this._message[this._r_idx - 1];
-              w      = this.get_double();
+              w      = this._get_double();
               t1     = this._message.substring(this._r_idx, this._r_idx + w); // Band type
               this._r_idx += w + 1;
-              w = this.get_double();                                          // Band ID
+              w = this._get_double();                                          // Band ID
               t2     = this._message[this._r_idx];                           // Editable - 't' or 'f'
               this._r_idx += 2;
-              h = this.get_double();                                          // Band height
-              x = this.get_double();
-              y = this.get_double();
+              h = this._get_double();                                          // Band height
+              x = this._get_double();
+              y = this._get_double();
 
               // ... search for a band with same id on the stored band array ...
               var band = null;
-              sx = this.binary_find_band_by_id(w);
+              sx = this._binary_find_band_by_id(w);
               if ( sx !== -1 ) {
                 band = this._bands[sx];
               } else {
@@ -1038,7 +1047,7 @@
             case 'U':
 
               if ( this._bands !== undefined && this._bands.length ) {
-                this.repaint_page();
+                this._repaint_page();
               }
               return;
 
@@ -1049,10 +1058,10 @@
 
               if ( do_paint ) {
 
-                x  = this.get_double();
-                y  = this.get_double();
-                x2 = this.get_double();
-                y2 = this.get_double();
+                x  = this._get_double();
+                y  = this._get_double();
+                x2 = this._get_double();
+                y2 = this._get_double();
 
                 this._ctx.beginPath();
 
@@ -1078,7 +1087,7 @@
                 this._ctx.stroke();
 
               } else {
-                this.get_double(); this.get_double(); this.get_double(); this.get_double();
+                this._get_double(); this._get_double(); this._get_double(); this._get_double();
               }
               break;
 
@@ -1093,9 +1102,9 @@
                 // fall trough
                 default:
                   if ( do_paint ) {
-                    this._ctx.strokeRect(this.get_double(), this.get_double(), this.get_double(), this.get_double());
+                    this._ctx.strokeRect(this._get_double(), this._get_double(), this._get_double(), this._get_double());
                   } else {
-                    this.get_double(); this.get_double(); this.get_double(); this.get_double()
+                    this._get_double(); this._get_double(); this._get_double(); this._get_double()
                   }
                   break;
 
@@ -1103,9 +1112,9 @@
                   this._r_idx++;
                   this._ctx.fillStyle = this._fill_color;
                   if ( do_paint ) {
-                    this._ctx.fillRect(this.get_double(), this.get_double(), this.get_double(), this.get_double());
+                    this._ctx.fillRect(this._get_double(), this._get_double(), this._get_double(), this._get_double());
                   } else {
-                    this.get_double(); this.get_double(); this.get_double(); this.get_double();
+                    this._get_double(); this._get_double(); this._get_double(); this._get_double();
                   }
                   break;
 
@@ -1114,20 +1123,20 @@
                   this._ctx.fillStyle = this._fill_color;
                   if ( do_paint ) {
                     this._ctx.beginPath();
-                    this._ctx.rect(this.get_double(), this.get_double(), this.get_double(), this.get_double());
+                    this._ctx.rect(this._get_double(), this._get_double(), this._get_double(), this._get_double());
                     this._ctx.fill();
                     this._ctx.stroke();
                   } else {
-                    this.get_double(); this.get_double(); this.get_double(); this.get_double();
+                    this._get_double(); this._get_double(); this._get_double(); this._get_double();
                   }
                   break;
 
                 case 'C':
                   this._r_idx++;
                   if ( do_paint ) {
-                    this._ctx.clearRect(this.get_double(), this.get_double(), this.get_double(), this.get_double());
+                    this._ctx.clearRect(this._get_double(), this._get_double(), this._get_double(), this._get_double());
                   } else {
-                    this.get_double(); this.get_double(); this.get_double(); this.get_double();
+                    this._get_double(); this._get_double(); this._get_double(); this._get_double();
                   }
                   break;
               }
@@ -1152,11 +1161,11 @@
                   option = 'S';
                   break;
               }
-              r = this.get_double();
-              x = this.get_double();
-              y = this.get_double();
-              w = this.get_double();
-              h = this.get_double();
+              r = this._get_double();
+              x = this._get_double();
+              y = this._get_double();
+              w = this._get_double();
+              h = this._get_double();
               if ( do_paint ) {
                 this._ctx.beginPath();
                 this._ctx.moveTo( x + r, y );
@@ -1215,11 +1224,11 @@
                 case 'r': // 'r' Text, but read only
                   if ( ',' === this._message[this._r_idx] ) {
                     this._r_idx++;
-                    w = this.get_double();
+                    w = this._get_double();
                     this._sub_document_uri = this._message.substring(this._r_idx, this._r_idx + w);
                     this._r_idx += w + 1; // +1 -> ','
                     console.log("Open URI: " + this._sub_document_uri)
-                    w = this.get_double();
+                    w = this._get_double();
                     this._sub_document_jrxml = this._message.substring(this._r_idx, this._r_idx + w);
                     this._r_idx += w;
                     console.log("Open JRXML: " + this._sub_document_jrxml)
@@ -1238,7 +1247,7 @@
 
                   if ( ',' === this._message[this._r_idx] ) {
                     this._r_idx++;
-                    w = this.get_double();
+                    w = this._get_double();
                     this._input_box.configure_editor(edit_mode, this._message.substring(this._r_idx, this._r_idx + w));
                     this._r_idx += w;
                   } else {
@@ -1251,7 +1260,7 @@
 
                   if ( ',' === this._message[this._r_idx] ) {
                       this._r_idx++;
-                      w = this.get_double();
+                      w = this._get_double();
                       this._input_box.configure_editor(edit_mode, this._message.substring(this._r_idx, this._r_idx + w));
                       this._r_idx += w;
                   } else {
@@ -1263,11 +1272,11 @@
                 case 'c':  // 'c' <empty_line><length>,<field_id>,<length>,<display_field>{,<length>,<field>}[,<length>,<list json>] Simple combo   client side
 
                   // empty_line: 0 or 1
-                  // console.log("Combo Empty Line: " + this.get_double());
-                  var nullable_list = this.get_double();
+                  // console.log("Combo Empty Line: " + this._get_double());
+                  var nullable_list = this._get_double();
                   // fields '}'
                   var fields = [];
-                  w = this.get_double();
+                  w = this._get_double();
                   if ( w > 2 ) {
                     var tmp = this._message.substring(this._r_idx + 1, this._r_idx + w - 1);
                     fields = tmp.split(',');
@@ -1276,20 +1285,20 @@
                   this._r_idx += w + 1;
 
                   // list id
-                  w  = this.get_double();
+                  w  = this._get_double();
                   t2 = this._message.substring(this._r_idx, this._r_idx + w);
                   //console.log("Combo list id: " + t2);
                   this._r_idx += w + 1;
 
                   // sub document params <length>,<uri>,<length>,<jrxml>
-                  w = this.get_double();
+                  w = this._get_double();
                   if ( w == 0 ) {
                     this._sub_document_uri = undefined;
                   } else {
                     this._sub_document_uri = this._message.substring(this._r_idx, this._r_idx + w);
                   }
                   this._r_idx += w + 1;
-                  w = this.get_double();
+                  w = this._get_double();
                   if ( w == 0 ) {
                     this._sub_document_jrxml = undefined;
                   } else {
@@ -1300,7 +1309,7 @@
                   // list [optional]
                   if ( ',' === this._message[this._r_idx] ) {
                     this._r_idx++;
-                    w  = this.get_double();
+                    w  = this._get_double();
                     t3 = this._message.substring(this._r_idx, this._r_idx + w);
                     //console.log("Combo JSON: " + t3);
                     this._r_idx += w;
@@ -1316,11 +1325,11 @@
 
                 case 'R': // 'R'<idx>,<length>,<variable>,<lenght>,<value_array>
 
-                  x  = this.get_double();                                      // -1 for parameters, row index for fields
-                  w  = this.get_double();
+                  x  = this._get_double();                                      // -1 for parameters, row index for fields
+                  w  = this._get_double();
                   t1 =this._message.substring(this._r_idx, this._r_idx + w);   // variable name, parameter ou field
                   this._r_idx += w + 1; // + 1 -> ','
-                  w  = this.get_double();
+                  w  = this._get_double();
                   t2 =this._message.substring(this._r_idx, this._r_idx + w);   // Array with current and possible values
                   this._r_idx += w + 1; // +1 -> ';''
                   console.log(' Prepare radio button: idx=' + x + ', var=' + t1 + ', values=' + JSON.parse(t2));
@@ -1331,11 +1340,11 @@
 
                   if ( ',' === this._message[this._r_idx] ) {
                     this._r_idx++;
-                    w = this.get_double();
+                    w = this._get_double();
                     this._sub_document_uri = this._message.substring(this._r_idx, this._r_idx + w);
                     this._r_idx += w;
                     this._r_idx++; // ','
-                    w = this.get_double();
+                    w = this._get_double();
                     this._sub_document_jrxml = this._message.substring(this._r_idx, this._r_idx + w);
                     this._r_idx += w;
                   }
@@ -1348,7 +1357,7 @@
                   this._input_box.configure_editor(edit_mode);
 
                   var fields = [];
-                  w = this.get_double();
+                  w = this._get_double();
                   if ( w > 2 ) {
                     var tmp = this._message.substring(this._r_idx + 1, this._r_idx + w - 1);
                     fields = tmp.split(',');
@@ -1365,30 +1374,30 @@
 
               } else if ( option === 'p' ) { // Prepare editor
 
-                x = this.get_double();
-                y = this.get_double();
-                w = this.get_double();
-                h = this.get_double();
+                x = this._get_double();
+                y = this._get_double();
+                w = this._get_double();
+                h = this._get_double();
                 this._input_box.prepare_editor(x, y, w, h, this._message.substring(this._r_idx));
-                this.update_context_menu(y + h / 2);
+                this._update_context_menu(y + h / 2);
 
                 return; // The rest of the draw string is just stored it will be painted by the editor
 
               } else if ( option === 's' ) { // ... start editor ...
 
-                x = this.get_double();
-                y = this.get_double();
-                h = this.get_double();
-                this._focused_band_id = this.get_double();
+                x = this._get_double();
+                y = this._get_double();
+                h = this._get_double();
+                this._focused_band_id = this._get_double();
 
                 if ( '{' === this._message[this._r_idx] ) {
                   this._r_idx += 1; // '{'
 
-                  w = this.get_double();
+                  w = this._get_double();
                   var id = this._message.substring(this._r_idx, this._r_idx + w);
                   this._r_idx += w + 1;
 
-                  w = this.get_double();
+                  w = this._get_double();
                   var value = this._message.substring(this._r_idx, this._r_idx + w);
                   this._r_idx += w + 1; // +1 -> '}'
 
@@ -1397,30 +1406,30 @@
                   this._input_box._start_editor_handler(x, y, h, id);
 
                 } else {
-                  w = this.get_double();
+                  w = this._get_double();
                   this._input_box._start_editor_handler(x, y, h, this._message.substring(this._r_idx, this._r_idx + w));
                   this._r_idx += w;
                 }
                 this._r_idx += 1;
 
                 if ( false == this._band_tearing ) {
-                  this.adjust_scroll();
+                  this._adjust_scroll();
                 }
 
               } else if ( option === 'u' ) {  // ... update editor ...
 
-                w  = this.get_double();
+                w  = this._get_double();
                 t1 = this._message.substring(this._r_idx, this._r_idx + w);
                 this._r_idx += w;
                 if ( this._message[this._r_idx] !== ';' ) {
                   this._r_idx += 1;
-                  w  = this.get_double();
+                  w  = this._get_double();
                   t2 = this._message.substring(this._r_idx, this._r_idx + w);
                   this._r_idx += w;
 
                   if ( this._message[this._r_idx] !== ';' ) {
                     this._r_idx += 1;
-                    w  = this.get_double();
+                    w  = this._get_double();
                     t3 = this._message.substring(this._r_idx, this._r_idx + w);
                     this._r_idx += w + 1;
                   } else {
@@ -1435,7 +1444,7 @@
                 console.log("=== update: t1='" + t1 + "' t2='" + t2 + "' t3='" + t3 + "'");
 
                 if ( ';' !== this._message[this._r_idx - 1] ) {
-                  w = this.get_double();
+                  w = this._get_double();
 
                   var json = this._message.substring(this._r_idx, this._r_idx + w);
 
@@ -1468,16 +1477,16 @@
 
                 var tmp_stroke_style = this._ctx.strokeStyle;
                 this._ctx.strokeStyle = "#FF0000";
-                this._ctx.strokeRect(this.get_double(), this.get_double(), this.get_double(), this.get_double());
+                this._ctx.strokeRect(this._get_double(), this._get_double(), this._get_double(), this._get_double());
                 this._ctx.strokeStyle = tmp_stroke_style;
 
               } else if ( option === 'h' ) { // ... tootip hint ...
 
-                x  = this.get_double();
-                y  = this.get_double();
-                w  = this.get_double();
-                h  = this.get_double();
-                w  = this.get_double();
+                x  = this._get_double();
+                y  = this._get_double();
+                w  = this._get_double();
+                h  = this._get_double();
+                w  = this._get_double();
                 t1 = this._message.substring(this._r_idx, this._r_idx + w);
                 this._input_box._tooltip_handler(x, y, w, h, t1);
                 this._r_idx += w + 1;
@@ -1497,14 +1506,14 @@
               } else {
                 option = 'F';
               }
-              x = this.get_double();
-              y = this.get_double();
-              w = this.get_double();
+              x = this._get_double();
+              y = this._get_double();
+              w = this._get_double();
               this._t = this._message.substring(this._r_idx, this._r_idx + w);
               this._r_idx += w;
               if ( this._message[this._r_idx] == ',') {
                 this._r_idx++;
-                option_num = this.get_double();
+                option_num = this._get_double();
 
                 switch (option) {
                   case 'F':
@@ -1586,7 +1595,7 @@
              */
             case 'w':
 
-              w = this.get_double();
+              w = this._get_double();
               if ( w <= 1 ) {
                 w = this._ratio;
               }
@@ -1619,12 +1628,12 @@
               } else {
                 option = 'F';
               }
-              x = this.get_double();
-              y = this.get_double();
-              w = this.get_double();
-              h = this.get_double();
-              var ox = (w / 2) * this.KAPPA,
-                  oy = (h / 2) * this.KAPPA,
+              x = this._get_double();
+              y = this._get_double();
+              w = this._get_double();
+              h = this._get_double();
+              var ox = (w / 2) * this._KAPPA,
+                  oy = (h / 2) * this._KAPPA,
                   xe = x + w,
                   ye = y + h,
                   xm = x + w / 2,
@@ -1669,19 +1678,19 @@
              */
             case 'I':
 
-              w = this.get_double();
+              w = this._get_double();
               this._t = this._message.substring(this._r_idx, this._r_idx + w);
               this._r_idx += w + 1;
 
-              x = this.get_double();
-              y = this.get_double();
-              w = this.get_double();
-              h = this.get_double();
+              x = this._get_double();
+              y = this._get_double();
+              w = this._get_double();
+              h = this._get_double();
               if ( this._message[this._r_idx - 1] != ';' ) {
-                sx = this.get_double();
-                sy = this.get_double();
-                sw = this.get_double();
-                sh = this.get_double();
+                sx = this._get_double();
+                sy = this._get_double();
+                sw = this._get_double();
+                sh = this._get_double();
               } else {
                 sx = -1.0;
               }
@@ -1718,10 +1727,10 @@
              */
             case 'F':
 
-              w = this.get_double();
+              w = this._get_double();
               this._t = this._message.substring(this._r_idx, this._r_idx + w);
               this._r_idx += w + 1;
-              this._font_spec[this.FONT_NAME_INDEX] = this._t;
+              this._font_spec[this._FONT_NAME_INDEX] = this._t;
               this._ctx.font = this._font_spec.join('');
               break;
 
@@ -1732,21 +1741,21 @@
             case 'f':
               if ( 'm' == this._message[this._r_idx] ) {
                   this._r_idx++;
-                  this._input_box._f_flags               = this.get_double();
-                  this._input_box._f_top                 = this.get_double();
-                  this._input_box._f_ascent              = this.get_double();
-                  this._input_box._f_descent             = this.get_double();
-                  this._input_box._f_bottom              = this.get_double();
-                  this._input_box._f_leading             = this.get_double();
-                  this._input_box._f_avg_char_width      = this.get_double();
-                  this._input_box._f_max_char_width      = this.get_double();
-                  this._input_box._f_underline_thickness = this.get_double();
-                  this._input_box._f_underline_position  = this.get_double();
+                  this._input_box._f_flags               = this._get_double();
+                  this._input_box._f_top                 = this._get_double();
+                  this._input_box._f_ascent              = this._get_double();
+                  this._input_box._f_descent             = this._get_double();
+                  this._input_box._f_bottom              = this._get_double();
+                  this._input_box._f_leading             = this._get_double();
+                  this._input_box._f_avg_char_width      = this._get_double();
+                  this._input_box._f_max_char_width      = this._get_double();
+                  this._input_box._f_underline_thickness = this._get_double();
+                  this._input_box._f_underline_position  = this._get_double();
               } else {
-                  this._font_mask = this.get_double();
-                  this._font_spec[this.SIZE_INDEX]   = Math.round(this.get_double());
-                  this._font_spec[this.BOLD_INDEX]   = (this._font_mask & this.BOLD_MASK)   ? 'bold '   : '';
-                  this._font_spec[this.ITALIC_INDEX] = (this._font_mask & this.ITALIC_MASK) ? 'italic ' : '';
+                  this._font_mask = this._get_double();
+                  this._font_spec[this._SIZE_INDEX]   = Math.round(this._get_double());
+                  this._font_spec[this._BOLD_INDEX]   = (this._font_mask & this._BOLD_MASK)   ? 'bold '   : '';
+                  this._font_spec[this._ITALIC_INDEX] = (this._font_mask & this._ITALIC_MASK) ? 'italic ' : '';
                   this._ctx.font = this._font_spec.join('');
               }
               break;
@@ -1756,8 +1765,8 @@
              */
             case 'X': //===
 
-              this._translate_x = this.get_double();
-              this._translate_y = this.get_double();
+              this._translate_x = this._get_double();
+              this._translate_y = this._get_double();
               break;
 
             /*
@@ -1767,8 +1776,8 @@
 
               switch (this._message[this._r_idx++]) {
                 case 'r':
-                  this._ctx.translate(this.get_double(), this.get_double());
-                  this._ctx.rotate(this.get_double());
+                  this._ctx.translate(this._get_double(), this._get_double());
+                  this._ctx.rotate(this._get_double());
                   break;
                 case 'c':
                   this._ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -1786,11 +1795,11 @@
 
               option = this._message[this._r_idx++];
               if ( 'g' === option ) {
-                this._grid_major = this.get_double();
-                this._grid_minor = this.get_double();
+                this._grid_major = this._get_double();
+                this._grid_minor = this._get_double();
               } else if ( 'p' === option ) {
-                var new_page_number = this.get_double();
-                var new_page_count = this.get_double();
+                var new_page_number = this._get_double();
+                var new_page_count = this._get_double();
 
                 if ( this._page_number != new_page_number || this._page_count != new_page_count ) {
                   if ( this.on_page_properties_changed != undefined ) {
@@ -1813,7 +1822,7 @@
        *
        * Also calculates the scale the server should use in _sx and _sy
        */
-      setup_scale: function () {
+      _setup_scale: function () {
         this._canvas.width  = this._canvas_width  * this._ratio;
         this._canvas.height = this._canvas_height * this._ratio;
         this._canvas.style.width  = this._canvas_width  + 'px';
@@ -1823,7 +1832,7 @@
         this.clear_page();
       },
 
-      binary_find_band_by_id: function (a_id) {
+      _binary_find_band_by_id: function (a_id) {
 
         if ( this._bands !== undefined && this._bands.length > 0 ) {
           var mid;
@@ -1850,20 +1859,20 @@
       /**
        * @start the redraw timer will redraw the page after a timeout
        */
-      restart_redraw_timer: function (a_time_in_ms) {
+      _restart_redraw_timer: function (a_time_in_ms) {
         var timeout = a_time_in_ms !== undefined ? a_time_in_ms : 300;
 
         if ( window[this._redraw_timer_key] !== undefined ) {
           window.clearTimeout(window[this._redraw_timer_key]);
           window[this._redraw_timer_key] = undefined;
         }
-        window[this._redraw_timer_key] = setInterval(this.create_redraw_timer_handler(this), timeout);
+        window[this._redraw_timer_key] = setInterval(this._create_redraw_timer_handler(this), timeout);
       },
 
       /**
        * @brief Resets the deferred repaint timer
        */
-      reset_redraw_timer: function () {
+      _reset_redraw_timer: function () {
 
         if ( window[this._redraw_timer_key] !== undefined ) {
           window.clearTimeout(window[this._redraw_timer_key]);
@@ -1877,9 +1886,9 @@
        * @param a_self The tooltip helper instance
        * @return the handler function
        */
-      create_redraw_timer_handler: function (a_self) {
+      _create_redraw_timer_handler: function (a_self) {
         return function () {
-          a_self.repaint_page();
+          a_self._repaint_page();
         }
       },
 
@@ -1892,14 +1901,14 @@
       /**
        * @brief Permanently hide all widgets
        */
-      make_widgets_invisble: function () {
+      _make_widgets_invisible: function () {
 
         for ( var i = 0; i < this._widgets.length; i++ ) {
           this._widgets[i].set_visible(false);
         }
       },
 
-      mouse_over_widgets: function (a_x, a_y) {
+      _mouse_over_widgets: function (a_x, a_y) {
 
         for ( var i = this._widgets.length - 1; i ; i-- ) {
           var widget = this._widgets[i];
@@ -1911,7 +1920,7 @@
         return false;
       },
 
-      mouse_click_widgets: function (a_x, a_y, a_down) {
+      _mouse_click_widgets: function (a_x, a_y, a_down) {
 
         for ( var i = this._widgets.length - 1; i ; i-- ) {
           if ( this._widgets[i].mouse_click(a_x, a_y, a_down) ) {
@@ -1924,7 +1933,7 @@
       /**
        * @brief Update all widgets that overlap the supplied bbox
        */
-      update_widgets_background: function () {
+      _update_widgets_background: function () {
 
         for ( var i = 0; i < this._widgets.length; i++ ) {
           this._widgets[i].update_background();
@@ -1934,7 +1943,7 @@
       /**
        * @brief Hide all widgets
        */
-      hide_widgets: function () {
+      _hide_widgets: function () {
 
         for ( var i = 0; i < this._widgets.length; i++ ) {
           this._widgets[i].hide();
@@ -1944,7 +1953,7 @@
       /**
        * @brief Paints all (dirty) widgets
        */
-      repaint_widgets_martelado: function () {
+      _repaint_widgets_martelado: function () {
 
         this._ctx.save();
         for ( var i = 0; i < this._widgets.length; i++ ) {
@@ -1954,12 +1963,12 @@
       },
 
       // TODO MARTELADA PARA ESCONDER ERROS DE PINTURA NAO FUNCIONA
-      repaint_widgets: function () {
-        this.repaint_widgets_martelado();
+      _repaint_widgets: function () {
+        this._repaint_widgets_martelado();
       },
 
 
-      adjust_scroll: function () {
+      _adjust_scroll: function () {
 
         var v_l  = undefined;
         var v_t  = undefined;
@@ -2055,8 +2064,8 @@
       /*                                                                                       */
       /*****************************************************************************************/
 
-      create_line_context_menu: function () {
-        var size = this.BTN_SIZE * this._ratio;
+      _create_line_context_menu: function () {
+        var size = this._BTN_SIZE * this._ratio;
 
         this._line_add_button = new EPaperOverlayButton(this,
                                                         EPaperOverlayButton.MENU_ADD,
@@ -2068,7 +2077,7 @@
         this._line_del_button.set_size(size, size);
       },
 
-      add_document_line: function (a_src_widget) {
+      _add_document_line: function (a_src_widget) {
         if ( this._context_menu_idx !== - 1) {
           this.send_command('document add band "' + this._bands[this._context_menu_idx]._type +
                                     '" ' + this._bands[this._context_menu_idx]._id + ';',
@@ -2085,7 +2094,7 @@
         }
       },
 
-      remove_document_line: function (a_src_widget) {
+      _remove_document_line: function (a_src_widget) {
         if ( this._context_menu_idx !== - 1) {
           this.send_command('document remove band "' + this._bands[this._context_menu_idx]._type +
                                     '" ' + this._bands[this._context_menu_idx]._id + ';',
@@ -2102,7 +2111,7 @@
         }
       },
 
-      binary_find_band_by_y: function (a_y) {
+      _binary_find_band_by_y: function (a_y) {
 
         if ( this._bands !== undefined && this._bands.length > 0 ) {
           var mid;
@@ -2128,13 +2137,13 @@
         return -1; // Not found!
       },
 
-      update_context_menu: function (a_y) {
+      _update_context_menu: function (a_y) {
 
         if ( this._edition === false ) {
-          this.deactivate_line_context_menu();
+          this._deactivate_line_context_menu();
           return;
         } else {
-          var idx = this.binary_find_band_by_y(a_y);
+          var idx = this._binary_find_band_by_y(a_y);
 
           if ( idx != -1 ) {
             if ( this._bands[idx]._type === 'DT' && this._bands[idx].editable_ == true ) {
@@ -2142,22 +2151,22 @@
                 return;
               }
               if ( this._context_menu_idx !== -1 ) {
-                this.deactivate_line_context_menu(this._bands[this._context_menu_idx]);
+                this._deactivate_line_context_menu(this._bands[this._context_menu_idx]);
                 this._context_menu_idx = -1;
               }
               this._context_menu_idx = idx;
-              this.activate_line_context_menu(this._bands[this._context_menu_idx]);
+              this._activate_line_context_menu(this._bands[this._context_menu_idx]);
 
             } else {
               if ( this._context_menu_idx !== -1 ) {
-                this.deactivate_line_context_menu(this._bands[this._context_menu_idx]);
+                this._deactivate_line_context_menu(this._bands[this._context_menu_idx]);
                 this._context_menu_idx = -1;
               }
             }
           } else {
             if ( this._context_menu_idx !== -1 ) {
               if ( this._bands !== undefined ) {
-                this.deactivate_line_context_menu(this._bands[this._context_menu_idx]);
+                this._deactivate_line_context_menu(this._bands[this._context_menu_idx]);
               }
               this._context_menu_idx = -1;
             }
@@ -2165,13 +2174,13 @@
         }
       },
 
-      activate_line_context_menu: function (a_band) {
+      _activate_line_context_menu: function (a_band) {
 
-        var button_y = a_band._ty + a_band._height / 2 - (this.BTN_SIZE * this._ratio) / 2;
+        var button_y = a_band._ty + a_band._height / 2 - (this._BTN_SIZE * this._ratio) / 2;
         var button_x = (this._page_width - this._right_margin) * this._sx;
 
         this._line_add_button.set_location(button_x, button_y);
-        button_x += this.BTN_SIZE * this._ratio * 0.9;
+        button_x += this._BTN_SIZE * this._ratio * 0.9;
         this._line_del_button.set_location(button_x, button_y);
 
         if ( this._edition && this.is_focused() ) {
@@ -2180,7 +2189,7 @@
         }
       },
 
-      deactivate_line_context_menu: function (a_band) {
+      _deactivate_line_context_menu: function (a_band) {
 
         this._line_add_button.set_visible(false);
         this._line_del_button.set_visible(false);
@@ -2192,8 +2201,8 @@
       /*                                                                                       */
       /*****************************************************************************************/
 
-      create_tear_buttons: function () {
-        var size = this.BTN_SIZE * this._ratio;
+      _create_tear_buttons: function () {
+        var size = this._BTN_SIZE * this._ratio;
 
         this._close_tear_button = new EPaperOverlayButton(this, EPaperOverlayButton.MENU_CLOSE,
                                                           function (a_src) { a_src._epaper.on_close_subdocument(a_src); });
@@ -2205,7 +2214,7 @@
 
       on_edit_subdocument: function (a_src_widget) {
 
-        this.tear_paper(a_src_widget._bb_y + a_src_widget._bb_h + 5, 200 * this._ratio, 1000);
+        this._tear_paper(a_src_widget._bb_y + a_src_widget._bb_h + 5, 200 * this._ratio, 1000);
         this.open_document(this._sub_document_jrxml,
                            this._locale,
                            this._prefix,
@@ -2229,13 +2238,13 @@
         console.log("*** ADD entity");
       },
 
-      create_tear_paper_animation_handler: function (a_epaper) {
+      _create_tear_paper_animation_handler: function (a_epaper) {
         return function (a_timestamp) {
-          a_epaper.tear_paper_animation_handler(a_timestamp);
+          a_epaper._tear_paper_animation_handler(a_timestamp);
         };
       },
 
-      tear_paper_animation_handler: function (a_timestamp) {
+      _tear_paper_animation_handler: function (a_timestamp) {
         var ty, t;
 
         if (this._abort_animations === true) {
@@ -2265,24 +2274,24 @@
         this._ctx.putImageData(this._upper_image, 0, ty); //TODO upper / lower animation
         if ( this._band_tearing === true ) {
           this._ctx.putImageData(this._lower_image, 0, this._translate_y + this._band_tear_gap);
-          this.repaint_page();
+          this._repaint_page();
         } else {
           this._ctx.putImageData(this._lower_image, 0, this._translate_y + this._band_tear_gap);
         }
 
         if ( this._band_tearing === true ) {
           if ( this._band_tear_gap < this._band_tear_max_gap) {
-            window.requestAnimationFrame(this.create_tear_paper_animation_handler(this));
+            window.requestAnimationFrame(this._create_tear_paper_animation_handler(this));
           }
         } else {
           if ( this._band_tear_gap > 0  ) {
-            window.requestAnimationFrame(this.create_tear_paper_animation_handler(this));
+            window.requestAnimationFrame(this._create_tear_paper_animation_handler(this));
           } else {
             this._translate_y       = 0;
             this._background_color  = this._normal_background;
             this._band_tearing      = false;
             this._band_tear_max_gap = 0;
-            this.repaint_page();
+            this._repaint_page();
             this._input_box.update_background();
           }
         }
@@ -2297,10 +2306,10 @@
        * @param a_height  heigth of the paper gap in px
        * @param a_time    animation in milliseconds
        */
-      tear_paper: function (a_from_y, a_height, a_time) {
+      _tear_paper: function (a_from_y, a_height, a_time) {
 
-        this.make_widgets_invisble();
-        this.repaint_widgets();
+        this._make_widgets_invisible();
+        this._repaint_widgets();
         this._input_box.freeze_cursor();
         this._input_box._enabled   = false;
         this._translate_y          = a_from_y;
@@ -2310,8 +2319,8 @@
         this._band_animation_start = undefined;
         this._band_tearing         = true;
 
-        this.washout_canvas();
-        this.paint_puncture();
+        this._washout_canvas();
+        this._paint_puncture();
         this._bands = undefined;
         this._bands = [];
         this._background_color = this._band_tear_background;
@@ -2329,7 +2338,7 @@
                                                    this._canvas.width,
                                                    this._canvas.height - a_from_y);
         this._abort_animations = false;
-        window.requestAnimationFrame(this.create_tear_paper_animation_handler(this));
+        window.requestAnimationFrame(this._create_tear_paper_animation_handler(this));
       },
 
       glue_paper: function (a_time) {
@@ -2340,13 +2349,13 @@
         this._right_margin         = this._master_doc_right_margin;
         this._abort_animations     = false;
         this._close_tear_button.set_visible(false);
-        window.requestAnimationFrame(this.create_tear_paper_animation_handler(this));
+        window.requestAnimationFrame(this._create_tear_paper_animation_handler(this));
       },
 
       /**
        * @brief Reset band tearing control variables ...
        */
-      reset_band_tearing: function () {
+      _reset_band_tearing: function () {
 
         this._abort_animations     = true;
         this._translate_y          = 0.0;
@@ -2364,7 +2373,7 @@
       /**
        * @brief Cover the whole canvas with a white transparent overlay
        */
-      washout_canvas: function () {
+      _washout_canvas: function () {
         var saved_fill = this._ctx.fillStyle;
         this._ctx.fillStyle = 'rgba(255,255,255,0.5)';
         this._ctx.fillRect(0,0, this._canvas.width, this._canvas.height);
@@ -2376,13 +2385,13 @@
        *
        * @param a_static if true the holes will have a full shadow, otherwise the lower half of the hole will not have shadow
        */
-      paint_puncture: function (a_static) {
+      _paint_puncture: function (a_static) {
 
         a_static = a_static || false;
 
         if ( a_static ) {
-          var dst_width  = this._ratio * this._puncture_static_img.width * this.PUNCTURE_HEIGHT / this._puncture_static_img.height;
-          var dst_height = this._ratio * this.PUNCTURE_HEIGHT;
+          var dst_width  = this._ratio * this._puncture_static_img.width * this._PUNCTURE_HEIGHT / this._puncture_static_img.height;
+          var dst_height = this._ratio * this._PUNCTURE_HEIGHT;
 
           for ( var x = 0; x < this._canvas.width; x += dst_width) {
 
@@ -2394,8 +2403,8 @@
           }
 
         } else {
-          var dst_th = Math.ceil(this.PUNCTURE_HEIGHT/2);
-          var dst_bh = this.PUNCTURE_HEIGHT - dst_th;
+          var dst_th = Math.ceil(this._PUNCTURE_HEIGHT/2);
+          var dst_bh = this._PUNCTURE_HEIGHT - dst_th;
 
           dst_th *= this._ratio;
           dst_bh *= this._ratio;
@@ -2454,15 +2463,15 @@
             this._r_idx   = 1;
             this._message = a_message.data;
 
-            var w = this.get_double();
+            var w = this._get_double();
             var k = this._message.substring(this._r_idx, this._r_idx + w);
             this._r_idx += w + 1; // +1 -> ','
 
-                w = this.get_double();
+                w = this._get_double();
             var t = this._message.substring(this._r_idx, this._r_idx + w);
             this._r_idx += w + 1; // +1 -> ','
 
-                w = this.get_double();
+                w = this._get_double();
             var m = this._message.substring(this._r_idx, this._r_idx + w);
             this._r_idx += w + 1; // +1 -> ','
 
@@ -2476,7 +2485,7 @@
             break;
 
           case 'D':
-            this.on_paint_message(a_message.data);
+            this._on_paint_message(a_message.data);
             break;
 
           default:

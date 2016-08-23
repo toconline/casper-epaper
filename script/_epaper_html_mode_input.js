@@ -160,7 +160,7 @@ function EPaperInputHtmlMode_Initialize (a_root) {
   EPaperInput.prototype.create_html_onkeydown_handler = function (a_input) {
     return function (a_event) {
 
-      var vkey = a_input._epaper.keycode_to_vkey(a_event);
+      var vkey = a_input._epaper._keycode_to_vkey(a_event);
 
       if ( a_input._on_key_down_handler(vkey) === true ) {
 
@@ -259,7 +259,7 @@ function EPaperInputHtmlMode_Initialize (a_root) {
   EPaperInput.prototype.create_html_onfocus_handler = function (a_input) {
     return function () {
       a_input._is_focused = true;
-      a_input._epaper.repaint_page();
+      a_input._epaper._repaint_page();
       a_input._epaper._canvas.contentEditable = false;
       console.log('+++ HTML input focused');
     }
@@ -268,7 +268,7 @@ function EPaperInputHtmlMode_Initialize (a_root) {
   EPaperInput.prototype.create_html_onblur_handler = function (a_input) {
     return function () {
       a_input._is_focused = false;
-      a_input._epaper.repaint_page();
+      a_input._epaper._repaint_page();
       a_input._epaper._canvas.contentEditable = true;
 
       console.log('--- HTML input lost focus');

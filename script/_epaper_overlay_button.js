@@ -72,13 +72,13 @@ function EPaperOverlayButton_Initialize (a_root) {
       suffix = a_digest + '.png';
     }
 
-    EPaperOverlayButton.MENU_ADD     = a_epaper.load_asset(asset_debug, a_asset_url, 'menu_add'     + suffix);
-    EPaperOverlayButton.MENU_DELETE  = a_epaper.load_asset(asset_debug, a_asset_url, 'menu_delete'  + suffix);
-    EPaperOverlayButton.MENU_CLOSE   = a_epaper.load_asset(asset_debug, a_asset_url, 'menu_close'   + suffix);
-    EPaperOverlayButton.COMBO_DELETE = a_epaper.load_asset(asset_debug, a_asset_url, 'combo_delete' + suffix);
-    EPaperOverlayButton.COMBO_CLOSE  = a_epaper.load_asset(asset_debug, a_asset_url, 'combo_close'  + suffix);
-    EPaperOverlayButton.COMBO_OPEN   = a_epaper.load_asset(asset_debug, a_asset_url, 'combo_open'   + suffix);
-    EPaperOverlayButton.COMBO_EDIT   = a_epaper.load_asset(asset_debug, a_asset_url, 'combo_edit'   + suffix);
+    EPaperOverlayButton.MENU_ADD     = a_epaper._load_asset(asset_debug, a_asset_url, 'menu_add'     + suffix);
+    EPaperOverlayButton.MENU_DELETE  = a_epaper._load_asset(asset_debug, a_asset_url, 'menu_delete'  + suffix);
+    EPaperOverlayButton.MENU_CLOSE   = a_epaper._load_asset(asset_debug, a_asset_url, 'menu_close'   + suffix);
+    EPaperOverlayButton.COMBO_DELETE = a_epaper._load_asset(asset_debug, a_asset_url, 'combo_delete' + suffix);
+    EPaperOverlayButton.COMBO_CLOSE  = a_epaper._load_asset(asset_debug, a_asset_url, 'combo_close'  + suffix);
+    EPaperOverlayButton.COMBO_OPEN   = a_epaper._load_asset(asset_debug, a_asset_url, 'combo_open'   + suffix);
+    EPaperOverlayButton.COMBO_EDIT   = a_epaper._load_asset(asset_debug, a_asset_url, 'combo_edit'   + suffix);
   };
 
   /**

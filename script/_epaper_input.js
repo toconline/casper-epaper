@@ -170,18 +170,18 @@ function EPaperInput_Initialize (a_root) {
         this._epaper.repaint_widgets();
         return;
       }
-      this._epaper.save_paint_context();
+      this._epaper._save_paint_context();
       this._ctx.save();
-      this._epaper.apply_translation();
-      this._epaper.hide_widgets();
+      this._epaper._apply_translation();
+      this._epaper._hide_widgets();
 
       this.paint_input();
 
-      this._epaper.update_widgets_background();
-      this._epaper.repaint_widgets();
+      this._epaper._update_widgets_background();
+      this._epaper._repaint_widgets();
 
       this._ctx.restore();
-      this._epaper.restore_paint_context();
+      this._epaper._restore_paint_context();
     },
 
     /**
@@ -190,7 +190,7 @@ function EPaperInput_Initialize (a_root) {
     paint_input: function () {
 
       this._ctx.putImageData(this._background, this._bg_x, this._bg_y + this._epaper._translate_y);
-      this._epaper.paint_string(this._draw_string);
+      this._epaper._paint_string(this._draw_string);
 
       // ... debug only draw editor bounds ...
       if ( this._options & EPaperInput.DRAW_BOUNDS ) {
@@ -385,7 +385,7 @@ function EPaperInput_Initialize (a_root) {
     start_editor: function (a_text_left, a_baseline, a_max_width, a_text, a_suppress) {
 
       // ... and take a snapshot the background without any text drawn ...
-      this._epaper.hide_widgets();
+      this._epaper._hide_widgets();
       this.update_background();
 
       // ... initialize the editor state ...
