@@ -19,25 +19,7 @@
     //--------------------------------------------------------------------------//
 
 
-    call_rpc_promise: function (a_invoke_id, a_command, a_success_handler, a_failure_handler) {
-      var deferred = Q.defer();
-      var match = undefined;
 
-      this.send_command(a_command, function (a_message) {
-
-        if ( match = a_message.match(/^S:failure:.*?:(.*)/) ) {
-          deferred.reject(JSON.parse(match[1]));
-        }
-        else if ( a_message.indexOf('S:error:') === 0 || a_message.indexOf('S:exception:') === 0 ) {
-          deferred.reject(a_message);
-        }
-        else if (a_message.indexOf('S:ok:' + a_invoke_id) === 0 ) {
-          deferred.resolve(a_message);
-        }
-      });
-
-      return deferred.promise;
-    },
 
   //
   // --- DECLARATIONS
