@@ -21,8 +21,6 @@
 
 var EPaperWidget_Initialize = function(a_root) {
 
-  console.log("Loading EPaperWidget_Initialize");
-
   /**
    * @brief Constructor for widget base class
    *

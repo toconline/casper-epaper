@@ -19,6 +19,7 @@
  -->
 
 <link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../paper-card/paper-card.html">
 <link rel="import" href="../casper-epaper/casper-epaper-imports.html">
 
 <!--
@@ -38,7 +39,9 @@
         display: block;
       }
     </style>
-    <canvas width="[[width]]" height="[[height]]" id="canvas"></canvas>
+    <paper-card width="[[width]]" height="[[height]]" >
+      <canvas width="[[width]]" height="[[height]]" id="canvas"></canvas>
+    </paper-card>
   </template>
 
   <script>
@@ -69,7 +72,12 @@
           type: Number,
           value: 842
         },
-        /** */
+        /** object that specifies the document being displayed/edited */
+        document: {
+          type: Object,
+          observer: '_document_changed'
+        },
+        /** websocket URL */
         url: {
           type: String,
           value: undefined
@@ -128,50 +136,43 @@
         }
       },
 
-      open: function (a_cmd) {
+      /**
+       * Open server document
+       *
+       * @param a_document an object that specifies the layout and data of the document
+       */
+      open: function (a_document) {
 
-        var prepare_open_command = function (a_epaper, a_cmd) {
+        var prepare_open_command = function (a_epaper, a_document) {
           self = a_epaper;
-          self._must_open = false;
-
-          // ... ensure command defaults ...
-          a_cmd['prefix']       = a_cmd['prefix']       || 'https://localhost/';
-          a_cmd['locale']       = a_cmd['locale']       || 'pt-PT';
-          a_cmd['schema']       = a_cmd['schema']       || '';
-          a_cmd['table_prefix'] = a_cmd['table_prefix'] || '';
-          a_cmd['edit']         = a_cmd['edit']         || false;
-          a_cmd['subdocument']  = a_cmd['subdocument']  || false;
-
-          // ... check if a load or API configuration is needed ...
-          if ( self._jrxml  !== a_cmd['jrxml']  || self._locale !== a_cmd['locale'] || self._subdocument  !== a_cmd['subdocument'] ||
-               self._prefix !== a_cmd['prefix'] || self._schema !== a_cmd['schema'] || self._table_prefix !== a_cmd['table_prefix'] ) {
-            self._must_open = true;
-          }
-
-          // ... save API params in case we need to open a subdocument ...
-          self._path         = a_cmd['path'];
-          self._params       = a_cmd['params'];
-          self._jrxml        = a_cmd['jrxml'];
-          self._locale       = a_cmd['locale'];
-          self._subdocument  = a_cmd['subdocument'];
-          self._prefix       = a_cmd['prefix'];
-          self._schema       = a_cmd['schema'];
-          self._table_prefix = a_cmd['table_prefix'];
-          self._edition      = a_cmd['edit'];
+          self._command = {
+            path:         a_document.path,
+            params:       a_document.params,
+            jrxml:        a_document.jrxml,
+            prefix:       a_document.prefix       || 'https://localhost/',
+            locale:       a_document.locale       || 'pt_PT',
+            schema:       a_document.schema       || '',
+            table_prefix: a_document.table_prefix || '',
+            edit:         a_document.edit         || false,
+            subdocument:  a_document.subdocument  || false,
+          };
+          self._edition = self._command.edit;
         };
 
+        // Promise to open the report layout in case it not loaded yet
         var open_document = function (a_epaper) {
           return new Promise(function (a_resolve, a_reject) {
             self = a_epaper;
 
             self._make_widgets_invisible();
-            if ( self._subdocument === true ) {
+            if ( self._command.subdocument ) {
               self._close_tear_button.set_visible(true);
             }
-            if ( self._must_open === false ) {
+
+            if ( self._jrxml === self._command.jrxml && self._locale === self._command.locale && self._subdocument === self._command.subdocument ) {
               return a_resolve(self);
             }
-            self.send_command('document open "' + self._jrxml + '","' + self._locale + '",' + self._subdocument + ',false;', function (a_response) {
+            self.send_command('document open "' + self._command.jrxml + '","' + self._command.locale + '",' + self._command.subdocument + ',false;', function (a_response) {
               var response = self._validate_response('open', a_response);
               if ( response instanceof Error ) {
                 a_reject(response);
@@ -186,28 +187,40 @@
                   self._page_height = 4000;
                 }
                 self._right_margin = self._get_double();
-
+                self._jrxml        = self._command.jrxml;
+                self._locale       = self._command.locale;
+                self._subdocument  = self._command.subdocument;
                 a_resolve(self);
               }
             });
           });
         };
 
+        // Promise to configure the JSON API in case it's config has changed
         var configure_api = function (a_epaper) {
           return new Promise(function (a_resolve, a_reject) {
             self = a_epaper;
-            self.send_command('document config json_api "' + self._prefix + '","' + self._schema + '","' + self._table_prefix + '";', function (a_response) {
+
+            if ( self._prefix === self._command.prefix && self._schema === self._command.schema && self._table_prefix === self._command.table_prefix ) {
+              return a_resolve(self);
+            }
+
+            self.send_command('document config json_api "' + self._command.prefix + '","' + self._command.schema + '","' + self._command.table_prefix + '";', function (a_response) {
               var response = self._validate_response('json_api', a_response);
 
               if ( response instanceof Error ) {
                 a_reject(response);
               } else {
+                self._prefix       = self._command.prefix;
+                self._schema       = self._command.schema;
+                self._table_prefix = self._command.table_prefix;
                 a_resolve(self);
               }
             });
           });
         };
 
+        // Promise to load the document data
         var load_document = function (a_epaper) {
           return new Promise(function (a_resolve, a_reject) {
             self = a_epaper;
@@ -215,20 +228,22 @@
             if ( self._edition == false ) {
               self._input_box._enabled = false;
             }
-            self.send_command('document load ' + '"' + self._path + '"' + (self._params !== undefined ? ',"' + self._params + '"' : '') + ','
-                              + self._sx.toFixed(4) + ',' + self._sy.toFixed(4) + ',' + self._subdocument + ',' + self._edition + ';',
-                              function (a_response) {
-                                var response = self._validate_response('load', a_response);
-                                if ( response instanceof Error ) {
-                                  a_reject(response);
-                                } else {
-                                  a_resolve(self);
-                                }
-                            });
+            self.send_command('document load ' + '"' + self._command.path + '"' + (self._command.params !== undefined ? ',"' + self._command.params + '"' : '') + ','
+                              + self._sx.toFixed(4) + ',' + self._sy.toFixed(4) + ',' + self._subdocument + ',' + self._edition + ';', function (a_response) {
+              var response = self._validate_response('load', a_response);
+              if ( response instanceof Error ) {
+                a_reject(response);
+              } else {
+                self._path   = self._command.path;
+                self._params = self._command.params;
+                a_resolve(self);
+              }
             });
+          });
         };
 
-        prepare_open_command(this, a_cmd);
+        // ... perform the command sequence ...
+        prepare_open_command(this, a_document);
         open_document(this)
           .then(configure_api)
           .then(load_document)
@@ -245,7 +260,6 @@
       set_listener: function (a_listener) {
         this._listener = a_listener;
       },
-
 
       close_document: function (a_success_handler) {
         this._make_widgets_invisible();
@@ -305,6 +319,12 @@
         });
       },
 
+      _document_changed: function (a_document) {
+        if (this._socket === undefined || a_document == null) return; // MARTELADA
+        console.log('And then document wos set' + document);
+        this.open(a_document);
+      },
+
       /*****************************************************************************************/
       /*                                                                                       */
       /*                      ~~~ Constructor and intialization ~~~                            */
@@ -336,6 +356,7 @@
         this._focused_band_id   = undefined;
         this._redraw_timer_key  = '_epaper_redraw_timer_key';
         this._reset_render_state();
+        this._reset_command_data();
 
         this._page_width  = 595.0;
         this._page_height = 842.0;
@@ -466,6 +487,19 @@
         EPaperOverlayButton.load_assets(this, this.asset_debug, a_asset_url, a_digest);
       },
 
+      /** TODO centralize here all that is needeed to init/clear the relation with server */
+      _reset_command_data: function () {
+        this._command      = undefined;
+        this.path          = undefined;
+        this.params        = undefined;
+        this.jrxml         = undefined;
+        this.prefix        = undefined;
+        this.locale        = undefined;
+        this._table_prefix = undefined;
+        this._edit         = false;
+        this._subdocument  = false;
+      },
+
       /**
        * @brief Loads an auxiliary image resource
        *
@@ -492,6 +526,7 @@
 
       // <------------------------------------>
       attached: function () {
+        // TODO Move instalation of all key handlers here???? also detach them od detached???
         console.log("Hello my name is paper");
       },
 
@@ -1903,8 +1938,10 @@
        */
       _make_widgets_invisible: function () {
 
-        for ( var i = 0; i < this._widgets.length; i++ ) {
-          this._widgets[i].set_visible(false);
+        if ( this._widgets !== undefined) {
+          for ( var i = 0; i < this._widgets.length; i++ ) {
+            this._widgets[i].set_visible(false);
+          }
         }
       },
 
@@ -2069,10 +2106,10 @@
 
         this._line_add_button = new EPaperOverlayButton(this,
                                                         EPaperOverlayButton.MENU_ADD,
-                                                        function (a_src) { a_src._epaper.add_document_line(a_src); });
+                                                        function (a_src) { a_src._epaper._add_document_line(a_src); });
         this._line_del_button = new EPaperOverlayButton(this,
                                                         EPaperOverlayButton.MENU_DELETE,
-                                                        function (a_src) { a_src._epaper.remove_document_line(a_src); });
+                                                        function (a_src) { a_src._epaper._remove_document_line(a_src); });
         this._line_add_button.set_size(size, size);
         this._line_del_button.set_size(size, size);
       },
