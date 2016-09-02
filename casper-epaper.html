@@ -37,6 +37,7 @@
     <style>
       :host {
         display: block;
+        outline: 0;
       }
     </style>
     <paper-card width="[[width]]" height="[[height]]" >
@@ -1304,7 +1305,9 @@
                   this._r_idx++;
                   break;
 
-                case 'c':  // 'c' <empty_line><length>,<field_id>,<length>,<display_field>{,<length>,<field>}[,<length>,<list json>] Simple combo   client side
+                case 'c':  // 'c'<version>,<empty_line><length>,<field_id>,<length>,<display_field>{,<length>,<field>}[,<length>,<list json>] Simple combo  client side
+                  var version = this._get_double();
+                  console.log("Combo List Version " + version);
 
                   // empty_line: 0 or 1
                   // console.log("Combo Empty Line: " + this._get_double());
@@ -1341,9 +1344,9 @@
                   }
                   this._r_idx += w;
 
-                  // list [optional]
                   if ( ',' === this._message[this._r_idx] ) {
                     this._r_idx++;
+                    // list [optional]
                     w  = this._get_double();
                     t3 = this._message.substring(this._r_idx, this._r_idx + w);
                     //console.log("Combo JSON: " + t3);
@@ -1354,7 +1357,12 @@
 
                   this._input_box.configure_editor(edit_mode, this._sub_document_jrxml, nullable_list);
                   this._input_box._combo_box_list.set_display_fields(fields);
-                  this._input_box._combo_box_list.set_model(t2,t3);
+                  if ( version === 2 ) {
+                    // ... outra coisa ...
+                    console.log("Combo Query:" + t3);
+                  } else {
+                    this._input_box._combo_box_list.set_model(t2,t3);
+                  }
                   this._r_idx++;
                   break;
 
