@@ -368,7 +368,7 @@ function EPaperInput_Initialize (a_root) {
       this._bg_w        = a_width  + 10 * this._epaper._ratio;
       this._bg_h        = a_height + 10 * this._epaper._ratio;
       this._draw_string = a_draw_string;
-      this._combo_box_list.set_visible(false);
+      this._combo_box_list.setVisible(false);
       this._combo_box_list.clearModel();
     },
 
@@ -870,7 +870,7 @@ function EPaperInput_Initialize (a_root) {
   };
 
   EPaperInput.prototype.enable_toolip = function () {
-    return ! this._combo_box_list.is_visible();
+    return ! this._combo_box_list.isVisible();
   }
 
   /**
@@ -922,12 +922,12 @@ function EPaperInput_Initialize (a_root) {
    */
   EPaperInput.prototype.toggle_combo_list = function () {
 
-    if ( this._combo_box_list.is_visible() ) {
-      this._combo_box_list.set_visible(false);
+    if ( this._combo_box_list.isVisible() ) {
+      this._combo_box_list.setVisible(false);
     } else {
       this.layout_combo_list();
       this._tooltip.set_visible(false);
-      this._combo_box_list.set_visible(true);
+      this._combo_box_list.setVisible(true);
     }
   };
 

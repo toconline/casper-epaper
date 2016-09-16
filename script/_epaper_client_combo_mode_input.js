@@ -51,31 +51,31 @@ function EPaperInputClientComboMode_Initialize (a_root) {
 
     if ( a_key === 'esc' || a_key === 'shift+up' ) {
 
-      if ( this._combo_box_list.is_visible() ) {
-        this._combo_box_list.set_visible(false);
+      if ( this._combo_box_list.isVisible() ) {
+        this._combo_box_list.setVisible(false);
       }
 
     } else if ( a_key === 'shift+down' || a_key === 'alt' ) {
 
-      if ( this._combo_box_list.is_visible() === false ) {
+      if ( this._combo_box_list.isVisible() === false ) {
         this.toggle_combo_list()
       }
 
     } else if ( a_key === 'enter' || a_key === 'tab' || a_key === 'shift+tab' ) {
 
-      this.commit_value_client_combo_mode();
+      /*this.commit_value_client_combo_mode();
       if ( ! (a_key === 'enter' && this._epaper._sub_document_uri !== undefined) ) {
         if ( a_key === 'shift+tab' ) {
           this._epaper.send_command('set key "shift"+"tab";');
         } else {
           this._epaper.send_command('set key "' + a_key + '";');
         }
-      }
+      }*/
 
     } else if ( a_key === 'up' || a_key === 'down') {
 
-      if ( this._combo_box_list.is_visible() || this._value .length ) {
-        this._combo_box_list.on_key_down(a_key);
+      if ( this._combo_box_list.isVisible() || this._value .length ) {
+        //this._combo_box_list.on_key_down(a_key);
         this._epaper.send_command('set key "' + a_key + '";');
       } else {
         this._epaper.send_command('set key "focus_' + a_key + '";');
@@ -83,9 +83,9 @@ function EPaperInputClientComboMode_Initialize (a_root) {
 
     } else if ( a_key === 'left' || a_key === 'right' ) {
 
-      if ( this.commit_value_client_combo_mode(a_key) === false ) {
+      /*if ( this.commit_value_client_combo_mode(a_key) === false ) {
         this._epaper.send_command('set key "focus_' + a_key + '";');
-      }
+      }*/
 
     } else {
 
@@ -164,7 +164,7 @@ function EPaperInputClientComboMode_Initialize (a_root) {
   EPaperInput.prototype.start_editor_client_combo_mode = function (a_text_left, a_baseline, a_max_width, a_id) {
 
     this.start_editor(a_text_left, a_baseline, a_max_width, a_id, true);
-    this._combo_box_list.select_index(a_id);
+    this._combo_box_list.selectByIndex(a_id);
 
     if ( (this._options & (EPaperInput.NULLABLE_LIST | EPaperInput.SUB_DOCUMENT_VISIBLE)) && a_id.length ) {
       this._clear_combo_button.set_visible(true);
@@ -182,7 +182,7 @@ function EPaperInputClientComboMode_Initialize (a_root) {
 
     this._epaper.set_cursor(this._cursor_type);
     this._value = '';
-    this._display_value = this._combo_box_list.get_selected_text();
+    //this._display_value = this._combo_box_list.get_selected_text();
 
     if ( this._display_value.length &&  (this._options & (EPaperInput.NULLABLE_LIST | EPaperInput.SUB_DOCUMENT_VISIBLE)) ) {
       this.set_selection(0, this._display_value.length);
@@ -215,7 +215,7 @@ function EPaperInputClientComboMode_Initialize (a_root) {
    *
    */
   EPaperInput.prototype.stop_editor_client_combo_mode = function () {
-    this._combo_box_list.set_visible(false);
+    this._combo_box_list.setVisible(false);
     this._tooltip.set_visible(false);
     this._combo_box_list._click_handler = undefined;
     this.stop_editor();
@@ -238,7 +238,7 @@ function EPaperInputClientComboMode_Initialize (a_root) {
     } else {
 
       if ( this._clear_combo_button.is_visible() === false ) {
-        if ( this._combo_box_list.is_visible() === false ) {
+        if ( this._combo_box_list.isVisible() === false ) {
           this.toggle_combo_list();
           return true;
         }
@@ -264,7 +264,7 @@ function EPaperInputClientComboMode_Initialize (a_root) {
          this._display_value.length ) {
 
       this._epaper.send_command('set list item "' + selected_id + '";');
-      this._combo_box_list.set_visible(false);
+      this._combo_box_list.setVisible(false);
 
       if ( a_key === 'right' ) {
         this._epaper.send_command('set key "tab";');
@@ -281,7 +281,7 @@ function EPaperInputClientComboMode_Initialize (a_root) {
    * @brief Nullable list also updates the tooltip
    */
   EPaperInput.prototype.update_tooltip_client_combo = function () {
-    if ( this._combo_box_list.is_visible() === false && (this._options & EPaperInput.NULLABLE_LIST) ) {
+    if ( this._combo_box_list.isVisible() === false && (this._options & EPaperInput.NULLABLE_LIST) ) {
       var hint = this._combo_box_list.get_selected_field(1);
 
       if ( hint === undefined || hint.length === 0 ) {

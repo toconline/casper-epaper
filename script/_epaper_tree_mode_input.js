@@ -107,7 +107,7 @@ function EPaperInputTreeMode_Initialize (a_root) {
   EPaperInput.prototype.stop_editor_tree_mode = function () {
 
     this._leaf_ids = {};
-    this._combo_box_list.set_visible(false);
+    this._combo_box_list.setVisible(false);
     this.show_tooltip();              // cancels interval
     this._tooltip.set_visible(false); // hides rite away
     this._combo_box_list._click_handler = undefined;
