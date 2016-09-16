@@ -21,6 +21,7 @@
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../paper-card/paper-card.html">
 <link rel="import" href="../casper-epaper/casper-epaper-imports.html">
+<link rel="import" href="../casper-combolist/casper-combolist.html">
 
 <!--
   `<awesome-sauce>` injects a healthy dose of awesome into your page.
@@ -42,6 +43,7 @@
     </style>
     <paper-card width="[[width]]" height="[[height]]" >
       <canvas width="[[width]]" height="[[height]]" id="canvas"></canvas>
+      <casper-combolist id="combo" selected-item="{{_comboSelection}}"></casper-combolist>
     </paper-card>
   </template>
 
@@ -50,7 +52,7 @@
     EPaperSocket_Initialize(window);
     EPaperWidget_Initialize(window);
     EPaperTooltip_Initialize(window);
-    EPaperComboBoxList_Initialize(window);
+    //EPaperComboBoxList_Initialize(window);
     EPaperOverlayButton_Initialize(window);
     EPaperServertipHelper_Initialize(window);
     EPaperInput_Initialize(window);
@@ -100,6 +102,12 @@
         asset_debug: {
           type: Boolean,
           value: false
+        },
+        /** Value selected by auxiliar combo box */
+        _comboSelection: {
+          type: Object,
+          value: undefined,
+          observer: '_comboSelectionChanged'
         }
       },
 
@@ -376,7 +384,7 @@
         this._load_assets(this.asset_url, this.asset_digest);
 
         this._edition   = false;
-        this._input_box = new EPaperInput(this);
+        this._input_box = new EPaperInput(this, this.$.combo);
 
         // ... Install handlers ...
         this._canvas.addEventListener('mousemove', this._create_move_handler(this));
@@ -458,7 +466,6 @@
         console.log("=== devicePixelRatio: " + devicePixelRatio + " backingStoreRatio: " + backingStoreRatio + " ratio: " + this._ratio);
       },
 
-
       /**
        * @brief Initialize the context with the same defaults used by the server
        *
@@ -527,9 +534,16 @@
 
       // <------------------------------------>
       attached: function () {
-        // TODO Move instalation of all key handlers here???? also detach them od detached???
-        console.log("Hello my name is paper");
+        this.listen(this.$.combo, 'on-combo-list-closed', '_onComboListClosed');
       },
+
+      // <------------------------------------>
+      detached: function () {
+        // TODO Move instalation of all key handlers here???? also detach them od detached???
+        console.log("Hello my name was epaper");
+        this.unlisten(this.$.combo, 'on-combo-list-closed', '_onComboListClosed');
+      },
+
 
       /*****************************************************************************************/
       /*                                                                                       */
@@ -1356,12 +1370,12 @@
                   }
 
                   this._input_box.configure_editor(edit_mode, this._sub_document_jrxml, nullable_list);
-                  this._input_box._combo_box_list.set_display_fields(fields);
+                  this._input_box._combo_box_list.setDisplayFields(fields);
                   if ( version === 2 ) {
                     // ... outra coisa ...
                     console.log("Combo Query:" + t3);
                   } else {
-                    this._input_box._combo_box_list.set_model(t2,t3);
+                    this._input_box._combo_box_list.setModelFromJson(t2,t3);
                   }
                   this._r_idx++;
                   break;
@@ -1407,7 +1421,7 @@
 
                     //console.log("Combo FIELDS: " + fields);
                   }
-                  this._input_box._combo_box_list.set_display_fields(fields);
+                  this._input_box._combo_box_list.setDisplayFields(fields);
                   this._r_idx += w + 1;
                   break;
 
@@ -1940,6 +1954,38 @@
       /*                            ~~~ Widget management ~~~                                  */
       /*                                                                                       */
       /*****************************************************************************************/
+
+      _comboSelectionChanged: function (a_value) {
+        if ( a_value ) {
+          var selected_text = this._input_box._combo_box_list.get_selected_text();
+          if ( selected_text !== undefined ) {
+            this._input_box._display_value = selected_text;
+            this._input_box.paint();
+          }
+        }
+      },
+
+      _onComboListClosed: function (a_event) {
+        var key;
+
+        key = a_event.detail.keyCode;
+        if ( a_event.detail.selectedId !== undefined && a_event.detail.selectedId !== a_event.detail.previousId ) {
+          this.send_command('set list item "' + a_event.detail.selectedId  + '";');
+          if ( key === 'shift+tab' ) {
+            this.send_command('set key "shift"+"tab";');
+          } else if ( key === 'enter' || key === 'tab' ) {
+            this.send_command('set key "tab";');
+          } else {
+            this.send_command('set key "save";');
+          }
+        } else {
+          if ( key === 'shift+tab' ) {
+            this.send_command('set key "focus_left";');
+          } else if ( key === 'enter' || key === 'tab' ) {
+            this.send_command('set key "focus_right";');
+          }
+        }
+      },
 
       /**
        * @brief Permanently hide all widgets

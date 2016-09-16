@@ -30,7 +30,7 @@ function EPaperInput_Initialize (a_root) {
    *
    * @param e_epaper Parent EPaper object
    */
-  a_root.EPaperInput = function (a_epaper) {
+  a_root.EPaperInput = function (a_epaper, a_combo_list) {
 
     this._epaper      = a_epaper;
     this._ctx         = a_epaper._ctx;
@@ -80,7 +80,7 @@ function EPaperInput_Initialize (a_root) {
 
     // ... create widgets ...
     this._tooltip                 = new EPaperTooltip(this._epaper);
-    this._combo_box_list          = new EPaperComboBoxList(this._epaper);
+    this._combo_box_list          = a_combo_list; //new EPaperComboBoxList(this._epaper);
     this._tooltip_helper          = new EPaperServertipHelper(this._epaper, this);
     this._open_combo_button       = new EPaperOverlayButton(this._epaper, EPaperOverlayButton.COMBO_OPEN,
                                                             function (a_src) { a_src._epaper._input_box.toggle_combo_list(); });
@@ -369,7 +369,7 @@ function EPaperInput_Initialize (a_root) {
       this._bg_h        = a_height + 10 * this._epaper._ratio;
       this._draw_string = a_draw_string;
       this._combo_box_list.set_visible(false);
-      this._combo_box_list.clear_model();
+      this._combo_box_list.clearModel();
     },
 
     /**
@@ -966,7 +966,7 @@ function EPaperInput_Initialize (a_root) {
   };
 
   EPaperInput.prototype.update_combo_list = function (a_combo_id, a_json) {
-    this._combo_box_list.set_model(a_combo_id, a_json);
+    this._combo_box_list.setModelFromJson(a_combo_id, a_json);
     this._combo_box_list.auto_size(this._bb_w);
   };
 

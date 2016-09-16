@@ -91,7 +91,7 @@ function EPaperInputClientComboMode_Initialize (a_root) {
 
       // ... pass the key down to update the value and then filter the list ...
       this.on_key_down(a_key);
-      this._combo_box_list.filter_model(this._value);
+      //this._combo_box_list.filter_model(this._value);
       this.layout_combo_list();
 
     }
@@ -191,12 +191,12 @@ function EPaperInputClientComboMode_Initialize (a_root) {
 
     this.paint();
 
-    this._combo_box_list._click_handler = function (a_combo_list) {
-
-      a_combo_list._epaper.send_command('set list item "' + a_combo_list.get_selected_id() + '";');
-      a_combo_list._epaper.send_command('set key "save";');
-      a_combo_list.set_visible(false);
-    };
+    //this._combo_box_list._click_handler = function (a_combo_list) {
+    //
+    //  a_combo_list._epaper.send_command('set list item "' + a_combo_list.get_selected_id() + '";');
+    //  a_combo_list._epaper.send_command('set key "save";');
+    //  a_combo_list.set_visible(false);
+    //};
   };
 
   /**
