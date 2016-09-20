@@ -38,12 +38,19 @@
     <style>
       :host {
         display: block;
-        outline: 0;
+      }
+      canvas {
+        outline: none;
+      }
+      #overlay {
+        position: absolute;
+        background-color: rgba(0, 0, 0, 0.28);
       }
     </style>
     <paper-card width="[[width]]" height="[[height]]" >
-      <canvas width="[[width]]" height="[[height]]" id="canvas"></canvas>
-      <casper-combolist id="combo" selected-item="{{_comboSelection}}"></casper-combolist>
+      <canvas id="canvas" width="[[width]]" height="[[height]]"></canvas>
+      <casper-combolist id="combo"></casper-combolist>
+      <div id="overlay"></div>
     </paper-card>
   </template>
 
@@ -102,12 +109,6 @@
         asset_debug: {
           type: Boolean,
           value: false
-        },
-        /** Value selected by auxiliar combo box */
-        _comboSelection: {
-          type: Object,
-          value: undefined,
-          observer: '_comboSelectionChanged'
         }
       },
 
@@ -534,14 +535,15 @@
 
       // <------------------------------------>
       attached: function () {
-        this.listen(this.$.combo, 'on-combo-list-closed', '_onComboListClosed');
+        this.listen(this.$.combo, 'on-combo-list-closed'      , '_onComboListClosed');
+        this.listen(this.$.combo, 'on-combo-selection-changed', '_onComboSelectionChanged');
       },
 
       // <------------------------------------>
       detached: function () {
-        // TODO Move instalation of all key handlers here???? also detach them od detached???
         console.log("Hello my name was epaper");
-        this.unlisten(this.$.combo, 'on-combo-list-closed', '_onComboListClosed');
+        this.unlisten(this.$.combo, 'on-combo-list-closed'      , '_onComboListClosed');
+        this.unlisten(this.$.combo, 'on-combo-selection-changed', '_onComboSelectionChanged');
       },
 
 
@@ -1955,13 +1957,10 @@
       /*                                                                                       */
       /*****************************************************************************************/
 
-      _comboSelectionChanged: function (a_value) {
-        if ( a_value ) {
-          var selected_text = this._input_box._combo_box_list.get_selected_text();
-          if ( selected_text !== undefined ) {
-            this._input_box._display_value = selected_text;
-            this._input_box.paint();
-          }
+      _onComboSelectionChanged: function (a_event) {
+        if ( a_event.detail.displayValue ) {
+          this._input_box._display_value = a_event.detail.displayValue;
+          this._input_box.paint();
         }
       },
 
@@ -1985,6 +1984,13 @@
             this.send_command('set key "focus_right";');
           }
         }
+      },
+
+      _move_fake_input: function (a_x, a_y, a_w, a_h) {
+        this.$.overlay.style.left     = a_x + 'px';
+        this.$.overlay.style.top      = a_y + 'px';
+        this.$.overlay.style.width    = a_w + 'px';
+        this.$.overlay.style.height   = a_h + 'px';
       },
 
       /**

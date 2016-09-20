@@ -925,45 +925,63 @@ function EPaperInput_Initialize (a_root) {
     if ( this._combo_box_list.isVisible() ) {
       this._combo_box_list.setVisible(false);
     } else {
-      this.layout_combo_list();
+      var sc =  this._epaper._ratio;
+      var page_margin = 40 * this._epaper._ratio;
+      var max_width, max_height;
+
+      if ( (this._bb_x / this._epaper._sx) > this._epaper._page_width / 2 ) {
+        max_width = this._bg_x + this._bb_w + this._open_combo_button._bb_w - page_margin;
+      } else {
+        max_width = this._epaper._page_width * this._epaper._sx - page_margin - this._bg_x;
+      }
+
+      if ( (this._bb_y / this._epaper._sy) > this._epaper._page_height / 2 ) {
+        max_height = this._bb_y - page_margin;
+      } else {
+        max_height = this._epaper._page_height * this._epaper._sx - page_margin - this._bb_y -  this._bb_h;
+      }
+
       this._tooltip.set_visible(false);
+      this._combo_box_list.autoSize(this._bb_w / sc, max_width / sc);
+      this._epaper._move_fake_input(this._bb_x / sc, this._bb_y /sc, this._bb_w /sc, this._bb_h /sc);
+      this._combo_box_list.setPositionTarget(this._epaper.$.overlay);
       this._combo_box_list.setVisible(true);
     }
   };
 
-  EPaperInput.prototype.layout_combo_list = function () {
-    var list_x, list_y, max_width, max_height, page_margin;
-
-    page_margin = 40 * this._epaper._ratio;
-
-    if ( (this._bb_x / this._epaper._sx) > this._epaper._page_width / 2 ) {
-      max_width = this._bg_x + this._bb_w + this._open_combo_button._bb_w - page_margin;
-    } else {
-      max_width = this._epaper._page_width * this._epaper._sx - page_margin - this._bg_x;
-    }
-
-    if ( (this._bb_y / this._epaper._sy) > this._epaper._page_height / 2 ) {
-      max_height = this._bb_y - page_margin;
-    } else {
-      max_height = this._epaper._page_height * this._epaper._sx - page_margin - this._bb_y -  this._bb_h;
-    }
-
-    this._combo_box_list.auto_size(this._bb_w, max_width, max_height);
-
-    if ( (this._bb_x / this._epaper._sx) > this._epaper._page_width / 2 ) {
-      list_x = this._bb_x + this._bb_w + this._open_combo_button._bb_w - this._combo_box_list._bb_w;
-    } else {
-      list_x = this._bb_x;
-    }
-
-    this._combo_box_list.adjust_height();
-    if ( (this._bb_y + this._bb_h ) / this._epaper._sy > this._epaper._page_height / 2 ) {
-      list_y = this._bb_y - 2 * this._epaper._ratio - this._combo_box_list._bb_h;
-    } else {
-      list_y = this._bb_y + this._bb_h + 2 * this._epaper._ratio;
-    }
-    this._combo_box_list.set_location(list_x, list_y);
-  };
+  //EPaperInput.prototype.layout_combo_list = function () {
+  //  var list_x, list_y, max_width, max_height, page_margin;
+  //
+  //  page_margin = 40 * this._epaper._ratio;
+  //
+  //  if ( (this._bb_x / this._epaper._sx) > this._epaper._page_width / 2 ) {
+  //    max_width = this._bg_x + this._bb_w + this._open_combo_button._bb_w - page_margin;
+  //  } else {
+  //    max_width = this._epaper._page_width * this._epaper._sx - page_margin - this._bg_x;
+  //  }
+  //
+  //  if ( (this._bb_y / this._epaper._sy) > this._epaper._page_height / 2 ) {
+  //    max_height = this._bb_y - page_margin;
+  //  } else {
+  //    max_height = this._epaper._page_height * this._epaper._sx - page_margin - this._bb_y -  this._bb_h;
+  //  }
+  //
+  //  this._combo_box_list.auto_size(this._bb_w, max_width, max_height);
+  //
+  //  if ( (this._bb_x / this._epaper._sx) > this._epaper._page_width / 2 ) {
+  //    list_x = this._bb_x + this._bb_w + this._open_combo_button._bb_w /*- this._combo_box_list._bb_w*/;
+  //  } else {
+  //    list_x = this._bb_x;
+  //  }
+  //
+  //  this._combo_box_list.adjust_height();
+  //  if ( (this._bb_y + this._bb_h ) / this._epaper._sy > this._epaper._page_height / 2 ) {
+  //    list_y = this._bb_y + this._bb_h; // - this._combo_box_list._bb_h;
+  //  } else {
+  //    list_y = this._bb_y + this._bb_h;
+  //  }
+  //  this._combo_box_list.setLocation(list_x, list_y);
+  //};
 
   EPaperInput.prototype.update_combo_list = function (a_combo_id, a_json) {
     this._combo_box_list.setModelFromJson(a_combo_id, a_json);
