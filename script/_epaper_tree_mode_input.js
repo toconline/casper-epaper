@@ -41,16 +41,16 @@ function EPaperInputTreeMode_Initialize (a_root) {
     this._epaper.set_cursor(this._cursor_type);
     this._search_str = '';
     this._search_on  = false;
-
-    this._combo_box_list._click_handler = function (a_combo_list) {
-      a_combo_list._epaper._input_box.set_value_from_list_tree_mode();
-    };
+    this._combo_box_list.setNotifyIdOnly(true);
+    //this._combo_box_list._click_handler = function (a_combo_list) {
+    //  a_combo_list._epaper._input_box.set_value_from_list_tree_mode();
+    //};
     this.paint();
   };
 
   EPaperInput.prototype.set_value_from_list_tree_mode = function () {
 
-      var val = this._combo_box_list.get_selected_id() || this._value;
+      var val = this._combo_box_list.getSelectedId() || this._value;
 
       this._value = this._display_value = val;
       this._cursor_pos = this._value.length;
@@ -70,29 +70,29 @@ function EPaperInputTreeMode_Initialize (a_root) {
 
     this.hide_tooltip();
     this._search_str = '';
-    if ( this._combo_box_list.get_size() ) {
+    if ( this._combo_box_list.getSize() ) {
 
       this._search_on  = true;
 
-      first_id = this._combo_box_list._model[0].id;
+      first_id = this._combo_box_list.items[0].id;
       if ( first_id !== undefined ) {
 
         if ( first_id.indexOf(this._value) === 0 && this._value.length < first_id.length) {
           this._display_value = first_id;
           this.set_selection(this._value.length, first_id.length);
           this._value = first_id;
-          this._combo_box_list.select_index(first_id);
-          if ( this._combo_box_list.is_visible() === false ) {
-            this.set_tooltip_hint(this._bb_x, this._bb_y, this._bb_w, this._bb_h, this._combo_box_list.get_selected_field(1).toUpperCase());
+          this._combo_box_list.selectByIndex(first_id);
+          if ( this._combo_box_list.isVisible() === false ) {
+            this.set_tooltip_hint(this._bb_x, this._bb_y, this._bb_w, this._bb_h, this._combo_box_list.getSelectedField(1).toUpperCase());
           }
         }
       }
 
       // ... find all ids that are terminals ...
-      len = this._combo_box_list._model.length;
+      len = this._combo_box_list.items.length;
       for ( i = 0; i < len; ++i ) {
-        if ( this._combo_box_list._model[i].is_integrator === 'false' ) {
-          this._leaf_ids[this._combo_box_list._model[i].id] = true;
+        if ( this._combo_box_list.items[i].is_integrator === 'false' ) {
+          this._leaf_ids[this._combo_box_list.items[i].id] = true;
         }
       }
     } else {
@@ -110,7 +110,7 @@ function EPaperInputTreeMode_Initialize (a_root) {
     this._combo_box_list.setVisible(false);
     this.show_tooltip();              // cancels interval
     this._tooltip.set_visible(false); // hides rite away
-    this._combo_box_list._click_handler = undefined;
+    //this._combo_box_list._click_handler = undefined;
     this.stop_editor();
   };
 
@@ -147,19 +147,19 @@ function EPaperInputTreeMode_Initialize (a_root) {
 
     if ( a_key === 'up' || a_key === 'down') {
 
-      if ( this._combo_box_list.get_size() ) {
+      if ( this._combo_box_list.getSize() ) {
         this._combo_box_list.on_key_down(a_key);
         if ( this._combo_box_list.is_visible() === false ) {
 
-          var selected_id = this._combo_box_list.get_selected_id();
+          var selected_id = this._combo_box_list.getSelectedId();
           if ( selected_id != undefined ) {
             this._value = this._display_value = selected_id;
             this.set_selection(this._selection_chr_start, this._display_value);
-            this.set_tooltip_hint(this._bb_x, this._bb_y, this._bb_w, this._bb_h, this._combo_box_list.get_selected_field(1).toUpperCase());
+            this.set_tooltip_hint(this._bb_x, this._bb_y, this._bb_w, this._bb_h, this._combo_box_list.getSelectedField(1).toUpperCase());
           }
         }
         // ... update ui state ...
-        this._value = this._display_value = this._combo_box_list.get_selected_id();
+        this._value = this._display_value = this._combo_box_list.getSelectedId();
         if ( this._value.length ) {
           this.cursor_on();
         } else {
@@ -186,7 +186,7 @@ function EPaperInputTreeMode_Initialize (a_root) {
 
       if ( this._search_str.length ) {
         this._search_str = this._search_str.substring(0, this._search_str.length - 1);
-        this._combo_box_list.filter_model(this._search_str);
+        this._combo_box_list.filterModel(this._search_str);
         this.layout_combo_list();
         return true;
       }
@@ -211,13 +211,13 @@ function EPaperInputTreeMode_Initialize (a_root) {
 
     } else if ( a_key === 'alt' || a_key === 'shift+down' ) {
 
-      if ( this._combo_box_list.is_visible() === false ) {
+      if ( this._combo_box_list.isVisible() === false ) {
         this.toggle_combo_list()
       }
 
     } else if ( a_key === 'esc' ) {
 
-      if ( this._combo_box_list.is_visible() ) {
+      if ( this._combo_box_list.isVisible() ) {
         this.toggle_combo_list()
       }
 
@@ -247,15 +247,15 @@ function EPaperInputTreeMode_Initialize (a_root) {
     } else {
 
       if ( this._search_on ) {
-        this._combo_box_list.filter_model(this._search_str + a_character);
+        this._combo_box_list.filterModel(this._search_str + a_character);
         if ( this._combo_box_list._lines.length === 0 ) {
-          this._combo_box_list.filter_model(this._search_str);
+          this._combo_box_list.filterModel(this._search_str);
         } else {
           this._search_str += a_character;
-          this._value = this._display_value = this._combo_box_list.get_selected_id();
+          this._value = this._display_value = this._combo_box_list.getSelectedId();
         }
-        if ( this._combo_box_list.is_visible() == false ) {
-         this._combo_box_list.set_visible(true);
+        if ( this._combo_box_list.isVisible() == false ) {
+         this._combo_box_list.setVisible(true);
          this._tooltip.set_visible(false);
         }
         this.layout_combo_list();

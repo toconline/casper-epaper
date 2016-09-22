@@ -920,7 +920,7 @@ function EPaperInput_Initialize (a_root) {
   /**
    * @brief Show / hide the combo box list
    */
-  EPaperInput.prototype.toggle_combo_list = function () {
+  EPaperInput.prototype.toggle_combo_list = function (a_character) {
 
     if ( this._combo_box_list.isVisible() ) {
       this._combo_box_list.setVisible(false);
@@ -945,7 +945,7 @@ function EPaperInput_Initialize (a_root) {
       this._combo_box_list.autoSize(this._bb_w / sc, max_width / sc);
       this._epaper._move_fake_input(this._bb_x / sc, this._bb_y /sc, this._bb_w /sc, this._bb_h /sc);
       this._combo_box_list.setPositionTarget(this._epaper.$.overlay);
-      this._combo_box_list.setVisible(true);
+      this._combo_box_list.setVisible(true, a_character);
     }
   };
 
@@ -985,7 +985,7 @@ function EPaperInput_Initialize (a_root) {
 
   EPaperInput.prototype.update_combo_list = function (a_combo_id, a_json) {
     this._combo_box_list.setModelFromJson(a_combo_id, a_json);
-    this._combo_box_list.auto_size(this._bb_w);
+    this._combo_box_list.autoSize(this._bb_w);
   };
 
   EPaperInput.prototype.clear_list_item = function () {

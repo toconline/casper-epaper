@@ -74,9 +74,10 @@ function EPaperInputClientComboMode_Initialize (a_root) {
 
     } else if ( a_key === 'up' || a_key === 'down') {
 
-      if ( this._combo_box_list.isVisible() || this._value .length ) {
+      if ( this._combo_box_list.isVisible() || this._value.length ) {
         //this._combo_box_list.on_key_down(a_key);
-        this._epaper.send_command('set key "' + a_key + '";');
+        //this._combo_box_list.on_key_down(a_key);
+        //this._epaper.send_command('set key "' + a_key + '";');
       } else {
         this._epaper.send_command('set key "focus_' + a_key + '";');
       }
@@ -100,14 +101,15 @@ function EPaperInputClientComboMode_Initialize (a_root) {
 
     // ... update ui state ...
     if ( a_key !== 'esc' ) {
-      this._display_value = this._combo_box_list.get_selected_text();
+      //this._display_value = this._combo_box_list.get_selected_text();
     }
-    this.set_highlight(this._value);
-    if ( this._value.length ) {
-      this.cursor_on();
-    } else {
+    //this.set_highlight(this._value);
+    //if ( this._value.length ) {
+    //  this.cursor_on();
+    //} else {
       this.paint();
-    }
+    //}
+
     return true;
   };
 
@@ -125,29 +127,29 @@ function EPaperInputClientComboMode_Initialize (a_root) {
     if ( this._clear_combo_button.is_visible() ) {
       return true;
     }
-
+    this.toggle_combo_list(a_character);
     // ... pass key to default handler to update the value, then re-apply the filter
-    this.on_key_press(a_character);
-    this._combo_box_list.filter_model(this._value);
-    if ( this._combo_box_list._lines.length === 0 ) {
-      // ... If the list became empty reject the update, this ensures elements are always visible ...
-      this.erase_text(this._cursor_pos - 1, this._cursor_pos - 1);
-      this._cursor_pos -= 1;
-      this._combo_box_list.filter_model(this._value);
-    }
-    this.layout_combo_list();
-    this.update_tooltip_client_combo();
-
-    // ... update ui state ...
-    this._display_value = this._combo_box_list.get_selected_text();
-    if ( this._display_value !== undefined ) {
-      this.set_highlight(this._value);
-    }
-    if ( this._value.length ) {
-      this.cursor_on();
-    } else {
+    //this.on_key_press(a_character);
+    //this._combo_box_list.filter_model(this._value);
+    //if ( this._combo_box_list._lines.length === 0 ) {
+    //  // ... If the list became empty reject the update, this ensures elements are always visible ...
+    //  this.erase_text(this._cursor_pos - 1, this._cursor_pos - 1);
+    //  this._cursor_pos -= 1;
+    //  this._combo_box_list.filter_model(this._value);
+    //}
+    //this.layout_combo_list();
+    //this.update_tooltip_client_combo();
+//
+    //// ... update ui state ...
+    //this._display_value = this._combo_box_list.get_selected_text();
+    //if ( this._display_value !== undefined ) {
+    //  this.set_highlight(this._value);
+    //}
+    //if ( this._value.length ) {
+    //  this.cursor_on();
+    //} else {
       this.paint();
-    }
+    //}
     return true;
   };
 
