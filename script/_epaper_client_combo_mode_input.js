@@ -63,14 +63,14 @@ function EPaperInputClientComboMode_Initialize (a_root) {
 
     } else if ( a_key === 'enter' || a_key === 'tab' || a_key === 'shift+tab' ) {
 
-      /*this.commit_value_client_combo_mode();
-      if ( ! (a_key === 'enter' && this._epaper._sub_document_uri !== undefined) ) {
+      //this.commit_value_client_combo_mode();
+      //if ( ! (a_key === 'enter' && this._epaper._sub_document_uri !== undefined) ) {
         if ( a_key === 'shift+tab' ) {
           this._epaper.send_command('set key "shift"+"tab";');
         } else {
           this._epaper.send_command('set key "' + a_key + '";');
         }
-      }*/
+      //}
 
     } else if ( a_key === 'up' || a_key === 'down') {
 
@@ -84,9 +84,9 @@ function EPaperInputClientComboMode_Initialize (a_root) {
 
     } else if ( a_key === 'left' || a_key === 'right' ) {
 
-      /*if ( this.commit_value_client_combo_mode(a_key) === false ) {
+      //if ( this.commit_value_client_combo_mode(a_key) === false ) {
         this._epaper.send_command('set key "focus_' + a_key + '";');
-      }*/
+      //}
 
     } else {
 

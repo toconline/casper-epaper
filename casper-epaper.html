@@ -19,6 +19,7 @@
  -->
 
 <link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-autogrow-textarea/iron-autogrow-textarea.html">
 <link rel="import" href="../paper-card/paper-card.html">
 <link rel="import" href="../casper-epaper/casper-epaper-imports.html">
 <link rel="import" href="../casper-combolist/casper-combolist.html">
@@ -39,18 +40,18 @@
       :host {
         display: block;
       }
-      canvas {
+      #canvas {
+        tabindex: 0;
         outline: none;
       }
-      #overlay {
+      #input {
         position: absolute;
-        background-color: rgba(0, 0, 0, 0.28);
       }
     </style>
     <paper-card width="[[width]]" height="[[height]]" >
       <canvas id="canvas" width="[[width]]" height="[[height]]"></canvas>
       <casper-combolist id="combo"></casper-combolist>
-      <div id="overlay"></div>
+      <iron-autogrow-textarea id="input" value="{{_inputValue}}"></iron-autogrow-textarea>
     </paper-card>
   </template>
 
@@ -62,12 +63,12 @@
     //EPaperComboBoxList_Initialize(window);
     EPaperOverlayButton_Initialize(window);
     EPaperServertipHelper_Initialize(window);
-    EPaperInput_Initialize(window);
-    EPaperInputNormalMode_Initialize(window);
-    EPaperInputHtmlMode_Initialize(window);
-    EPaperInputTreeMode_Initialize(window);
-    EPaperInputClientComboMode_Initialize(window);
-    EPaperInputRadioButtonMode_Initialize(window);
+    //EPaperInput_Initialize(window);
+    //EPaperInputNormalMode_Initialize(window);
+    //EPaperInputHtmlMode_Initialize(window);
+    //EPaperInputTreeMode_Initialize(window);
+    //EPaperInputClientComboMode_Initialize(window);
+    //EPaperInputRadioButtonMode_Initialize(window);
 
     Polymer({
       is: 'casper-epaper',
@@ -109,6 +110,11 @@
         asset_debug: {
           type: Boolean,
           value: false
+        },
+        _inputValue: {
+          type: String,
+          value: undefined,
+          observer: '_onInputValueChanged'
         }
       },
 
@@ -236,7 +242,7 @@
             self = a_epaper;
 
             if ( self._edition == false ) {
-              self._input_box._enabled = false;
+              //self._input_box._enabled = false;
             }
             self.send_command('document load ' + '"' + self._command.path + '"' + (self._command.params !== undefined ? ',"' + self._command.params + '"' : '') + ','
                               + self._sx.toFixed(4) + ',' + self._sy.toFixed(4) + ',' + self._subdocument + ',' + self._edition + ';', function (a_response) {
@@ -349,7 +355,7 @@
         this._canvas            = this.$.canvas;
         this._canvas_width      = this._canvas.width;
         this._canvas_height     = this._canvas.height;
-        this._scroll_container_ = undefined;  // hack
+        this._scroll_container_ = undefined;  // TODO hack
         this._ctx               = this._canvas.getContext('2d', {alpha: false});
         this._initial_pointer   = this._canvas.style.cursor;
         this._ctx.globalCompositeOperation = 'copy';
@@ -385,7 +391,7 @@
         this._load_assets(this.asset_url, this.asset_digest);
 
         this._edition   = false;
-        this._input_box = new EPaperInput(this, this.$.combo);
+        //this._input_box = new EPaperInput(this, this.$.combo);
 
         // ... Install handlers ...
         this._canvas.addEventListener('mousemove', this._create_move_handler(this));
@@ -394,7 +400,7 @@
         this._canvas.addEventListener('focus'    , this._create_focus_handler(this));
         this._canvas.addEventListener('blur'     , this._create_blur_handler(this));
         this._canvas.addEventListener('focusout' , this._create_blur_handler(this));
-        this._canvas.addEventListener('paste'    , this._create_html_onpaste_handler(this));
+        //this._canvas.addEventListener('paste'    , this._create_html_onpaste_handler(this));
         this._canvas.onkeydown  = this._create_onkeydown_handler(this);
         this._canvas.onkeypress = this._create_onkeypress_handler(this);
         this._canvas.contentEditable = false;
@@ -417,7 +423,7 @@
         for ( var i = 0; i < styles.length; i++ ) {
           this._font_spec[this._BOLD_INDEX] = styles[i];
           this._ctx.font = this._font_spec.join('');
-          this._ctx.fillText("Powered by Skunk e-Paper", this._canvas.width / 2, y);
+          this._ctx.fillText("Powered by CASPER ePaper", this._canvas.width / 2, y);
           y += 35;
         }
         this._ctx.restore();
@@ -425,8 +431,8 @@
         // ... create the overlay widgetery ...
         this._create_line_context_menu();
         this._create_tear_buttons();
-        this._input_box._open_combo_button.send_to_front();
-        this._input_box._edit_subdocument_button.send_to_front();
+        //this._input_box._open_combo_button.send_to_front();
+        //this._input_box._edit_subdocument_button.send_to_front();
       },
 
       /**
@@ -535,6 +541,7 @@
 
       // <------------------------------------>
       attached: function () {
+        this.$.combo.setPositionTarget(this.$.input);
         this.listen(this.$.combo, 'on-combo-list-closed'      , '_onComboListClosed');
         this.listen(this.$.combo, 'on-combo-selection-changed', '_onComboSelectionChanged');
       },
@@ -546,7 +553,6 @@
         this.unlisten(this.$.combo, 'on-combo-selection-changed', '_onComboSelectionChanged');
       },
 
-
       /*****************************************************************************************/
       /*                                                                                       */
       /*                                ~~~ Focus management ~~~                               */
@@ -556,7 +562,7 @@
       _create_focus_handler: function (a_epaper) {
         return function(a_event) {
           a_epaper._is_focused = true;
-          a_epaper._input_box._on_focus_handler();
+          //a_epaper._input_box._on_focus_handler();
           a_epaper._repaint_page();
           console.log('++++ Epaper GOT focus ++++');
         }
@@ -565,25 +571,25 @@
       _create_blur_handler: function (a_epaper) {
         return function(a_event) {
           a_epaper._is_focused = false;
-          a_epaper._input_box._on_blur_handler();
+          //a_epaper._input_box._on_blur_handler();
           a_epaper._repaint_page();
           console.log('---- Epaper LOST focus ----');
         }
       },
 
       is_focused: function () {
-        if ( this._is_focused || this._input_box._is_focused ) {
+        if ( this._is_focused /*|| this._input_box._is_focused*/ ) {
           return true;
         } else {
           return false;
         }
       },
 
-      _create_html_onpaste_handler: function (a_epaper) {
+      /*_create_html_onpaste_handler: function (a_epaper) {
         return function (a_event) {
           a_epaper._input_box.paste_from_canvas(a_event);
         }
-      },
+      },*/
 
       /*****************************************************************************************/
       /*                                                                                       */
@@ -604,10 +610,10 @@
           a_epaper._apply_translation();
 
           if ( a_epaper._mouse_over_widgets(x, y, a_event) === false ) {
-            if ( a_epaper._input_box._on_mouse_over_handler !== undefined ) {
-              if ( a_epaper._input_box._on_mouse_over_handler(x,y) === false ) {
-                a_epaper.reset_cursor();
-              }
+            if ( false /*a_epaper._input_box._on_mouse_over_handler !== undefined */) {
+              //if ( a_epaper._input_box._on_mouse_over_handler(x,y) === false ) {
+              //  a_epaper.reset_cursor();
+              //}
               if ( a_epaper._edition ) {
                 a_epaper._update_context_menu(y);
               }
@@ -628,15 +634,15 @@
           a_epaper._ctx.save();
           a_epaper._apply_translation();
           if ( a_epaper._mouse_click_widgets(x, y, true) === false ) {
-            if ( a_epaper._input_box._on_mouse_down_handler !== undefined ) {
-               a_epaper._input_box._on_mouse_down_handler(x,y);
+            if ( false /* a_epaper._input_box._on_mouse_down_handler !== undefined*/ ) {
+               //a_epaper._input_box._on_mouse_down_handler(x,y);
             }
           }
           a_epaper._repaint_widgets();
           a_epaper._ctx.restore();
-          if ( a_epaper._input_box.prevent_mouse_default() ) {
-            a_event.preventDefault();
-          }
+          //if ( a_epaper._input_box.prevent_mouse_default() ) {
+          //  a_event.preventDefault();
+          //}
         }
       },
 
@@ -650,8 +656,8 @@
           a_epaper._ctx.save();
           if ( a_epaper._mouse_click_widgets(x, y, false) === false ) {
 
-            if (    a_epaper._input_box._on_mouse_up_handler === undefined
-                 || a_epaper._input_box._on_mouse_up_handler(x,y) === false ) {
+            if ( false /*   a_epaper._input_box._on_mouse_up_handler === undefined
+                 || a_epaper._input_box._on_mouse_up_handler(x,y) === false */) {
 
               x = (  a_event.offsetX  * a_epaper._page_width  / parseInt(a_epaper._canvas.style.width  || a_epaper._canvas.width ) );
               y = ( (a_event.offsetY  - a_epaper._translate_y /  a_epaper._ratio) * a_epaper._page_height / parseInt(a_epaper._canvas.style.height ||     a_epaper._canvas.height) );
@@ -689,15 +695,15 @@
           if ( a_event.keyCode === 32 ) {
 
             // ... space  - because default behavior in non-input elements is page scroll ...
-            if ( a_epaper._input_box._enabled === true ) {
-              a_epaper._input_box._on_key_press_handler(" ");
+            //if ( a_epaper._input_box._enabled === true ) {
+            //  a_epaper._input_box._on_key_press_handler(" ");
               a_event.preventDefault();
-            }
+            //}
           } else {
             if ( key != null ) {
 
               a_event.preventDefault();
-              if ( a_epaper._input_box._on_key_down_handler(key) === false ) {
+              if ( /*a_epaper._input_box._on_key_down_handler(key) === */false ) {
                 if ( key == 'shift+tab' ) {
                   a_epaper.send_command('set key "shift"+"tab";');
                 } else {
@@ -713,8 +719,8 @@
         return function (a_event) {
           var unicode_char = a_event.which || a_event.keyCode;
 
-          if ( unicode_char > 0 &&  a_epaper._input_box._on_key_press_handler !== undefined ) {
-            if ( a_epaper._input_box._on_key_press_handler(String.fromCharCode(unicode_char)) === false ) {
+          if ( unicode_char > 0 && false /* a_epaper._input_box._on_key_press_handler !== undefined*/ ) {
+            if ( /*a_epaper._input_box._on_key_press_handler(String.fromCharCode(unicode_char)) ===*/ false ) {
               a_epaper.send_command('set key ' + a_event.keyCode + ';');
             }
           }
@@ -962,9 +968,10 @@
         }
 
         // ... now that whole page was redrawn recapture the input box background and repaint ...
-        if ( this._input_box._enabled ) {
-          this._input_box.update_background();
-          this._input_box.paint_input();
+        if ( this._edition && this._draw_edit_string != undefined ) {
+          //this._input_box.update_background();
+          //this._input_box.paint_input();
+          this._paint_string(this._draw_edit_string);
         }
 
         // ... at last refresh the widgets backgrounds forcing a repaint of all visible widgets ...
@@ -1285,13 +1292,13 @@
                     this._r_idx += w;
                     console.log("Open JRXML: " + this._sub_document_jrxml)
                   }
-                  this._input_box.configure_editor(edit_mode, this._sub_document_jrxml);
+                  //this._input_box.configure_editor(edit_mode, this._sub_document_jrxml);
                   this._r_idx += 1; // 't'
                   break;
 
                 case 't':  // Text ( default )
 
-                  this._input_box.configure_editor(edit_mode);
+                  //this._input_box.configure_editor(edit_mode);
                   this._r_idx += 1; // 't'
                   break;
 
@@ -1300,10 +1307,10 @@
                   if ( ',' === this._message[this._r_idx] ) {
                     this._r_idx++;
                     w = this._get_double();
-                    this._input_box.configure_editor(edit_mode, this._message.substring(this._r_idx, this._r_idx + w));
+                    //this._input_box.configure_editor(edit_mode, this._message.substring(this._r_idx, this._r_idx + w));
                     this._r_idx += w;
                   } else {
-                    this._input_box.configure_editor(edit_mode);
+                    //this._input_box.configure_editor(edit_mode);
                   }
                   this._r_idx++;
                   break;
@@ -1313,10 +1320,10 @@
                   if ( ',' === this._message[this._r_idx] ) {
                       this._r_idx++;
                       w = this._get_double();
-                      this._input_box.configure_editor(edit_mode, this._message.substring(this._r_idx, this._r_idx + w));
+                      //this._input_box.configure_editor(edit_mode, this._message.substring(this._r_idx, this._r_idx + w));
                       this._r_idx += w;
                   } else {
-                    this._input_box.configure_editor(edit_mode);
+                    //this._input_box.configure_editor(edit_mode);
                   }
                   this._r_idx++;
                   break;
@@ -1371,13 +1378,13 @@
                     t3 = undefined;
                   }
 
-                  this._input_box.configure_editor(edit_mode, this._sub_document_jrxml, nullable_list);
-                  this._input_box._combo_box_list.setDisplayFields(fields);
+                  //this._input_box.configure_editor(edit_mode, this._sub_document_jrxml, nullable_list);
+                  this.$.combo.setDisplayFields(fields);
                   if ( version === 2 ) {
                     // ... outra coisa ...
                     console.log("Combo Query:" + t3);
                   } else {
-                    this._input_box._combo_box_list.setModelFromJson(t2,t3);
+                    this.$.combo.setModelFromJson(t2,t3);
                   }
                   this._r_idx++;
                   break;
@@ -1392,7 +1399,7 @@
                   t2 =this._message.substring(this._r_idx, this._r_idx + w);   // Array with current and possible values
                   this._r_idx += w + 1; // +1 -> ';''
                   console.log(' Prepare radio button: idx=' + x + ', var=' + t1 + ', values=' + JSON.parse(t2));
-                  this._input_box.configure_editor(edit_mode);
+                  //this._input_box.configure_editor(edit_mode);
                   break;
 
                 case 'C': // 'C'[,<length>,<uri>,<length>,<jrxml>] Combos server side, IVAS, Rubricas, Centros de Custo
@@ -1407,13 +1414,13 @@
                     this._sub_document_jrxml = this._message.substring(this._r_idx, this._r_idx + w);
                     this._r_idx += w;
                   }
-                  this._input_box.configure_editor(edit_mode, this._sub_document_jrxml);
+                  //this._input_box.configure_editor(edit_mode, this._sub_document_jrxml);
                   this._r_idx += 1;
                   break;
 
                 case 'l':  // 'l' Combo that searches on a ledger tree
 
-                  this._input_box.configure_editor(edit_mode);
+                  //this._input_box.configure_editor(edit_mode);
 
                   var fields = [];
                   w = this._get_double();
@@ -1423,7 +1430,7 @@
 
                     //console.log("Combo FIELDS: " + fields);
                   }
-                  this._input_box._combo_box_list.setDisplayFields(fields);
+                  //this._input_box._combo_box_list.setDisplayFields(fields);
                   this._r_idx += w + 1;
                   break;
 
@@ -1431,13 +1438,14 @@
                   break;
                 }
 
-              } else if ( option === 'p' ) { // Prepare editor
+              } else if ( option === 'p' ) { // Prepare editor defines the bounding box
 
                 x = this._get_double();
                 y = this._get_double();
                 w = this._get_double();
                 h = this._get_double();
-                this._input_box.prepare_editor(x, y, w, h, this._message.substring(this._r_idx));
+                this._positionInput(x, y, w, h);
+                //this._input_box.prepare_editor(x, y, w, h, this._message.substring(this._r_idx));
                 this._update_context_menu(y + h / 2);
 
                 return; // The rest of the draw string is just stored it will be painted by the editor
@@ -1462,13 +1470,16 @@
 
                   //console.log("Start Combo: " + id + ", " + value);
 
-                  this._input_box._start_editor_handler(x, y, h, id);
+                  //this._input_box._start_editor_handler(x, y, h, id);
 
                 } else {
                   w = this._get_double();
-                  this._input_box._start_editor_handler(x, y, h, this._message.substring(this._r_idx, this._r_idx + w));
+                  //this._input_box._start_editor_handler(x, y, h, this._message.substring(this._r_idx, this._r_idx + w));
                   this._r_idx += w;
                 }
+
+                this._styleInput(x, y, h);
+
                 this._r_idx += 1;
 
                 if ( false == this._band_tearing ) {
@@ -1507,24 +1518,28 @@
 
                   var json = this._message.substring(this._r_idx, this._r_idx + w);
 
-                  this._input_box.update_combo_list(undefined, json);
+                  //this._input_box.update_combo_list(undefined, json);
+                  this._combo_box_list.setModelFromJson(undefined, json);
+                  this._combo_box_list.autoSize(this.$.input.style.width);
 
                   //console.log("JSON: " + json);
 
                   this._r_idx += w + 1;
                 } else {
-                  this._input_box.update_combo_list(undefined, '[]');
+                  //this._input_box.update_combo_list(undefined, '[]');
+                  this._combo_box_list.setModelFromJson(undefined, '[]');
+                  this._combo_box_list.autoSize(this.$.input.style.width);
                 }
 
-                if ( this._input_box._enabled ) {
-                  this._input_box._update_editor_handler(t1, t2, t3);
-                }
+                //if ( this._input_box._enabled ) {
+                  //this._input_box._update_editor_handler(t1, t2, t3);
+                //}
 
               } else if ( option === 'f' ) { // ... finish or stop the editor ...
 
-                if ( this._input_box._enabled ) {
-                  this._input_box._stop_editor_handler();
-                }
+                //if ( this._input_box._enabled ) {
+                //  this._input_box._stop_editor_handler();
+                //}
                 this._r_idx += 1;
 
                 // ... clear the sub document variables ...
@@ -1547,7 +1562,7 @@
                 h  = this._get_double();
                 w  = this._get_double();
                 t1 = this._message.substring(this._r_idx, this._r_idx + w);
-                this._input_box._tooltip_handler(x, y, w, h, t1);
+                //this._input_box._tooltip_handler(x, y, w, h, t1);
                 this._r_idx += w + 1;
               }
 
@@ -1800,16 +1815,16 @@
             case 'f':
               if ( 'm' == this._message[this._r_idx] ) {
                   this._r_idx++;
-                  this._input_box._f_flags               = this._get_double();
-                  this._input_box._f_top                 = this._get_double();
-                  this._input_box._f_ascent              = this._get_double();
-                  this._input_box._f_descent             = this._get_double();
-                  this._input_box._f_bottom              = this._get_double();
-                  this._input_box._f_leading             = this._get_double();
-                  this._input_box._f_avg_char_width      = this._get_double();
-                  this._input_box._f_max_char_width      = this._get_double();
-                  this._input_box._f_underline_thickness = this._get_double();
-                  this._input_box._f_underline_position  = this._get_double();
+                  /*this._input_box._f_flags               = */this._get_double();
+                  /*this._input_box._f_top                 = */this._get_double();
+                  /*this._input_box._f_ascent              = */this._get_double();
+                  /*this._input_box._f_descent             = */this._get_double();
+                  /*this._input_box._f_bottom              = */this._get_double();
+                  /*this._input_box._f_leading             = */this._get_double();
+                  /*this._input_box._f_avg_char_width      = */this._get_double();
+                  /*this._input_box._f_max_char_width      = */this._get_double();
+                  /*this._input_box._f_underline_thickness = */this._get_double();
+                  /*this._input_box._f_underline_position  = */this._get_double();
               } else {
                   this._font_mask = this._get_double();
                   this._font_spec[this._SIZE_INDEX]   = Math.round(this._get_double());
@@ -1953,14 +1968,41 @@
 
       /*****************************************************************************************/
       /*                                                                                       */
+      /*                            ~~~ Inputbox handling ~~~                                  */
+      /*                                                                                       */
+      /*****************************************************************************************/
+
+      _positionInput: function (a_x, a_y, a_w, a_h) {
+        this.$.input.style.left     = a_x / 2 + 'px';
+        this.$.input.style.top      = a_y / 2 + 'px';  // TODO SCALLING!
+        this.$.input.style.width    = a_w / 2 + 'px';
+        this.$.input.style.height   = a_h / 2 + 'px';
+      },
+
+      _styleInput: function (a_p1, a_p2, a_p3) {
+        this.$.input.style.border = 'none';
+        this.$.input.$.textarea.style.padding    = '1.5px';
+        this.$.input.$.textarea.style.margin     = '1.5px';
+        this.$.input.$.textarea.style.fontFamily = this._font_spec[this._FONT_NAME_INDEX];
+        this.$.input.$.textarea.style.fontSize   = this._font_spec[this._SIZE_INDEX] / 2 + 'px';
+        this.$.input.$.textarea.style.color      = this._text_color;
+      },
+
+      _onInputValueChanged: function (a_value, a_old_value) {
+        console.log('typed: '+a_value+' was: '+a_old_value);
+        this.$.input.$.textarea.value = "FORCED VALUE";
+      },
+
+      /*****************************************************************************************/
+      /*                                                                                       */
       /*                            ~~~ Widget management ~~~                                  */
       /*                                                                                       */
       /*****************************************************************************************/
 
       _onComboSelectionChanged: function (a_event) {
         if ( a_event.detail.displayValue ) {
-          this._input_box._display_value = a_event.detail.displayValue;
-          this._input_box.paint();
+          //this._input_box._display_value = a_event.detail.displayValue;
+          //this._input_box.paint();
         }
       },
 
@@ -1984,13 +2026,6 @@
             this.send_command('set key "focus_right";');
           }
         }
-      },
-
-      _move_fake_input: function (a_x, a_y, a_w, a_h) {
-        this.$.overlay.style.left     = a_x + 'px';
-        this.$.overlay.style.top      = a_y + 'px';
-        this.$.overlay.style.width    = a_w + 'px';
-        this.$.overlay.style.height   = a_h + 'px';
       },
 
       /**
@@ -2090,7 +2125,7 @@
           sb_h = ( window.innerHeight - document.documentElement.clientHeight ) || 0
         }
 
-        var i_w  = ( this._input_box._bb_w / this._ratio );
+        /*var i_w  = ( this._input_box._bb_w / this._ratio );
         var i_h  = ( this._input_box._bb_h / this._ratio );
         var i_l  = ( this._input_box._bb_x / this._ratio );
         var i_t  = ( this._input_box._bb_y / this._ratio );
@@ -2151,7 +2186,7 @@
           this._input_box._html_input.style.top    = "0px";
           this._input_box._html_input.style.width  = i_w + "px";
           this._input_box._html_input.style.height = i_h + "px";
-        }
+        }*/
 
       },
 
@@ -2389,7 +2424,7 @@
             this._band_tearing      = false;
             this._band_tear_max_gap = 0;
             this._repaint_page();
-            this._input_box.update_background();
+            //this._input_box.update_background();
           }
         }
 
@@ -2407,8 +2442,8 @@
 
         this._make_widgets_invisible();
         this._repaint_widgets();
-        this._input_box.freeze_cursor();
-        this._input_box._enabled   = false;
+        //this._input_box.freeze_cursor();
+        //this._input_box._enabled   = false;
         this._translate_y          = a_from_y;
         this._band_tear_max_gap    = a_height;
         this._band_tear_gap        = 0;

@@ -320,14 +320,14 @@ function EPaperInputHtmlMode_Initialize (a_root) {
     this._html_input.style.zIndex        = 0;
     this._html_input.style['text-indent'] = '-9999em';
 
-    this._html_input.addEventListener('keydown' , this.create_html_onkeydown_handler(this));
+    /*this._html_input.addEventListener('keydown' , this.create_html_onkeydown_handler(this));
     this._html_input.addEventListener('keypress', this.create_html_onkeypress_handler(this));
     this._html_input.addEventListener('keyup'   , this.create_html_onkeyup_handler(this));
     this._html_input.addEventListener('focus'   , this.create_html_onfocus_handler(this));
     this._html_input.addEventListener('blur'    , this.create_html_onblur_handler(this));
     this._html_input.addEventListener('paste'   , this.create_html_onpaste_handler(this));
 
-    document.body.appendChild(this._html_input);
+    document.body.appendChild(this._html_input);*/
   };
 
 }

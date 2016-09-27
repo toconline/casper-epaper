@@ -206,16 +206,16 @@ function EPaperInput_Initialize (a_root) {
       this._paint_handler();
 
       // ... Draw the default cursor, a single vertical line ...
-      if ( this._epaper.is_focused() ) {
-        if ( this._cursor_enabled === true && this._cursor_visible === true && (this._options & EPaperInput.HIDE_CURSOR) === 0 ) {
-          this._ctx.lineWidth   = this._cursor_width;
-          this._ctx.strokeStyle = this._cursor_color;
-          this._ctx.beginPath();
-          this._ctx.moveTo(this._cursor_x, this._baseline + this._f_bottom);
-          this._ctx.lineTo(this._cursor_x, this._baseline + this._f_top);
-          this._ctx.stroke();
-        }
-      }
+      //if ( this._epaper.is_focused() ) {
+      //  if ( this._cursor_enabled === true && this._cursor_visible === true && (this._options & EPaperInput.HIDE_CURSOR) === 0 ) {
+      //    this._ctx.lineWidth   = this._cursor_width;
+      //    this._ctx.strokeStyle = this._cursor_color;
+      //    this._ctx.beginPath();
+      //    this._ctx.moveTo(this._cursor_x, this._baseline + this._f_bottom);
+      //    this._ctx.lineTo(this._cursor_x, this._baseline + this._f_top);
+      //    this._ctx.stroke();
+      //  }
+      //}
 
     },
 
@@ -943,8 +943,8 @@ function EPaperInput_Initialize (a_root) {
 
       this._tooltip.set_visible(false);
       this._combo_box_list.autoSize(this._bb_w / sc, max_width / sc);
-      this._epaper._move_fake_input(this._bb_x / sc, this._bb_y /sc, this._bb_w /sc, this._bb_h /sc);
-      this._combo_box_list.setPositionTarget(this._epaper.$.overlay);
+      //this._epaper._move_fake_input(this._bb_x / sc, this._bb_y /sc, this._bb_w /sc, this._bb_h /sc);
+      //this._combo_box_list.setPositionTarget(this._epaper.$.input);
       this._combo_box_list.setVisible(true, a_character);
     }
   };
