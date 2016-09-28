@@ -1160,12 +1160,15 @@
                     console.log("Open JRXML: " + this._sub_document_jrxml)
                   }
                   //this._input_box.configure_editor(edit_mode, this._sub_document_jrxml);
+                  this.$.input.setMode(edit_mode);
                   this._r_idx += 1; // 't'
                   break;
 
                 case 't':  // Text ( default )
 
                   //this._input_box.configure_editor(edit_mode);
+                  this.$.input.setMode(edit_mode);
+
                   this._r_idx += 1; // 't'
                   break;
 
@@ -1175,9 +1178,11 @@
                     this._r_idx++;
                     w = this._get_double();
                     //this._input_box.configure_editor(edit_mode, this._message.substring(this._r_idx, this._r_idx + w));
+                    this.$.input.setMode(edit_mode);
                     this._r_idx += w;
                   } else {
                     //this._input_box.configure_editor(edit_mode);
+                    this.$.input.setMode(edit_mode);
                   }
                   this._r_idx++;
                   break;
@@ -1188,9 +1193,11 @@
                       this._r_idx++;
                       w = this._get_double();
                       //this._input_box.configure_editor(edit_mode, this._message.substring(this._r_idx, this._r_idx + w));
+                      this.$.input.setMode(edit_mode);
                       this._r_idx += w;
                   } else {
                     //this._input_box.configure_editor(edit_mode);
+                    this.$.input.setMode(edit_mode);
                   }
                   this._r_idx++;
                   break;
@@ -1246,6 +1253,7 @@
                   }
 
                   //this._input_box.configure_editor(edit_mode, this._sub_document_jrxml, nullable_list);
+                  this.$.input.setMode(edit_mode);
                   this.$.combo.setDisplayFields(fields);
                   if ( version === 2 ) {
                     // ... outra coisa ...
@@ -1267,6 +1275,7 @@
                   this._r_idx += w + 1; // +1 -> ';''
                   console.log(' Prepare radio button: idx=' + x + ', var=' + t1 + ', values=' + JSON.parse(t2));
                   //this._input_box.configure_editor(edit_mode);
+                  this.$.input.setMode(edit_mode);
                   break;
 
                 case 'C': // 'C'[,<length>,<uri>,<length>,<jrxml>] Combos server side, IVAS, Rubricas, Centros de Custo
@@ -1282,12 +1291,16 @@
                     this._r_idx += w;
                   }
                   //this._input_box.configure_editor(edit_mode, this._sub_document_jrxml);
+                  this.$.input.setMode(edit_mode);
+
                   this._r_idx += 1;
                   break;
 
                 case 'l':  // 'l' Combo that searches on a ledger tree
 
                   //this._input_box.configure_editor(edit_mode);
+                  this.$.input.setMode(edit_mode);
+
 
                   var fields = [];
                   w = this._get_double();

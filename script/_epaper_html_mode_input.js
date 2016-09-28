@@ -67,7 +67,7 @@ function EPaperInputHtmlMode_Initialize (a_root) {
       this._html_input.blur();
       this._epaper._canvas.focus();
       if ( a_key == 'shift+tab' ) {
-        this._epaper.send_command('set text "' + EPaperInput.escape_for_server(this._value) + '" true; set key "shift"+"tab";');
+        this._epaper.send_command('set text "' + EPaperInput.escapeDorServer(this._value) + '" true; set key "shift"+"tab";');
       } else {
         this._epaper.send_command('set text "' + EPaperInput.escape_for_server(this._value) + '" true; set key "' + a_key + '";');
       }

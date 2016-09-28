@@ -54,6 +54,7 @@
       attached: function () {
         this._textArea         = this.$.input.$.textarea;
         this._initialSelection = false;
+        this._mode             = 'n';
       },
 
       detached: function () {
@@ -89,7 +90,40 @@
         this._textArea.style.fontFamily = this._epaper._font_spec[this._epaper._FONT_NAME_INDEX];
         this._textArea.style.fontSize   = this._epaper._font_spec[this._epaper._SIZE_INDEX] / 2 + 'px'; // TODO SCALLING
         this._textArea.style.color      = this._epaper._text_color;
-        this._textArea.focus();
+      },
+
+      /**
+       * Configure the editor mode
+       *
+       * @param a_mode The editor mode
+       * @param a_nullable_list The combo box list can be nulled
+       */
+      setMode: function (a_mode, a_nullable_list) {
+        this._mode = a_mode;
+        switch ( a_mode ) {
+        case 'c': // Client combo
+          this._cursor_type = 'pointer';
+          break;
+
+        case 'l': // Ledger mode
+          this._cursor_type = 'text';
+          break;
+
+        case 'd': // Date
+
+          this._cursor_type = 'text';
+          break;
+
+        case 'R':
+
+          this._cursor_type = 'pointer';
+          break;
+
+        default:
+          this._mode        = 'n'
+          this._cursor_type = 'text';
+          break;
+        }
       },
 
       setValue: function (a_value) {
@@ -132,7 +166,7 @@
           a_event.preventDefault();
           return;
         }
-        console.log("down " + this._keycodeToVkey(a_event));
+        //console.log("down " + this._keycodeToVkey(a_event));
       },
 
       _escapeForServer:  function (a_text) {
