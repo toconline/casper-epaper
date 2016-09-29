@@ -324,7 +324,7 @@
 
       _onKeypressC: function (a_event) {
         if ( this._overlayVisible === false ) {
-          this._comboFilter = a_event.key;
+          this._comboFilter += a_event.key;
           this._comboBoxList.setQuery(this._comboFilter, false);
           a_event.preventDefault();
         }
@@ -338,6 +338,7 @@
           if ( ['down', 'up', 'left', 'right'].indexOf(vkey) > -1 ) {
             if ( this._comboFilter.length !== 0 && ['down', 'up'].indexOf(vkey) > -1) {
               this._comboBoxList.moveSelection(vkey);
+              console.log('query:'+this._comboFilter+' sz:'+this._comboBoxList._filteredItems.length);
             } else {
               this._epaper.send_command('set key "focus_'+vkey+'";');
             }
