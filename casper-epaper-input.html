@@ -41,6 +41,7 @@
   </style>
   <template>
     <iron-autogrow-textarea id="input"></iron-autogrow-textarea>
+    <casper-combolist id="combo" ></casper-combolist>
   </template>
   <script>
     Polymer({
@@ -51,14 +52,24 @@
         'keydown': '_onKeyDown'
       },
 
-      attached: function () {
+      ready: function () {
         this._textArea         = this.$.input.$.textarea;
+        this._comboBoxList     = this.$.combo;
+        this._comboBoxList.setPositionTarget(this.$.input);
+      },
+
+      attached: function () {
         this._initialSelection = false;
         this._mode             = 'n';
+        this._comboFilter      = '';
+        this._overlayVisible   = false;
+        this.listen(this._comboBoxList, 'on-combo-list-closed'      , '_onComboListClosed');
+        this.listen(this._comboBoxList, 'on-combo-selection-changed', '_onComboSelectionChanged');
       },
 
       detached: function () {
-        //this.unlisten(this._textArea, 'keydown', '_onKeyDown');
+        this.unlisten(this._comboBoxList, 'on-combo-list-closed'      , '_onComboListClosed');
+        this.unlisten(this._comboBoxList, 'on-combo-selection-changed', '_onComboSelectionChanged');
       },
 
       /**
@@ -86,7 +97,7 @@
        * @param a_baseline    Maximum width of the text #TODO remove?
        */
       alignStyle: function (a_text_left, a_baseline, a_baseline) {
-        this._textArea.style.margin = '1px';
+        this._textArea.style.margin     = '1px';
         this._textArea.style.fontFamily = this._epaper._font_spec[this._epaper._FONT_NAME_INDEX];
         this._textArea.style.fontSize   = this._epaper._font_spec[this._epaper._SIZE_INDEX] / 2 + 'px'; // TODO SCALLING
         this._textArea.style.color      = this._epaper._text_color;
@@ -126,18 +137,149 @@
         }
       },
 
+      /**
+       * Sets the name of the data model field that contains the item description
+       *
+       * @param a_display_fields array of fields names
+       */
+      setDisplayFields: function (a_fields) {
+        this._comboBoxList.setDisplayFields(a_fields);
+      },
+
+      /**
+       * Show / hide the combo box list
+       */
+      _toggleComboList: function () {
+
+        if ( this._comboBoxList.isVisible() ) {
+          this._comboBoxList.setVisible(false);
+        } else {
+          var sc = this._epaper._ratio;
+          var page_margin = 40 * this._epaper._ratio;
+          var max_width, max_height;
+
+          var left  = parseInt(this.style.left);
+          var width = parseInt(this.style.width);
+
+          if ( (left / this._epaper._sx) > this._epaper._page_width / 2 ) {
+            max_width = left + width /*+ this._open_combo_button._bb_w*/ - page_margin;
+          } else {
+            max_width = this._epaper._page_width * this._epaper._sx - page_margin - left;
+          }
+
+          //if ( (this.style.top / this._epaper._sy) > this._epaper._page_height / 2 ) {
+          //  max_height = this.style.top  - page_margin;
+          //} else {
+          //  max_height = this._epaper._page_height * this._epaper._sx - page_margin - this._bb_y -  this._bb_h;
+          //}
+
+          //this._tooltip.set_visible(false);
+          this._comboBoxList.autoSize(width, max_width);
+          this._comboBoxList.setVisible(true, this._comboFilter);
+        }
+      },
+
+      _onComboSelectionChanged: function (a_event) {
+        if ( a_event.detail.displayValue ) {
+          this._textArea.value = a_event.detail.displayValue;
+        }
+        console.log('sel '+a_event.detail.selectedId);
+      },
+
+      _onComboListClosed: function (a_event) {
+        var key;
+
+        this._overlayVisible = false;
+        this._comboFilter    = '';
+
+        key = a_event.detail.keyCode;
+        if ( a_event.detail.selectedId !== undefined && a_event.detail.selectedId !== a_event.detail.previousId ) {
+          this._epaper.send_command('set list item "' + a_event.detail.selectedId  + '";');
+          if ( key === 'shift+tab' ) {
+            this._epaper.send_command('set key "shift"+"tab";');
+          } else if ( key === 'enter' || key === 'tab' ) {
+            this._epaper.send_command('set key "tab";');
+          } else {
+            this._epaper.send_command('set key "save";');
+          }
+        } else {
+          if ( key === 'shift+tab' ) {
+            this._epaper.send_command('set key "focus_left";');
+          } else if ( key === 'enter' || key === 'tab' ) {
+            this._epaper.send_command('set key "focus_right";');
+          }
+        }
+      },
+
+      /**
+       * Sets the basic the combo item list
+       *
+       * Each model is associated with an id, models are kept in a model cache. To set a model the
+       * server specified the id and json model, to reuse a cached model just sends the id.
+       *
+       * @param a_combo_id Unique identifier of the combo list in the document (no caching if it's undefined)
+       * @param a_json json string with the data model to associate with the combo it. If this parameter is
+       *               undefined the model is retrieved from the _modelCache
+       */
+      setModelFromJson: function (a_combo_id, a_json) {
+        return this._comboBoxList.setModelFromJson(a_combo_id, a_json);
+      },
+
       setValue: function (a_value) {
+        switch ( this._mode) {
+          case 'c':
+            this._setValueC(a_value);
+            break;
+          case 'n':
+          default:
+            this._setValueN(a_value);
+            break;
+        }
+      },
+
+      _onKeypress: function (a_event) {
+        switch ( this._mode) {
+          case 'c':
+            this._onKeypressC(a_event);
+            break;
+          //case 'l': // TODO LEDGER MODE
+          //  this._onKeyDown_l(a_event);
+          //  break;
+          case 'n':
+          default:
+            break;
+        }
+      },
+
+      _onKeyDown: function (a_event) {
+        switch ( this._mode) {
+          case 'c':
+            this._onKeyDownC(a_event);
+            break;
+          //case 'l': // TODO LEDGER MODE
+          //  this._onKeyDown_l(a_event);
+          //  break;
+          case 'n':
+          default:
+            this._onKeyDownN(a_event);
+            break;
+        }
+      },
+
+      /*****************************************************************************************/
+      /*                                                                                       */
+      /*                             ~~~ N Mode Normal Mode ~~~                                */
+      /*                                                                                       */
+      /*****************************************************************************************/
+
+      _setValueN: function (a_value) {
         this._textArea.value          = a_value;
         this._textArea.selectionStart = 0;
         this._textArea.selectionEnd   = a_value.length;
         this._initialSelection        = true;
       },
 
-      _onKeypress: function (a_event) {
-        //console.log(a_event);
-      },
-
-      _onKeyDown: function (a_event) {
+      _onKeyDownN: function (a_event) {
         var vkey = this._keycodeToVkey(a_event);
 
         if ( this._initialSelection === true ) {
@@ -145,15 +287,15 @@
             this._epaper.send_command('set key "focus_'+vkey+'";');
             a_event.preventDefault();
             return;
-          } else if ( vkey === 'tab' || vkey === 'shift+tab' ) {
+          } else if ( ['tab', 'shift+tab'].indexOf(vkey) > -1 ) {
             this._epaper.send_command('set key "'+vkey.replace(/\+/g, '"+"')+'";');
             a_event.preventDefault();
             return;
-          } else if ( vkey === 'enter' || vkey === 'F2' ) {
+          } else if ( ['enter', 'F2'].indexOf(vkey) > -1 ) {
             this._textArea.selectionStart = this._textArea.value.length;
             this._textArea.selectionEnd   = this._textArea.value.length;
-            a_event.preventDefault();
             this._initialSelection = false;
+            a_event.preventDefault();
             return;
           } else {
             this._initialSelection = false;
@@ -166,9 +308,63 @@
           a_event.preventDefault();
           return;
         }
-        //console.log("down " + this._keycodeToVkey(a_event));
       },
 
+      /*****************************************************************************************/
+      /*                                                                                       */
+      /*                             ~~~ C Mode Client Combo ~~~                               */
+      /*                                                                                       */
+      /*****************************************************************************************/
+
+      _setValueC: function (a_id) {
+        this._comboBoxList.setVisible(false);
+        this._comboBoxList.selectById(a_id);
+        this._overlayVisible = false;
+      },
+
+      _onKeypressC: function (a_event) {
+        if ( this._overlayVisible === false ) {
+          this._comboFilter = a_event.key;
+          this._comboBoxList.setQuery(this._comboFilter, false);
+          a_event.preventDefault();
+        }
+      },
+
+      _onKeyDownC: function (a_event) {
+        var vkey;
+
+        vkey = this._keycodeToVkey(a_event);
+        if ( this._overlayVisible === false ) {
+          if ( ['down', 'up', 'left', 'right'].indexOf(vkey) > -1 ) {
+            if ( this._comboFilter.length !== 0 && ['down', 'up'].indexOf(vkey) > -1) {
+              this._comboBoxList.moveSelection(vkey);
+            } else {
+              this._epaper.send_command('set key "focus_'+vkey+'";');
+            }
+            a_event.preventDefault();
+          } else if ( ['tab', 'shift+tab', 'enter'].indexOf(vkey) > -1 ) {
+            this._epaper.send_command('set key "'+vkey.replace(/\+/g, '"+"')+'";');
+            a_event.preventDefault();
+          } else if ( vkey === 'alt' ) {
+            this._toggleComboList();
+            this._overlayVisible = this._comboBoxList.isVisible();
+          } else if ( ['delete', 'backspace'].indexOf(vkey) > -1 ) {
+            this._comboFilter = this._comboFilter.slice(0, -1);
+            this._comboBoxList.setQuery(this._comboFilter, false);
+            a_event.preventDefault();
+          }
+        } else {
+          if ( vkey === 'esc' ) {
+            this._comboBoxList.setVisible(false);
+            this._overlayVisible = false;
+            a_event.preventDefault();
+          }
+        }
+      },
+
+      /**
+       * Escapes double quotes for the server protocol
+       */
       _escapeForServer:  function (a_text) {
         return a_text.split('"').join('""');
       },

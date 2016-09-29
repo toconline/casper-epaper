@@ -358,7 +358,6 @@
         this._widgets           = [];
         this._images            = {};
         this._widget_under_mice = undefined;
-        this._is_focused        = false;
         this._focused_band_id   = undefined;
         this._redraw_timer_key  = '_epaper_redraw_timer_key';
         this._reset_render_state();
@@ -382,7 +381,6 @@
         this._load_assets(this.asset_url, this.asset_digest);
 
         this._edition   = false;
-        //this._input_box = new EPaperInput(this, this.$.combo);
 
         // ... Install handlers ...
         this._canvas.addEventListener('mousemove', this._create_move_handler(this));
@@ -532,55 +530,11 @@
 
       // <------------------------------------>
       attached: function () {
-        this.$.combo.setPositionTarget(this.$.input);
-        this.listen(this.$.combo, 'on-combo-list-closed'      , '_onComboListClosed');
-        this.listen(this.$.combo, 'on-combo-selection-changed', '_onComboSelectionChanged');
       },
 
       // <------------------------------------>
       detached: function () {
-        console.log("Hello my name was epaper");
-        this.unlisten(this.$.combo, 'on-combo-list-closed'      , '_onComboListClosed');
-        this.unlisten(this.$.combo, 'on-combo-selection-changed', '_onComboSelectionChanged');
       },
-
-      /*****************************************************************************************/
-      /*                                                                                       */
-      /*                                ~~~ Focus management ~~~                               */
-      /*                                                                                       */
-      /*****************************************************************************************/
-
-      //_create_focus_handler: function (a_epaper) {
-      //  return function(a_event) {
-      //    a_epaper._is_focused = true;
-      //    //a_epaper._input_box._on_focus_handler();
-      //    a_epaper._repaint_page();
-      //    console.log('++++ Epaper GOT focus ++++');
-      //  }
-      //},
-      //
-      //_create_blur_handler: function (a_epaper) {
-      //  return function(a_event) {
-      //    a_epaper._is_focused = false;
-      //    //a_epaper._input_box._on_blur_handler();
-      //    a_epaper._repaint_page();
-      //    console.log('---- Epaper LOST focus ----');
-      //  }
-      //},
-
-      is_focused: function () {
-        if ( this._is_focused /*|| this._input_box._is_focused*/ ) {
-          return true;
-        } else {
-          return false;
-        }
-      },
-
-      /*_create_html_onpaste_handler: function (a_epaper) {
-        return function (a_event) {
-          a_epaper._input_box.paste_from_canvas(a_event);
-        }
-      },*/
 
       /*****************************************************************************************/
       /*                                                                                       */
@@ -1254,12 +1208,12 @@
 
                   //this._input_box.configure_editor(edit_mode, this._sub_document_jrxml, nullable_list);
                   this.$.input.setMode(edit_mode);
-                  this.$.combo.setDisplayFields(fields);
+                  this.$.input.setDisplayFields(fields);
                   if ( version === 2 ) {
                     // ... outra coisa ...
                     console.log("Combo Query:" + t3);
                   } else {
-                    this.$.combo.setModelFromJson(t2,t3);
+                    this.$.input.setModelFromJson(t2,t3);
                   }
                   this._r_idx++;
                   break;
@@ -1859,65 +1813,9 @@
 
       /*****************************************************************************************/
       /*                                                                                       */
-      /*                            ~~~ Inputbox handling ~~~                                  */
-      /*                                                                                       */
-      /*****************************************************************************************/
-
-      /*_positionInput: function (a_x, a_y, a_w, a_h) {
-        this.$.input.style.left     = a_x / 2 + 'px';
-        this.$.input.style.top      = a_y / 2 + 'px';  // TODO SCALLING!
-        this.$.input.style.width    = a_w / 2 + 'px';
-        this.$.input.style.height   = a_h / 2 + 'px';
-      },
-
-      _styleInput: function (a_p1, a_p2, a_p3) {
-        this.$.input.style.border = 'none';
-        this.$.input.$.textarea.style.padding    = '1.5px';
-        this.$.input.$.textarea.style.margin     = '1.5px';
-        this.$.input.$.textarea.style.fontFamily = this._font_spec[this._FONT_NAME_INDEX];
-        this.$.input.$.textarea.style.fontSize   = this._font_spec[this._SIZE_INDEX] / 2 + 'px';
-        this.$.input.$.textarea.style.color      = this._text_color;
-      },
-
-      _onInputValueChanged: function (a_value, a_old_value) {
-        console.log('typed: '+a_value+' was: '+a_old_value);
-        this.$.input.$.textarea.value = "FORCED VALUE";
-      },*/
-
-      /*****************************************************************************************/
-      /*                                                                                       */
       /*                            ~~~ Widget management ~~~                                  */
       /*                                                                                       */
       /*****************************************************************************************/
-
-      _onComboSelectionChanged: function (a_event) {
-        if ( a_event.detail.displayValue ) {
-          //this._input_box._display_value = a_event.detail.displayValue;
-          //this._input_box.paint();
-        }
-      },
-
-      _onComboListClosed: function (a_event) {
-        var key;
-
-        key = a_event.detail.keyCode;
-        if ( a_event.detail.selectedId !== undefined && a_event.detail.selectedId !== a_event.detail.previousId ) {
-          this.send_command('set list item "' + a_event.detail.selectedId  + '";');
-          if ( key === 'shift+tab' ) {
-            this.send_command('set key "shift"+"tab";');
-          } else if ( key === 'enter' || key === 'tab' ) {
-            this.send_command('set key "tab";');
-          } else {
-            this.send_command('set key "save";');
-          }
-        } else {
-          if ( key === 'shift+tab' ) {
-            this.send_command('set key "focus_left";');
-          } else if ( key === 'enter' || key === 'tab' ) {
-            this.send_command('set key "focus_right";');
-          }
-        }
-      },
 
       /**
        * @brief Permanently hide all widgets
@@ -2206,7 +2104,7 @@
         button_x += this._BTN_SIZE * this._ratio * 0.9;
         this._line_del_button.set_location(button_x, button_y);
 
-        if ( this._edition && this.is_focused() ) {
+        if ( this._edition /*&& this.is_focused()*/ ) {
           this._line_add_button.set_visible(true);
           this._line_del_button.set_visible(true);
         }
