@@ -183,7 +183,7 @@ var EPaperWidget_Initialize = function(a_root) {
         if ( mouse_over ) {
           this._state |=  EPaperWidget.IS_MOUSE_OVER;
           if ( this._cursor !== undefined ) {
-            this._epaper.set_cursor(this._cursor);
+            //this._epaper.set_cursor(this._cursor);
           }
           if ( this._epaper._widget_under_mice !== undefined &&  this._epaper._widget_under_mice != this ) {
             this._epaper._widget_under_mice._state &= ~(EPaperWidget.IS_MOUSE_OVER | EPaperWidget.IS_CLICKED);

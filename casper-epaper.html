@@ -40,7 +40,6 @@
         display: block;
       }
       #canvas {
-        /*tabindex: 0;*/
         outline: none;
       }
     </style>
@@ -383,9 +382,9 @@
         this._edition   = false;
 
         // ... Install handlers ...
-        this._canvas.addEventListener('mousemove', this._create_move_handler(this));
-        this._canvas.addEventListener('mousedown', this._create_mouse_down_handler(this));
-        this._canvas.addEventListener('mouseup'  , this._create_mouse_up_handler(this));
+        this._canvas.addEventListener('mousemove', this._move_handler.bind(this));
+        this._canvas.addEventListener('mousedown', this._mouse_down_handler.bind(this));
+        this._canvas.addEventListener('mouseup'  , this._mouse_up_handler.bind(this));
         //this._canvas.addEventListener('focus'    , this._create_focus_handler(this));
         //this._canvas.addEventListener('blur'     , this._create_blur_handler(this));
         //this._canvas.addEventListener('focusout' , this._create_blur_handler(this));
@@ -545,85 +544,67 @@
       /**
        * @brief Creates the handler that listens to mouse movements
        */
-      _create_move_handler: function (a_epaper) {
-        return function (a_event) {
-          var x = a_event.offsetX * a_epaper._ratio;
-          var y = a_event.offsetY * a_epaper._ratio;
+      _move_handler: function (a_event) {
+        var x = a_event.offsetX * this._ratio;
+        var y = a_event.offsetY * this._ratio;
 
-          y -= a_epaper._translate_y;
-          a_epaper._ctx.save();
-          a_epaper._apply_translation();
+        y -= this._translate_y;
+        this._ctx.save();
+        this._apply_translation();
 
-          if ( a_epaper._mouse_over_widgets(x, y, a_event) === false ) {
-            if ( false /*a_epaper._input_box._on_mouse_over_handler !== undefined */) {
-              //if ( a_epaper._input_box._on_mouse_over_handler(x,y) === false ) {
-              //  a_epaper.reset_cursor();
-              //}
-              if ( a_epaper._edition ) {
-                a_epaper._update_context_menu(y);
-              }
+        if ( this._mouse_over_widgets(x, y, a_event) === false ) {
+          if ( false /*this._input_box._on_mouse_over_handler !== undefined */) {
+            //if ( this._input_box._on_mouse_over_handler(x,y) === false ) {
+            //  this.reset_cursor();
+            //}
+            if ( this._edition ) {
+              this._update_context_menu(y);
             }
           }
-          a_epaper._repaint_widgets();
-          a_epaper._ctx.restore();
-        };
+        }
+        this._repaint_widgets();
+        this._ctx.restore();
       },
 
-      _create_mouse_down_handler: function (a_epaper) {
-        return function (a_event) {
-          var x = a_event.offsetX * a_epaper._ratio;
-          var y = a_event.offsetY * a_epaper._ratio;
+      _mouse_down_handler: function (a_event) {
+        var x = a_event.offsetX * this._ratio;
+        var y = a_event.offsetY * this._ratio;
 
-          y -= a_epaper._translate_y;
+        y -= this._translate_y;
 
-          a_epaper._ctx.save();
-          a_epaper._apply_translation();
-          if ( a_epaper._mouse_click_widgets(x, y, true) === false ) {
-            if ( false /* a_epaper._input_box._on_mouse_down_handler !== undefined*/ ) {
-               //a_epaper._input_box._on_mouse_down_handler(x,y);
-            }
+        this._ctx.save();
+        this._apply_translation();
+        if ( this._mouse_click_widgets(x, y, true) === false ) {
+          if ( false /* this._input_box._on_mouse_down_handler !== undefined*/ ) {
+            //this._input_box._on_mouse_down_handler(x,y);
           }
-          a_epaper._repaint_widgets();
-          a_epaper._ctx.restore();
-          //if ( a_epaper._input_box.prevent_mouse_default() ) {
-          //  a_event.preventDefault();
-          //}
         }
+        this._repaint_widgets();
+        this._ctx.restore();
       },
 
-      _create_mouse_up_handler: function (a_epaper) {
-        return function (a_event) {
-          var x = a_event.offsetX * a_epaper._ratio;
-          var y = a_event.offsetY * a_epaper._ratio;
+      _mouse_up_handler: function (a_event) {
+        var x = a_event.offsetX * this._ratio;
+        var y = a_event.offsetY * this._ratio;
 
-          y -= a_epaper._translate_y;
+        y -= this._translate_y;
 
-          a_epaper._ctx.save();
-          if ( a_epaper._mouse_click_widgets(x, y, false) === false ) {
+        this._ctx.save();
+        if ( this._mouse_click_widgets(x, y, false) === false ) {
 
-            if ( true /*   a_epaper._input_box._on_mouse_up_handler === undefined
-                 || a_epaper._input_box._on_mouse_up_handler(x,y) === false */) {
+          if ( true /*   this._input_box._on_mouse_up_handler === undefined
+               || this._input_box._on_mouse_up_handler(x,y) === false */) {
 
-              x = (  a_event.offsetX  * a_epaper._page_width  / parseInt(a_epaper._canvas.style.width  || a_epaper._canvas.width ) );
-              y = ( (a_event.offsetY  - a_epaper._translate_y /  a_epaper._ratio) * a_epaper._page_height / parseInt(a_epaper._canvas.style.height ||     a_epaper._canvas.height) );
-              a_epaper.send_command("set click " + x.toString().replace(',', '.') + ', ' + y.toString().replace(',', '.') + ';');
-            }
+            x = (  a_event.offsetX  * this._page_width  / parseInt(this._canvas.style.width  || this._canvas.width ) );
+            y = ( (a_event.offsetY  - this._translate_y /  this._ratio) * this._page_height / parseInt(this._canvas.style.height ||     this._canvas.height) );
+            this.send_command("set click " + x.toString().replace(',', '.') + ', ' + y.toString().replace(',', '.') + ';');
           }
-          a_epaper._apply_translation();
-          a_epaper._repaint_widgets();
-          a_epaper._ctx.restore();
         }
-      },
-
-      set_cursor: function (a_sytle) {
-        if ( a_sytle !== this._canvas.style.cursor ) {
-          this._canvas.style.cursor = a_sytle;
-        }
-      },
-
-      reset_cursor: function () {
-        if ( this._canvas.style.cursor !== this._initial_pointer ) {
-          this._canvas.style.cursor = this._initial_pointer;
+        this._apply_translation();
+        this._repaint_widgets();
+        this._ctx.restore();
+        if ( this._edition ) {
+          this.$.input.grabFocus();
         }
       },
 
@@ -1323,7 +1304,7 @@
                 this._paint_string(this._inputBoxDrawString);
                 this._restore_paint_context();
                 this.$.input.alignStyle(x,y,h);
-
+                this.$.input.focus();
                 this._r_idx += 1;
 
                 if ( false == this._band_tearing ) {
