@@ -110,7 +110,9 @@
        * @param a_nullable_list The combo box list can be nulled
        */
       setMode: function (a_mode, a_nullable_list) {
-        this._mode = a_mode;
+        this._comboFilter = '';
+        this._mode        = a_mode;
+
         switch ( a_mode ) {
         case 'c': // Client combo
           this._cursor_type = 'pointer';
@@ -317,6 +319,7 @@
       /*****************************************************************************************/
 
       _setValueC: function (a_id) {
+        console.log('_setValueC:'+a_id);
         this._comboBoxList.setVisible(false);
         this._comboBoxList.selectById(a_id);
         this._overlayVisible = false;
@@ -325,7 +328,7 @@
       _onKeypressC: function (a_event) {
         if ( this._overlayVisible === false ) {
           this._comboFilter += a_event.key;
-          this._comboBoxList.setQuery(this._comboFilter, false);
+          this._comboBoxList.setQuery(this._comboFilter);
           a_event.preventDefault();
         }
       },
@@ -344,6 +347,9 @@
             }
             a_event.preventDefault();
           } else if ( ['tab', 'shift+tab', 'enter'].indexOf(vkey) > -1 ) {
+            if ( this._comboBoxList.getSelectedId() && this._comboBoxList.getSelectedId() !== this._comboBoxList.getInitialId() ) {
+              this._epaper.send_command('set list item "' + this._comboBoxList.getSelectedId()  + '";');
+            }
             this._epaper.send_command('set key "'+vkey.replace(/\+/g, '"+"')+'";');
             a_event.preventDefault();
           } else if ( vkey === 'alt' ) {
