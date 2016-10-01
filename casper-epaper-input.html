@@ -36,12 +36,12 @@
       border: none;
       padding: 0px;
       margin: 0px;
+      outline: none;
     }
 
   </style>
   <template>
     <iron-autogrow-textarea id="input" tabindex="0"></iron-autogrow-textarea>
-    <!--casper-htmldiv id="overlay"></casper-htmldiv-->
     <casper-combolist id="combo" ></casper-combolist>
   </template>
   <script>
@@ -56,7 +56,6 @@
 
       ready: function () {
         this._input        = this.$.input;
-        //this._overlay      = this.$.overlay;
         this._textArea     = this.$.input.$.textarea;
         this._comboBoxList = this.$.combo;
         this._comboBoxList.setPositionTarget(this.$.input);
@@ -93,11 +92,6 @@
         this._input.style.top    = '0px';
         this._input.style.width  = a_w / 2 + 'px'; // TODO SCALLING!
         this._input.style.height = a_h / 2 + 'px';
-        /*this._overlay.style.position = 'absolute';
-        this._overlay.style.left   = '0px';
-        this._overlay.style.top    = '0px';
-        this._overlay.style.width  = a_w / 2 + 'px'; // TODO SCALLING!
-        this._overlay.style.height = a_h / 2 + 'px';*/
       },
 
       /**
@@ -110,11 +104,6 @@
         this._textArea.style.fontFamily = this._epaper._font_spec[this._epaper._FONT_NAME_INDEX];
         this._textArea.style.fontSize   = this._epaper._font_spec[this._epaper._SIZE_INDEX] / 2 + 'px'; // TODO SCALLING
         this._textArea.style.color      = this._epaper._text_color;
-        /*this._textArea.zindex = 1;
-        this._overlay.style.margin      = '1px';
-        this._overlay.style.fontFamily  = this._epaper._font_spec[this._epaper._FONT_NAME_INDEX];
-        this._overlay.style.fontSize    = this._epaper._font_spec[this._epaper._SIZE_INDEX] / 2 + 'px'; // TODO SCALLING
-        this._overlay.style.color       = this._epaper._text_color;*/
       },
 
       /**
@@ -186,18 +175,17 @@
           this._comboBoxList.autoSize(width, max_width);
           this._comboBoxList.setVisible(true, this._comboFilter);
         }
+        this._overlayVisible = this._comboBoxList.isVisible();
       },
 
       _onComboSelectionChanged: function (a_event) {
         if ( a_event.detail.displayValue ) {
           this._textArea.value = a_event.detail.displayValue;
+          if ( this._mode === 'c' && this._overlayVisible === false) {
+            this._textArea.selectionStart = a_event.detail.matchStart;
+            this._textArea.selectionEnd   = a_event.detail.matchEnd;
+          }
         }
-        /*if ( this._mode === 'c' && a_event.detail.htmlValue ) {
-          this._overlay.innerHtml = a_event.detail.htmlValue;
-        } else {
-          this._overlay.innerHtml = '';
-        }*/
-        console.log('sel '+a_event.detail.selectedId);
       },
 
       _onComboListClosed: function (a_event) {
@@ -241,7 +229,6 @@
       },
 
       setValue: function (a_value) {
-        //this._overlay.innerHtml = '';
         switch ( this._mode) {
           case 'c':
             this._setValueC(a_value);
@@ -254,9 +241,14 @@
       },
 
       grabFocus: function () {
-        if ( this._initialSelection === true && this._mode !== 'c' ) {
-          this._textArea.selectionStart = 0;
-          this._textArea.selectionEnd   = this._textArea.value.length;
+        if ( this._initialSelection === true ) {
+          if ( this._mode === 'c' ) {
+            this._textArea.selectionStart = undefined;
+            this._textArea.selectionEnd   = undefined;
+          } else {
+            this._textArea.selectionStart = 0;
+            this._textArea.selectionEnd   = this._textArea.value.length;
+          }
         }
         this._textArea.focus();
       },
@@ -352,6 +344,8 @@
         this._comboBoxList.setVisible(false);
         this._comboBoxList.selectById(a_id);
         this._overlayVisible = false;
+        this._textArea.selectionStart = undefined;
+        this._textArea.selectionEnd   = undefined;
       },
 
       _onKeypressC: function (a_event) {
@@ -382,7 +376,6 @@
             a_event.preventDefault();
           } else if ( vkey === 'alt' ) {
             this._toggleComboList();
-            this._overlayVisible = this._comboBoxList.isVisible();
           } else if ( ['delete', 'backspace'].indexOf(vkey) > -1 ) {
             this._comboFilter = this._comboFilter.slice(0, -1);
             this._comboBoxList.setQuery(this._comboFilter, false);
