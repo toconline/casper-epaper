@@ -7,7 +7,8 @@
     "iron-component-page": "^1.1.7",
     "promise-polyfill": "polymerlabs/promise-polyfill#^1.0.0",
     "paper-card": "PolymerElements/paper-card#^1.1.2",
-    "vaadin-date-picker": "^1.1.4"
+    "vaadin-date-picker": "^1.1.4",
+    "iron-icon": "PolymerElements/iron-icon#^1.0.11"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",

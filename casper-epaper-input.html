@@ -20,16 +20,36 @@
 
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../iron-autogrow-textarea/iron-autogrow-textarea.html">
+<link rel="import" href="../iron-icon/iron-icon.html">
+<link rel="import" href="../iron-icons/iron-icons.html">
 <link rel="import" href="../vaadin-date-picker/vaadin-date-picker-light.html">
-
 <!--
 `casper-epaper-input` customised input component that overlays the rendering canvas
 -->
 <dom-module id="casper-epaper-input">
-  <style type>
+  <style is="custom-style">
     :host {
       display: inline-block;
       position: absolute;
+    }
+
+    iron-icon {
+      position: absolute;
+      cursor: pointer;
+      padding: 1px;
+      margin: 0px;
+      transition: transform 300ms;
+      fill: var(--dark-theme-background-color);
+      --iron-icon-width: 16px;
+      --iron-icon-height: 16px;
+    }
+
+    iron-icon[rotate] {
+      transform: rotate(180deg);
+    }
+
+    iron-icon:hover {
+      fill: var(--primary-color);
     }
 
     iron-autogrow-textarea {
@@ -42,6 +62,8 @@
   </style>
   <template>
     <iron-autogrow-textarea id="input" tabindex="0"></iron-autogrow-textarea>
+    <iron-icon id="dropdown_btn" rotate$="[[_overlayVisible]]" on-tap="_toggleDropDown" icon="arrow-drop-down"></iron-icon>
+    <iron-icon id="edit_btn" on-tap="_toggleSubEditor" icon="cancel"></iron-icon>
     <casper-combolist id="combo" ></casper-combolist>
     <vaadin-date-picker-light id="date">
     </vaadin-date-picker-light>
@@ -62,6 +84,7 @@
         this._textArea     = this.$.input.$.textarea;
         this._comboBoxList = this.$.combo;
         this._date         = this.$.date;
+
         this._comboBoxList.setPositionTarget(this.$.input);
         this._date._input  = function () {
           return textArea;
@@ -74,6 +97,9 @@
         this._mode             = 'n';
         this._comboFilter      = '';
         this._overlayVisible   = false;
+
+        this.$.dropdown_btn.style.display = 'none';
+        this.$.edit_btn.style.display     = 'none';
         this.listen(this._comboBoxList, 'on-combo-list-closed'      , '_onComboListClosed');
         this.listen(this._comboBoxList, 'on-combo-selection-changed', '_onComboSelectionChanged');
       },
@@ -121,6 +147,8 @@
        * @param a_nullable_list The combo box list can be nulled
        */
       setMode: function (a_mode, a_nullable_list) {
+        var top, left, width, height, btn_size;
+
         this._comboFilter = '';
         this._mode        = a_mode;
         switch ( a_mode ) {
@@ -141,6 +169,33 @@
           this._mode = 'n'
           break;
         }
+
+        btn_size = 18; // #TODO grab the size from button don't hard code
+        width    = parseInt(this.style.width);
+        height   = parseInt(this.style.height);
+
+        this.$.dropdown_btn.style.top  = ((height - btn_size) / 2) + 'px';
+        this.$.dropdown_btn.style.left = (width - btn_size) + 'px';
+        this.$.edit_btn.style.top      = ((height - btn_size) / 2) + 'px';
+        this.$.edit_btn.style.left     = width + 'px';
+
+        switch ( this._mode ) {
+        case 'c': // Client combo
+        case 'l': // Ledger mode
+          this.$.dropdown_btn.icon = 'arrow-drop-down';
+          this.$.dropdown_btn.style.display = 'inline';
+          break;
+        case 'd': // Date
+          this.$.dropdown_btn.icon = 'date-range'
+          this.$.dropdown_btn.style.display = 'inline';
+          break;
+        case 'R': // Radio
+        default:  // Normal mode the default
+          this.$.dropdown_btn.style.display = 'none';
+          this.$.edit_btn.style.display = 'none';
+          break;
+        }
+        //this.$.edit_btn.style.display = 'inline';
       },
 
       /**
@@ -184,6 +239,7 @@
           this._comboBoxList.setVisible(true, this._comboFilter);
         }
         this._overlayVisible = this._comboBoxList.isVisible();
+        //Polymer.dom(this.$.dropdown_btn).setAttribute('rotate', this._overlayVisible);
       },
 
       _onComboSelectionChanged: function (a_event) {
