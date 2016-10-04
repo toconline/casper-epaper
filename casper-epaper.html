@@ -1244,7 +1244,7 @@
 
                     //console.log("Combo FIELDS: " + fields);
                   }
-                  //this._input_box._combo_box_list.setDisplayFields(fields);
+                  this.$.input.setDisplayFields(fields);
                   this._r_idx += w + 1;
                   break;
 
@@ -1343,16 +1343,16 @@
                   var json = this._message.substring(this._r_idx, this._r_idx + w);
 
                   //this._input_box.update_combo_list(undefined, json);
-                  this._combo_box_list.setModelFromJson(undefined, json);
-                  this._combo_box_list.autoSize(this.$.input.style.width);
+                  this.$.input.setModelFromJson(undefined, json);
+                  this.$.input.autoSizeOverlay(this.$.input.style.width);
 
                   //console.log("JSON: " + json);
 
                   this._r_idx += w + 1;
                 } else {
                   //this._input_box.update_combo_list(undefined, '[]');
-                  this._combo_box_list.setModelFromJson(undefined, '[]');
-                  this._combo_box_list.autoSize(this.$.input.style.width);
+                  this.$.input.setModelFromJson(undefined, '[]');
+                  this.$.input.autoSizeOverlay(this.$.input.style.width);
                 }
 
                 //if ( this._input_box._enabled ) {
