@@ -23,6 +23,7 @@
 <link rel="import" href="../iron-icon/iron-icon.html">
 <link rel="import" href="../iron-icons/iron-icons.html">
 <link rel="import" href="../casper-epaper/casper-epaper-datepicker.html">
+<link rel="import" href="../casper-combolist/casper-combolist.html">
 
 <!--
 `casper-epaper-input` customised input component that overlays the rendering canvas
@@ -79,7 +80,6 @@
       },
 
       ready: function () {
-        //var textArea       = this.$.input.$.textarea;
         this._input        = this.$.input;
         this._textArea     = this.$.input.$.textarea;
         this.$.date.inputBox = this.$.input.$.textarea;
@@ -115,14 +115,14 @@
        * @param a_height box height in px
        */
       alignPosition: function (a_x, a_y, a_w, a_h) {
-        this.style.left          = a_x / 2 + 'px';
-        this.style.top           = a_y / 2 + 'px';  // TODO SCALLING!
-        this.style.width         = a_w / 2 + 'px';
-        this.style.height        = a_h / 2 + 'px';
+        this.style.left           = a_x + 'px';
+        this.style.top            = a_y + 'px';
+        this.style.width          = a_w + 'px';
+        this.style.height         = a_h + 'px';
         this.$.input.style.left   = '0px';
         this.$.input.style.top    = '0px';
-        this.$.input.style.width  = a_w / 2 + 'px'; // TODO SCALLING!
-        this.$.input.style.height = a_h / 2 + 'px';
+        this.$.input.style.width  = a_w + 'px';
+        this.$.input.style.height = a_h + 'px';
       },
 
       /**
@@ -215,12 +215,12 @@
        * Each model is associated with an id, models are kept in a model cache. To set a model the
        * server specified the id and json model, to reuse a cached model just sends the id.
        *
-       * @param a_combo_id Unique identifier of the combo list in the document (no caching if it's undefined)
-       * @param a_json json string with the data model to associate with the combo it. If this parameter is
+       * @param combo_id Unique identifier of the combo list in the document (no caching if it's undefined)
+       * @param json json string with the data model to associate with the combo it. If this parameter is
        *               undefined the model is retrieved from the _modelCache
        */
-      setModelFromJson: function (a_combo_id, a_json) {
-        return this.$.combo.setModelFromJson(a_combo_id, a_json);
+      setModelFromJson: function (combo_id, json) {
+        return this.$.combo.setModelFromJson(combo_id, json);
       },
 
       autoSizeOverlay: function (min_width) {
@@ -611,7 +611,95 @@
           break;
         }
         return null;
-      }
+      },
+
+      /*****************************************************************************************/
+      /*                                                                                       */
+      /*                            ~~~ Tooltip management ~~~                                 */
+      /*                                                                                       */
+      /*****************************************************************************************/
+
+      /**
+       * Layout tool tip and set text
+       *
+       * The bounding box of the "controlling" area is used to position the tooltip below. The arrow
+       * is centered along the lower edge of the controller and body of the tooltip is adjusted to
+       * fit inside the central 90% of the page.
+       *
+       * @param left     Upper left corner of the component that controls the tooltip
+       * @param top      Upper left corner of the component that controls the tooltip
+       * @param a_width  Width of the component that controls the tooltip
+       * @param a_height Height of the component that controls the tooltip
+       * @param a_hint   The tooltip message to show
+       */
+      _setTooltipHint: function (left, top, width, height, hint) {
+        var ttipWidth, ttip_arrow_x, ttip_x, arrowLoc, bbc, bbi;
+
+        bbi = this.$.input.getBoundingClientRect();
+        bbc = this._epaper.$.canvas.getBoundingClientRect();
+        // ... set text and size the tooltip, max width up to 90% of page width ...
+        this._epaper.$.tooltip.setVisible(true);
+        this._epaper.$.tooltip.setText(hint, bbc.width * 0.9);
+
+        // ... layout the tooltip so that it's stays inside the page (90% central column) ...
+        ttipWidth    = this._epaper.$.tooltip.getBoundingClientRect().width;
+        ttip_arrow_x = bbi.left - bbc.left + bbi.width / 2;
+        ttip_x       = ttip_arrow_x - ttipWidth / 2;
+        arrowLoc     = 0.5;
+
+        if ( ttip_x < bbc.width * 0.05 ) {
+          ttip_x    = bbc.width * 0.05;
+          arrowLoc = (ttip_arrow_x - ttip_x) / ttipWidth;
+        } else if ( ttip_x + ttipWidth > bbc.width * 0.95 ) {
+          ttip_x    = bbc.width * 0.95 - ttipWidth;
+          arrowLoc = (ttip_arrow_x - ttip_x) / ttipWidth;
+        }
+
+        // ... place and show the tooltip ...
+        this._epaper.$.tooltip.setTipLocation(arrowLoc);
+        this._epaper.$.tooltip.setLocation(ttip_x, top + height);
+        this._epaper.$.tooltip.updateBalloon();
+        this._showTooltip();
+      },
+
+      /**
+       * Called when the server updates the tooltip, passes the bounding box and text
+       *
+       * If the mid point of the server bounding box is not inside the current input bounds discard the update, this
+       * test discards tooltip updates that came too late and are no longer related to the focused field
+       *
+       * @param left leftmost corner of server's field bounding box
+       * @param top upper corner of server's field bounding box
+       * @param width of the server's field bounding box
+       * @param height of the server's field bounding box
+       * @param text the new tooltip text
+       */
+      serverTooltipUpdate: function (left, top, width, height, text) {
+        var mid_x, mid_y, bbi, bbc;
+
+        bbc = this._epaper.$.canvas.getBoundingClientRect();
+        bbi = this.$.input.getBoundingClientRect();
+        mid_x = bbc.left + left + width  / 2;
+        mid_y = bbc.top  + top  + height / 2;
+
+        // ... if the mid point of the tooltip hint is outside the editor bounding box discard it ...
+        if ( mid_x < bbi.left || mid_x > bbi.right || mid_y < bbi.top || mid_y > bbi.bottom ) {
+          return;
+        }
+        if ( text.length ) {
+          this._setTooltipHint(bbi.left - bbc.left, bbi.top - bbc.top, bbi.width, bbi.height, text);
+        } else {
+          this._hideTooltip();
+        }
+      },
+
+      _showTooltip: function () {
+        this._epaper.$.tooltip.setVisible(true);
+      },
+
+      _hideTooltip: function () {
+        this._epaper.$.tooltip.setVisible(false);
+      },
 
     });
   </script>

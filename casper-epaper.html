@@ -24,7 +24,7 @@
 <link rel="import" href="../paper-card/paper-card.html">
 <link rel="import" href="../casper-epaper/casper-epaper-imports.html">
 <link rel="import" href="../casper-epaper/casper-epaper-input.html">
-<link rel="import" href="../casper-combolist/casper-combolist.html">
+<link rel="import" href="../casper-epaper/casper-epaper-tooltip.html">
 <!--
   `<awesome-sauce>` injects a healthy dose of awesome into your page.
 
@@ -69,7 +69,8 @@
     <paper-card width="[[width]]" height="[[height]]" >
       <canvas id="canvas" width="[[width]]" height="[[height]]"></canvas>
       <casper-epaper-input id="input"></casper-epaper-input>
-      <iron-icon id="line_add_button" on-tap="_addDocumentLine"    icon="add-circle"></iron-icon>
+      <casper-epaper-tooltip id="tooltip"></casper-epaper-tooltip>
+      <iron-icon id="line_add_button" on-tap="_addDocumentLine" icon="add-circle"/></iron-icon>
       <iron-icon id="line_del_button" on-tap="_removeDocumentLine" icon="remove-circle"></iron-icon>
     </paper-card>
   </template>
@@ -77,9 +78,6 @@
   <script>
 
     EPaperSocket_Initialize(window);
-    EPaperWidget_Initialize(window);
-    EPaperTooltip_Initialize(window);
-    EPaperServertipHelper_Initialize(window);
 
     Polymer({
       is: 'casper-epaper',
@@ -108,24 +106,6 @@
         port: {
           type: String,
           value: undefined
-        },
-        asset_url: {
-          type: String,
-          value: undefined
-        },
-        asset_digest: {
-          type: String,
-          value: undefined
-        },
-        /** when true prints debug messages when assets are loaded */
-        asset_debug: {
-          type: Boolean,
-          value: false
-        },
-        _inputValue: {
-          type: String,
-          value: undefined
-          /*,observer: '_onInputValueChanged' */
         }
       },
 
@@ -395,7 +375,7 @@
 
         this._setup_pixel_ratio();
 
-        this._edition   = false;
+        this._edition = false;
 
         // ... Install handlers ...
         this._canvas.addEventListener('mousemove', this._move_handler.bind(this));
@@ -405,14 +385,14 @@
         //this._canvas.addEventListener('blur'     , this._create_blur_handler(this));
         //this._canvas.addEventListener('focusout' , this._create_blur_handler(this));
         //this._canvas.addEventListener('paste'    , this._create_html_onpaste_handler(this));
-        //this._canvas.onkeydown  = this._create_onkeydown_handler(this);
-        //this._canvas.onkeypress = this._create_onkeypress_handler(this);
         this._canvas.contentEditable = false;
 
-        //this._canvas.addEventListener ("textInput", function(a_event) {  }, true );
-
-        // ... clear band tearing control variables ...
-        this._reset_band_tearing();
+        this._translate_y       = 0.0;
+        this._background_color  = '#FFFFFF';
+        this._normal_background = '#FFFFFF';
+        if ( this._master_doc_right_margin !== undefined ) {
+          this._right_margin = this._master_doc_right_margin;
+        }
 
         // ... clear the page before we start ...
         this._setup_scale();
@@ -446,10 +426,6 @@
         }
         this.port = this.port || window.location.port;
         this.uri  = this.uri  || 'epaper';
-        if ( this.asset_url === undefined ) {
-          this.asset_url = this.resolveUrl('casper-epaper.html').replace('casper-epaper.html','assets') + '/';
-        }
-        this.asset_digest = this.asset_digest || '';
       },
 
       /**
@@ -649,18 +625,9 @@
         this._paint_band();
       },
 
-      _apply_translation: function () {
-        if ( this._translate_y !== 0 ) {
-          this._ctx.setTransform(1, 0, 0, 1, 0, this._translate_y);
-          this._ctx.rect(0,0,this._canvas.width, this._band_tear_gap);
-          this._ctx.clip();
-        }
-      },
-
       clear_page: function () {
         var saved_fill = this._ctx.fillStyle;
 
-        this._apply_translation();
         this._ctx.fillStyle = this._background_color;
         this._ctx.fillRect(0, 0, this._canvas.width, this._canvas.height);
         if ( this._grid_major !== 0.0 ) {
@@ -749,6 +716,7 @@
         var sy         = 0.0;
         var sh         = 0.0;
         var sw         = 0.0;
+        var s          = this._ratio;
         var t1,t2,t3;
 
         this._reset_render_state();
@@ -1180,10 +1148,10 @@
 
               } else if ( option === 'p' ) { // Prepare editor defines the bounding box
 
-                x = this._get_double();
-                y = this._get_double();
-                w = this._get_double();
-                h = this._get_double();
+                x = this._get_double() / s;
+                y = this._get_double() / s;
+                w = this._get_double() / s;
+                h = this._get_double() / s;
                 this._inputBoxDrawString = this._message.substring(this._r_idx);
                 this.$.input.alignPosition(x, y, w, h);
 
@@ -1232,9 +1200,9 @@
                 this.$.input.focus();
                 this._r_idx += 1;
 
-                if ( false == this._band_tearing ) {
+                // TODO if ( false == this._band_tearing ) {
                   this._adjust_scroll();
-                }
+                //}
 
               } else if ( option === 'u' ) {  // ... update editor ...
 
@@ -1268,7 +1236,6 @@
 
                   var json = this._message.substring(this._r_idx, this._r_idx + w);
 
-                  //this._input_box.update_combo_list(undefined, json);
                   this.$.input.setModelFromJson(undefined, json);
                   this.$.input.autoSizeOverlay(this.$.input.style.width);
 
@@ -1276,7 +1243,6 @@
 
                   this._r_idx += w + 1;
                 } else {
-                  //this._input_box.update_combo_list(undefined, '[]');
                   this.$.input.setModelFromJson(undefined, '[]');
                   this.$.input.autoSizeOverlay(this.$.input.style.width);
                 }
@@ -1307,13 +1273,13 @@
 
               } else if ( option === 'h' ) { // ... tootip hint ...
 
-                x  = this._get_double();
-                y  = this._get_double();
-                w  = this._get_double();
-                h  = this._get_double();
+                x  = this._get_double() / s;
+                y  = this._get_double() / s;
+                w  = this._get_double() / s;
+                h  = this._get_double() / s;
                 w  = this._get_double();
                 t1 = this._message.substring(this._r_idx, this._r_idx + w);
-                //this._input_box._tooltip_handler(x, y, w, h, t1);
+                this.$.input.serverTooltipUpdate(x, y, w, h, t1.toUpperCase());
                 this._r_idx += w + 1;
               }
 
@@ -1968,24 +1934,6 @@
 
       on_add_entity: function (a_src_widget) {
         console.log("*** ADD entity");
-      },
-
-      /**
-       * @brief Reset band tearing control variables ...
-       */
-      _reset_band_tearing: function () {
-
-        this._abort_animations     = true;
-        this._translate_y          = 0.0;
-        this._band_tear_max_gap    = 0.0;
-        this._band_tearing         = false;
-        this._background_color     = '#FFFFFF';
-        this._normal_background    = '#FFFFFF';
-        this._band_tear_background = '#EFEFEF';
-        this._abort_animations     = true;
-        if ( this._master_doc_right_margin !== undefined ) {
-          this._right_margin = this._master_doc_right_margin;
-        }
       },
 
       /**
