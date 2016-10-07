@@ -619,48 +619,6 @@
       /*                                                                                       */
       /*****************************************************************************************/
 
-      /**
-       * Layout tool tip and set text
-       *
-       * The bounding box of the "controlling" area is used to position the tooltip below. The arrow
-       * is centered along the lower edge of the controller and body of the tooltip is adjusted to
-       * fit inside the central 90% of the page.
-       *
-       * @param left     Upper left corner of the component that controls the tooltip
-       * @param top      Upper left corner of the component that controls the tooltip
-       * @param a_width  Width of the component that controls the tooltip
-       * @param a_height Height of the component that controls the tooltip
-       * @param a_hint   The tooltip message to show
-       */
-      _setTooltipHint: function (left, top, width, height, hint) {
-        var ttipWidth, ttip_arrow_x, ttip_x, arrowLoc, bbc, bbi;
-
-        bbi = this.$.input.getBoundingClientRect();
-        bbc = this._epaper.$.canvas.getBoundingClientRect();
-        // ... set text and size the tooltip, max width up to 90% of page width ...
-        this._epaper.$.tooltip.setVisible(true);
-        this._epaper.$.tooltip.setText(hint, bbc.width * 0.9);
-
-        // ... layout the tooltip so that it's stays inside the page (90% central column) ...
-        ttipWidth    = this._epaper.$.tooltip.getBoundingClientRect().width;
-        ttip_arrow_x = bbi.left - bbc.left + bbi.width / 2;
-        ttip_x       = ttip_arrow_x - ttipWidth / 2;
-        arrowLoc     = 0.5;
-
-        if ( ttip_x < bbc.width * 0.05 ) {
-          ttip_x    = bbc.width * 0.05;
-          arrowLoc = (ttip_arrow_x - ttip_x) / ttipWidth;
-        } else if ( ttip_x + ttipWidth > bbc.width * 0.95 ) {
-          ttip_x    = bbc.width * 0.95 - ttipWidth;
-          arrowLoc = (ttip_arrow_x - ttip_x) / ttipWidth;
-        }
-
-        // ... place and show the tooltip ...
-        this._epaper.$.tooltip.setTipLocation(arrowLoc);
-        this._epaper.$.tooltip.setLocation(ttip_x, top + height);
-        this._epaper.$.tooltip.updateBalloon();
-        this._showTooltip();
-      },
 
       /**
        * Called when the server updates the tooltip, passes the bounding box and text
@@ -672,9 +630,9 @@
        * @param top upper corner of server's field bounding box
        * @param width of the server's field bounding box
        * @param height of the server's field bounding box
-       * @param text the new tooltip text
+       * @param content the new tooltip content
        */
-      serverTooltipUpdate: function (left, top, width, height, text) {
+      serverTooltipUpdate: function (left, top, width, height, content) {
         var mid_x, mid_y, bbi, bbc;
 
         bbc = this._epaper.$.canvas.getBoundingClientRect();
@@ -686,19 +644,19 @@
         if ( mid_x < bbi.left || mid_x > bbi.right || mid_y < bbi.top || mid_y > bbi.bottom ) {
           return;
         }
-        if ( text.length ) {
-          this._setTooltipHint(bbi.left - bbc.left, bbi.top - bbc.top, bbi.width, bbi.height, text);
+        if ( content.length ) {
+          this._epaper.$.tooltip.show(content);
         } else {
-          this._hideTooltip();
+          this.hideTooltip();
         }
       },
 
-      _showTooltip: function () {
-        this._epaper.$.tooltip.setVisible(true);
+      showTooltip: function (content, positionTarget) {
+        this._epaper.$.tooltip.show(content, positionTarget);
       },
 
-      _hideTooltip: function () {
-        this._epaper.$.tooltip.setVisible(false);
+      hideTooltip: function () {
+        this._epaper.$.tooltip.hide();
       },
 
     });

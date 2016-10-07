@@ -19,7 +19,8 @@
  -->
 
 <link rel="import" href="../polymer/polymer.html">
-
+<link rel="import" href="../neon-animation/neon-animation-runner-behavior.html">
+<link rel="import" href="../neon-animation/animations/fade-out-animation.html">
 <!--
 `casper-epaper-tooltip` customised input component that overlays the rendering canvas
 -->
@@ -33,11 +34,11 @@
         -ms-user-select: none;
         -webkit-user-select: none;
         user-select: none;
-        width: 345px;
+        width: 50px;
       }
 
       #canvas {
-        display:  block;
+        display: block;
         position: absolute;
       }
 
@@ -48,6 +49,12 @@
         text-align: center;
         color: white;
         font-size: 10px;
+        cursor: pointer;
+      }
+
+      /* Thanks IE 10. */
+      .hidden {
+        display: none !important;
       }
 
     </style>
@@ -59,6 +66,14 @@
   <script>
     Polymer({
       is: 'casper-epaper-tooltip',
+
+      behaviors: [
+        Polymer.NeonAnimationRunnerBehavior
+      ],
+
+      listeners: {
+        'neon-animation-finish': '_onAnimationFinish',
+      },
 
       properties: {
         radius: {
@@ -77,16 +92,49 @@
           type: Number,
           value: 0.5
         },
-        tipEdge: {
-          type: String,
-          value: 'N'
+        positionTarget: {
+          type: Element
+        },
+        fitInto: {
+          type: Element
+        },
+
+        /**
+         * The entry and exit animations that will be played when showing and
+         * hiding the tooltip. If you want to override this, you must ensure
+         * that your animationConfig has the exact format below.
+         */
+        animationConfig: {
+          type: Object,
+          value: function() {
+            return {
+              'exit': [{
+                name: 'fade-out-animation',
+                node: this
+              }]
+            }
+          }
+        },
+
+        _showing: {
+          type: Boolean,
+          value: false
         }
       },
 
-      ready: function() {
+      ready: function () {
         this._ctx = this.$.canvas.getContext('2d');
-        this._ctx.globalCompositeOperation = 'copy';
+        this._tipEdge = 'N';
         this._setupPixelRatio();
+      },
+
+      attached: function () {
+        this.listen(this, 'tap', 'hide');
+        this._showing = true;
+      },
+
+      detached: function () {
+        this.unlisten(this, 'tap', 'hide');
       },
 
       /**
@@ -97,46 +145,96 @@
        */
       setLocation: function (left, top) {
         this.style.left = left + 'px';
-        this.style.top  = top  + 'px';
+        this.style.top = top + 'px';
         this.updateStyles();
-      },
-
-      setTipLocation: function (loc) {
-        this.tipLocation = loc;
       },
 
       setVisible: function (visible) {
         this.style.display = visible ? 'block' : 'none';
       },
 
-      setText: function (html, max_width) {
-        if (max_width !== undefined ) {
-          this.style.width = max_width + 'px';
+      /**
+       * Layout tool tip and set text
+       *
+       * The bounding box of the "controlling" area is used to position the tooltip below. The arrow
+       * is centered along the lower edge of the controller and body of the tooltip is adjusted to
+       * fit inside the central 90% of the page.
+       *
+       * @param content The tooltip message to show
+       */
+      show: function (content, positionTarget) {
+        var tooltipWidth, tooltipArrowX, tooltipLeft, arrowLoc, fitInto;
+
+        fitInto = this.fitInto.getBoundingClientRect();
+        if ( positionTarget === undefined ) {
+          positionTarget = this.positionTarget.getBoundingClientRect();
+        } else {
+          positionTarget.left  += fitInto.left;
+          positionTarget.top   += fitInto.top;
+          positionTarget.bottom = positionTarget.top + positionTarget.height;
+          positionTarget.right  = positionTarget.left + positionTarget.width;
         }
+
+        this.cancelAnimation();
+        this._showing = true;
+        this.setVisible(true);
+
+        // ... set text and size the tooltip, max width up to 90% of page width ...
+        this.style.width = (fitInto.width * 0.9) + 'px';
         this.$.text.style.margin = '0px';
-        switch(this.tipEdge) {
-          case 'N':
-          default:
-            this.$.text.style.marginTop = this.tipHeight + 'px';
-            break;
-          case 'S':
-            this.$.text.style.marginBottom = this.tipHeight + 'px';
-            break;
-          case 'W':
-            this.$.text.style.marginLeft = this.tipHeight + 'px';
-            break;
-          case 'E':
-            this.$.text.style.marginRight = this.tipHeight + 'px';
-            break;
+        this.$.text.style.marginTop = this.tipHeight + 'px';
+        Polymer.dom(this.$.text).innerHTML = content;
+
+        // ... layout the tooltip so that it's stays inside the page (90% central column) ...
+        tooltipWidth  = this.$.text.getBoundingClientRect().width;
+        tooltipArrowX = positionTarget.left + positionTarget.width / 2;
+        tooltipLeft   = tooltipArrowX - tooltipWidth / 2;
+        arrowLoc      = 0.5;
+
+        if ( tooltipLeft < fitInto.left + fitInto.width * 0.05 ) {
+          tooltipLeft = fitInto.left + fitInto.width * 0.05;
+          arrowLoc = (tooltipArrowX - tooltipLeft) / tooltipWidth;
+        } else if ( tooltipLeft + tooltipWidth > fitInto.left + fitInto.width * 0.95 ) {
+          tooltipLeft = fitInto.left + fitInto.width * 0.95 - tooltipWidth;
+          arrowLoc = (tooltipArrowX - tooltipLeft) / tooltipWidth;
         }
-        Polymer.dom(this.$.text).innerHTML = html;
+
+        // ... position relative to fitInto and show the tooltip ...
+        this.tipLocation = arrowLoc;
+        this.style.left = tooltipLeft - fitInto.left + 'px';
+        this.style.top  = positionTarget.bottom - fitInto.top  + 'px';
+        this._updateBalloon();
       },
 
-      updateBalloon: function () {
+      hide: function() {
+        // If the tooltip is already hidden, there's nothing to do.
+        if (!this._showing) {
+          return;
+        }
+
+        // If the entry animation is still playing, don't try to play the exit
+        // animation since this will reset the opacity to 1. Just end the animation.
+        if (this._animationPlaying) {
+          this.cancelAnimation();
+          this._showing = false;
+          this._onAnimationFinish();
+          return;
+        }
+        this._showing = false;
+        this._animationPlaying = true;
+        this.playAnimation('exit');
+      },
+
+      _onAnimationFinish: function() {
+        this._animationPlaying = false;
+        this.setVisible(false);
+      },
+
+      _updateBalloon: function () {
         var width, height, bb;
 
         bb = this.$.text.getBoundingClientRect();
-        switch(this.tipEdge) {
+        switch(this._tipEdge) {
           case 'N':
           case 'S':
             height = bb.height + this.tipHeight;
@@ -152,7 +250,7 @@
         this.$.canvas.height = height * this._ratio;
         this.$.canvas.style.width  = width + 'px';
         this.$.canvas.style.height = height + 'px';
-        this._paintBalloon(width, height);
+        this._paintBalloon(width - 1, height -1);
       },
 
       /**
@@ -202,7 +300,7 @@
         width    *= this._ratio;
         height   *= this._ratio;
         this._ctx.beginPath();
-        switch (this.tipEdge) {
+        switch (this._tipEdge) {
           case 'N':
           default:
             this._makeRoundRectPath(0, 0 + tipHeight, width, height - tipHeight, radius);
@@ -239,8 +337,7 @@
         }
         this._ctx.closePath();
         this._ctx.fill();
-      },
-
+      }
 
     });
   </script>

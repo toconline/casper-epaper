@@ -1,0 +1,167 @@
+<!--
+  - Copyright (c) 2016 Neto Ranito & Seabra LDA. All rights reserved.
+  -
+  - This file is part of casper-combolist.
+  -
+  - casper-combolist is free software: you can redistribute it and/or modify
+  - it under the terms of the GNU Affero General Public License as published by
+  - the Free Software Foundation, either version 3 of the License, or
+  - (at your option) any later version.
+  -
+  - casper-combolist  is distributed in the hope that it will be useful,
+  - but WITHOUT ANY WARRANTY; without even the implied warranty of
+  - MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  - GNU General Public License for more details.
+  -
+  - You should have received a copy of the GNU Affero General Public License
+  - along with casper-combolist.  If not, see <http://www.gnu.org/licenses/>.
+  -
+ -->
+
+<link rel="import" href="../polymer/polymer.html">
+
+<dom-module id="casper-epaper-servertip-helper">
+  <script>
+    Polymer({
+      is: 'casper-epaper-servertip-helper',
+
+      properties: {
+        threshold: {
+          type: Number,
+          value: 5
+        },
+        hoveringTime: {
+          type: Number,
+          value: 500
+        },
+        epaper: {
+          type: Object
+        },
+        input: {
+          type: Object
+        },
+        enabled: {
+          type: Boolean,
+          value: true
+        }
+      },
+
+      ready: function () {
+        this._last_x       = undefined;
+        this._last_y       = undefined;
+        this._center_x     = undefined;
+        this._center_y     = undefined;
+        this._left         = undefined;
+        this.threshold     = 5;
+        this.hoveringTime  = 500;
+        this._timer_key    = '_epaper_tt_onover_timer';
+        this._resetTimer();
+      },
+
+      /**
+       * Requests the server side hint for the current overing point
+       *
+       * @param x X coordinate where the mouse is overing
+       * @param y Y coordinate where the mouse is overing
+       */
+      getHint: function (x, y) {
+        var hintCallback = function (a_epaper, a_message) {
+            var x, y, w, h, l, t;
+
+            a_epaper._message = a_message;
+            a_epaper._r_idx   = 'S:ok:hint:'.length;
+            x = a_epaper._getDouble();
+            y = a_epaper._getDouble();
+            w = a_epaper._getDouble();
+            h = a_epaper._getDouble();
+            l = a_epaper._getDouble();
+            if ( l ) {
+              t = a_message.substring(a_epaper._r_idx, a_epaper._r_idx + l);
+
+              // Update the bounding box
+              this._left   = x;
+              this._top    = y;
+              this._width  = w;
+              this._height = h;
+
+              this.input.showTooltip(t.toUpperCase(), { left: x, top: y, width: w, height: h });
+            }
+        };
+
+        this.epaper.call_rpc('hint', 'get hint ' + x.toFixed(2) + ',' + y.toFixed(2) + ';', hintCallback.bind(this));
+      },
+
+      /**
+       * Handle mouse over event
+       *
+       * @param x horizontal coordinate of the mouse event (relative to canvas)
+       * @param y vertical coordinate of the mouse event (relative to canvas)
+       */
+      onMouseMove: function (x, y) {
+        var mouse_over;
+
+        if ( ! this.enabled ) {
+          return;
+        }
+
+        if ( this._left === undefined ) {
+          if ( this._center_x === undefined               ||
+            Math.abs(this._center_x - x) > this.threshold ||
+            Math.abs(this._center_y - y) > this.threshold ) {
+            // ... (re)initialize the reference center and (re)start the timeout ...
+            this._updateCenter(x, y);
+          }
+        } else {
+          // ... if the mouse leaves the tip's reference BB hide the tooltip ...
+          if ( x < this._left || x > this._left + this._width || y < this._top || y > this._top + this._height ) {
+            this.input.hideTooltip();
+            this._left = undefined;
+            this._resetTimer();
+          }
+        }
+        this._last_x = x;
+        this._last_y = y;
+      },
+
+      /**
+       * Update the reference point for mouse overing
+       *
+       * @param x horizontal coordinate of the new reference center
+       * @param y vertical coordinate of the new reference center
+       */
+      _updateCenter: function (x, y) {
+        this._center_x = x;
+        this._center_y = y;
+
+        if ( window[this._timer_key] !== undefined ) {
+          window.clearTimeout(window[this._timer_key]);
+          window[this._timer_key] = undefined;
+        }
+        window[this._timer_key] = setInterval(this._onOverHandler.bind(this), this.hoveringTime);
+      },
+
+      /**
+       * Resets the mouse over control timer
+       */
+      _resetTimer: function () {
+        if ( window[this._timer_key] !== undefined ) {
+          window.clearTimeout(window[this._timer_key]);
+          window[this._timer_key] = undefined;
+        }
+      },
+
+      _onOverHandler: function () {
+        if ( Math.abs(this._center_x - this._last_x) <= this.threshold &&
+             Math.abs(this._center_y - this._last_y) <= this.threshold ) {
+          if ( true ) { //this._input_box.enable_toolip()) {
+            this.getHint(this._center_x, this._center_y);
+          }
+          this._resetTimer();
+        } else {
+          this._updateCenter(this._last_x, this._last_y);
+        }
+      }
+
+    });
+  </script>
+</dom-module>

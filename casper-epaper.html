@@ -25,6 +25,8 @@
 <link rel="import" href="../casper-epaper/casper-epaper-imports.html">
 <link rel="import" href="../casper-epaper/casper-epaper-input.html">
 <link rel="import" href="../casper-epaper/casper-epaper-tooltip.html">
+<link rel="import" href="../casper-epaper/casper-epaper-tooltip.html">
+<link rel="import" href="../casper-epaper/casper-epaper-servertip-helper.html">
 <!--
   `<awesome-sauce>` injects a healthy dose of awesome into your page.
 
@@ -70,6 +72,7 @@
       <canvas id="canvas" width="[[width]]" height="[[height]]"></canvas>
       <casper-epaper-input id="input"></casper-epaper-input>
       <casper-epaper-tooltip id="tooltip"></casper-epaper-tooltip>
+      <casper-epaper-servertip-helper id="servertip"></casper-epaper-servertip-helper>
       <iron-icon id="line_add_button" on-tap="_addDocumentLine" icon="add-circle"/></iron-icon>
       <iron-icon id="line_del_button" on-tap="_removeDocumentLine" icon="remove-circle"></iron-icon>
     </paper-card>
@@ -122,7 +125,92 @@
       _ITALIC_INDEX:    1,
       _SIZE_INDEX:      2,
       _FONT_NAME_INDEX: 4,
-      _PUNCTURE_HEIGHT: 16,
+
+      ready: function () {
+        this._calculate_attribute_defaults();
+
+        this._socket            = new EPaperSocket(this, this.url, this.port, this.uri);
+        this._listener          = undefined;
+        this._canvas            = this.$.canvas;
+        this._canvas_width      = this._canvas.width;
+        this._canvas_height     = this._canvas.height;
+        this.$.input._epaper    = this;
+        this._scroll_container_ = undefined;  // TODO hack
+        this._ctx               = this._canvas.getContext('2d', {alpha: false});
+        this._initial_pointer   = this._canvas.style.cursor;
+        this._ctx.globalCompositeOperation = 'copy';
+        this._page_count        = 0;
+        this._page_number       = 1;
+        this._message           = '';
+        this._r_idx             = 0.0;
+        this._bands             = undefined;
+        this._document_id       = undefined;
+        this._images            = {};
+        this._widget_under_mice = undefined;
+        this._focused_band_id   = undefined;
+        this._redraw_timer_key  = '_epaper_redraw_timer_key';
+        this._reset_render_state();
+        this._reset_command_data();
+
+        this._page_width  = 595.0;
+        this._page_height = 842.0;
+        this._grid_major  = 0.0;
+        this._grid_minor  = 0.0;
+
+        this._is_socket_open = false;
+
+        // Variables to save the object context
+        this._saved_idx         = 0.0;
+        this._saved_draw_string = '';
+        this._inputBoxDrawString = undefined;
+
+        this._setup_pixel_ratio();
+
+        this._edition = false;
+
+        this._canvas.contentEditable = false;
+
+        this._background_color  = '#FFFFFF';
+        this._normal_background = '#FFFFFF';
+        if ( this._master_doc_right_margin !== undefined ) {
+          this._right_margin = this._master_doc_right_margin;
+        }
+
+        // ... clear the page before we start ...
+        this._setup_scale();
+
+        // ... FOUT Mitigation @TODO proper FOUT mitigation ...
+        var styles    = ['', 'bold ', 'italic ', 'italic bold '];
+        var y = 175;
+        this._ctx.save();
+        this._ctx.fillStyle = "#F0F0F0"
+        this._ctx.textAlign="center";
+        this._font_spec[this._SIZE_INDEX] = 20;
+        for ( var i = 0; i < styles.length; i++ ) {
+          this._font_spec[this._BOLD_INDEX] = styles[i];
+          this._ctx.font = this._font_spec.join('');
+          this._ctx.fillText("Powered by CASPER ePaper", this._canvas.width / 2, y);
+          y += 35;
+        }
+        this._ctx.restore();
+      },
+
+      attached: function () {
+        this.$.tooltip.positionTarget = this.$.input;
+        this.$.tooltip.fitInto = this.$.canvas;
+        this.$.servertip.epaper = this;
+        this.$.servertip.input = this.$.input;
+        this.listen(this.$.canvas, 'mousemove', '_moveHandler');
+        this.listen(this.$.canvas, 'mousedown', '_mouseDownHandler');
+        this.listen(this.$.canvas, 'mouseup'  , '_mouseUpHandler');
+        this._deactivateLineContextMenu();
+      },
+
+      detached: function () {
+        this.unlisten(this.$.canvas, 'mousemove', '_moveHandler');
+        this.unlisten(this.$.canvas, 'mousedown', '_mouseDownHandler');
+        this.unlisten(this.$.canvas, 'mouseup'  , '_mouseUpHandler');
+      },
 
       /*****************************************************************************************/
       /*                                                                                       */
@@ -184,13 +272,13 @@
 
                 self._message     = response;
                 self._r_idx       = 0;
-                self._document_id = self._get_double();
-                self._page_width  = self._get_double();
-                self._page_height = self._get_double();
+                self._document_id = self._getDouble();
+                self._page_width  = self._getDouble();
+                self._page_height = self._getDouble();
                 if ( isNaN(self._page_height) ) {
                   self._page_height = 4000;
                 }
-                self._right_margin = self._get_double();
+                self._right_margin = self._getDouble();
                 self._jrxml        = self._command.jrxml;
                 self._locale       = self._command.locale;
                 self._subdocument  = self._command.subdocument;
@@ -335,84 +423,6 @@
       /*                                                                                       */
       /*****************************************************************************************/
 
-      ready: function () {
-        this._calculate_attribute_defaults();
-
-        this._socket            = new EPaperSocket(this, this.url, this.port, this.uri);
-        this._listener          = undefined;
-        this._canvas            = this.$.canvas;
-        this._canvas_width      = this._canvas.width;
-        this._canvas_height     = this._canvas.height;
-        this.$.input._epaper    = this;
-        this._scroll_container_ = undefined;  // TODO hack
-        this._ctx               = this._canvas.getContext('2d', {alpha: false});
-        this._initial_pointer   = this._canvas.style.cursor;
-        this._ctx.globalCompositeOperation = 'copy';
-        this._page_count        = 0;
-        this._page_number       = 1;
-        this._message           = '';
-        this._r_idx             = 0.0;
-        this._bands             = undefined;
-        this._document_id       = undefined;
-        this._images            = {};
-        this._widget_under_mice = undefined;
-        this._focused_band_id   = undefined;
-        this._redraw_timer_key  = '_epaper_redraw_timer_key';
-        this._reset_render_state();
-        this._reset_command_data();
-
-        this._page_width  = 595.0;
-        this._page_height = 842.0;
-        this._grid_major  = 0.0;
-        this._grid_minor  = 0.0;
-
-        this._is_socket_open = false;
-
-        // Variables to save the object context
-        this._saved_idx         = 0.0;
-        this._saved_draw_string = '';
-        this._inputBoxDrawString = undefined;
-
-        this._setup_pixel_ratio();
-
-        this._edition = false;
-
-        // ... Install handlers ...
-        this._canvas.addEventListener('mousemove', this._move_handler.bind(this));
-        this._canvas.addEventListener('mousedown', this._mouse_down_handler.bind(this));
-        this._canvas.addEventListener('mouseup'  , this._mouse_up_handler.bind(this));
-        //this._canvas.addEventListener('focus'    , this._create_focus_handler(this));
-        //this._canvas.addEventListener('blur'     , this._create_blur_handler(this));
-        //this._canvas.addEventListener('focusout' , this._create_blur_handler(this));
-        //this._canvas.addEventListener('paste'    , this._create_html_onpaste_handler(this));
-        this._canvas.contentEditable = false;
-
-        this._translate_y       = 0.0;
-        this._background_color  = '#FFFFFF';
-        this._normal_background = '#FFFFFF';
-        if ( this._master_doc_right_margin !== undefined ) {
-          this._right_margin = this._master_doc_right_margin;
-        }
-
-        // ... clear the page before we start ...
-        this._setup_scale();
-
-        // ... FOUT Mitigation @TODO proper FOUT mitigation ...
-        var styles    = ['', 'bold ', 'italic ', 'italic bold '];
-        var y = 175;
-        this._ctx.save();
-        this._ctx.fillStyle = "#F0F0F0"
-        this._ctx.textAlign="center";
-        this._font_spec[this._SIZE_INDEX] = 20;
-        for ( var i = 0; i < styles.length; i++ ) {
-          this._font_spec[this._BOLD_INDEX] = styles[i];
-          this._ctx.font = this._font_spec.join('');
-          this._ctx.fillText("Powered by CASPER ePaper", this._canvas.width / 2, y);
-          y += 35;
-        }
-        this._ctx.restore();
-      },
-
       /**
        * @brief Assing defaults to undefined component attributes
        */
@@ -475,15 +485,6 @@
         this._subdocument  = false;
       },
 
-      // <------------------------------------>
-      attached: function () {
-        this._deactivateLineContextMenu();
-      },
-
-      // <------------------------------------>
-      detached: function () {
-      },
-
       /*****************************************************************************************/
       /*                                                                                       */
       /*                               ~~~ Mouse handlers ~~~                                  */
@@ -493,25 +494,26 @@
       /**
        * @brief Creates the handler that listens to mouse movements
        */
-      _move_handler: function (a_event) {
-        var x = a_event.offsetX * this._ratio;
-        var y = a_event.offsetY * this._ratio;
+      _moveHandler: function (a_event) {
 
+        if ( this.$.servertip ) {
+          this.$.servertip.onMouseMove(a_event.offsetX, a_event.offsetY);
+        }
         if ( this._edition ) {
-          this._update_context_menu(y);
+          this._update_context_menu(a_event.offsetY * this._ratio);
         }
       },
 
-      _mouse_down_handler: function (a_event) {
+      _mouseDownHandler: function (a_event) {
         var x = a_event.offsetX * this._ratio;
         var y = a_event.offsetY * this._ratio;
       },
 
-      _mouse_up_handler: function (a_event) {
+      _mouseUpHandler: function (a_event) {
         var x, y;
 
         x = (  a_event.offsetX  * this._page_width  / parseInt(this._canvas.style.width  || this._canvas.width ) );
-        y = ( (a_event.offsetY  - this._translate_y /  this._ratio) * this._page_height / parseInt(this._canvas.style.height || this._canvas.height));
+        y = (  a_event.offsetY  * this._page_height / parseInt(this._canvas.style.height || this._canvas.height));
         this.send_command("set click " + x.toString().replace(',', '.') + ', ' + y.toString().replace(',', '.') + ';');
         if ( this._edition ) {
           this.$.input.grabFocus();
@@ -566,7 +568,7 @@
         this._ctx.strokeStyle = "#000000";
       },
 
-      _get_double: function() {
+      _getDouble: function() {
 
         var fractional    = 0.0;
         var whole         = 0.0;
@@ -748,15 +750,15 @@
             case 'b':
 
               option = this._message[this._r_idx - 1];
-              w      = this._get_double();
+              w      = this._getDouble();
               t1     = this._message.substring(this._r_idx, this._r_idx + w); // Band type
               this._r_idx += w + 1;
-              w = this._get_double();                                          // Band ID
+              w = this._getDouble();                                          // Band ID
               t2     = this._message[this._r_idx];                           // Editable - 't' or 'f'
               this._r_idx += 2;
-              h = this._get_double();                                          // Band height
-              x = this._get_double();
-              y = this._get_double();
+              h = this._getDouble();                                          // Band height
+              x = this._getDouble();
+              y = this._getDouble();
 
               // ... search for a band with same id on the stored band array ...
               var band = null;
@@ -812,10 +814,10 @@
 
               if ( do_paint ) {
 
-                x  = this._get_double();
-                y  = this._get_double();
-                x2 = this._get_double();
-                y2 = this._get_double();
+                x  = this._getDouble();
+                y  = this._getDouble();
+                x2 = this._getDouble();
+                y2 = this._getDouble();
 
                 this._ctx.beginPath();
 
@@ -841,7 +843,7 @@
                 this._ctx.stroke();
 
               } else {
-                this._get_double(); this._get_double(); this._get_double(); this._get_double();
+                this._getDouble(); this._getDouble(); this._getDouble(); this._getDouble();
               }
               break;
 
@@ -856,9 +858,9 @@
                 // fall trough
                 default:
                   if ( do_paint ) {
-                    this._ctx.strokeRect(this._get_double(), this._get_double(), this._get_double(), this._get_double());
+                    this._ctx.strokeRect(this._getDouble(), this._getDouble(), this._getDouble(), this._getDouble());
                   } else {
-                    this._get_double(); this._get_double(); this._get_double(); this._get_double()
+                    this._getDouble(); this._getDouble(); this._getDouble(); this._getDouble()
                   }
                   break;
 
@@ -866,9 +868,9 @@
                   this._r_idx++;
                   this._ctx.fillStyle = this._fill_color;
                   if ( do_paint ) {
-                    this._ctx.fillRect(this._get_double(), this._get_double(), this._get_double(), this._get_double());
+                    this._ctx.fillRect(this._getDouble(), this._getDouble(), this._getDouble(), this._getDouble());
                   } else {
-                    this._get_double(); this._get_double(); this._get_double(); this._get_double();
+                    this._getDouble(); this._getDouble(); this._getDouble(); this._getDouble();
                   }
                   break;
 
@@ -877,20 +879,20 @@
                   this._ctx.fillStyle = this._fill_color;
                   if ( do_paint ) {
                     this._ctx.beginPath();
-                    this._ctx.rect(this._get_double(), this._get_double(), this._get_double(), this._get_double());
+                    this._ctx.rect(this._getDouble(), this._getDouble(), this._getDouble(), this._getDouble());
                     this._ctx.fill();
                     this._ctx.stroke();
                   } else {
-                    this._get_double(); this._get_double(); this._get_double(); this._get_double();
+                    this._getDouble(); this._getDouble(); this._getDouble(); this._getDouble();
                   }
                   break;
 
                 case 'C':
                   this._r_idx++;
                   if ( do_paint ) {
-                    this._ctx.clearRect(this._get_double(), this._get_double(), this._get_double(), this._get_double());
+                    this._ctx.clearRect(this._getDouble(), this._getDouble(), this._getDouble(), this._getDouble());
                   } else {
-                    this._get_double(); this._get_double(); this._get_double(); this._get_double();
+                    this._getDouble(); this._getDouble(); this._getDouble(); this._getDouble();
                   }
                   break;
               }
@@ -915,11 +917,11 @@
                   option = 'S';
                   break;
               }
-              r = this._get_double();
-              x = this._get_double();
-              y = this._get_double();
-              w = this._get_double();
-              h = this._get_double();
+              r = this._getDouble();
+              x = this._getDouble();
+              y = this._getDouble();
+              w = this._getDouble();
+              h = this._getDouble();
               if ( do_paint ) {
                 this._ctx.beginPath();
                 this._ctx.moveTo( x + r, y );
@@ -978,11 +980,11 @@
                 case 'r': // 'r' Text, but read only
                   if ( ',' === this._message[this._r_idx] ) {
                     this._r_idx++;
-                    w = this._get_double();
+                    w = this._getDouble();
                     this._sub_document_uri = this._message.substring(this._r_idx, this._r_idx + w);
                     this._r_idx += w + 1; // +1 -> ','
                     console.log("Open URI: " + this._sub_document_uri)
-                    w = this._get_double();
+                    w = this._getDouble();
                     this._sub_document_jrxml = this._message.substring(this._r_idx, this._r_idx + w);
                     this._r_idx += w;
                     console.log("Open JRXML: " + this._sub_document_jrxml)
@@ -1004,7 +1006,7 @@
 
                   if ( ',' === this._message[this._r_idx] ) {
                     this._r_idx++;
-                    w = this._get_double();
+                    w = this._getDouble();
                     //this._input_box.configure_editor(edit_mode, this._message.substring(this._r_idx, this._r_idx + w));
                     this.$.input.setMode(edit_mode);
                     this._r_idx += w;
@@ -1019,7 +1021,7 @@
 
                   if ( ',' === this._message[this._r_idx] ) {
                       this._r_idx++;
-                      w = this._get_double();
+                      w = this._getDouble();
                       //this._input_box.configure_editor(edit_mode, this._message.substring(this._r_idx, this._r_idx + w));
                       this.$.input.setMode(edit_mode);
                       this._r_idx += w;
@@ -1031,15 +1033,15 @@
                   break;
 
                 case 'c':  // 'c'<version>,<empty_line><length>,<field_id>,<length>,<display_field>{,<length>,<field>}[,<length>,<list json>] Simple combo  client side
-                  var version = this._get_double();
+                  var version = this._getDouble();
                   console.log("Combo List Version " + version);
 
                   // empty_line: 0 or 1
-                  // console.log("Combo Empty Line: " + this._get_double());
-                  var nullable_list = this._get_double();
+                  // console.log("Combo Empty Line: " + this._getDouble());
+                  var nullable_list = this._getDouble();
                   // fields '}'
                   var fields = [];
-                  w = this._get_double();
+                  w = this._getDouble();
                   if ( w > 2 ) {
                     var tmp = this._message.substring(this._r_idx + 1, this._r_idx + w - 1);
                     fields = tmp.split(',');
@@ -1048,20 +1050,20 @@
                   this._r_idx += w + 1;
 
                   // list id
-                  w  = this._get_double();
+                  w  = this._getDouble();
                   t2 = this._message.substring(this._r_idx, this._r_idx + w);
                   //console.log("Combo list id: " + t2);
                   this._r_idx += w + 1;
 
                   // sub document params <length>,<uri>,<length>,<jrxml>
-                  w = this._get_double();
+                  w = this._getDouble();
                   if ( w == 0 ) {
                     this._sub_document_uri = undefined;
                   } else {
                     this._sub_document_uri = this._message.substring(this._r_idx, this._r_idx + w);
                   }
                   this._r_idx += w + 1;
-                  w = this._get_double();
+                  w = this._getDouble();
                   if ( w == 0 ) {
                     this._sub_document_jrxml = undefined;
                   } else {
@@ -1072,7 +1074,7 @@
                   if ( ',' === this._message[this._r_idx] ) {
                     this._r_idx++;
                     // list [optional]
-                    w  = this._get_double();
+                    w  = this._getDouble();
                     t3 = this._message.substring(this._r_idx, this._r_idx + w);
                     //console.log("Combo JSON: " + t3);
                     this._r_idx += w;
@@ -1094,11 +1096,11 @@
 
                 case 'R': // 'R'<idx>,<length>,<variable>,<lenght>,<value_array>
 
-                  x  = this._get_double();                                      // -1 for parameters, row index for fields
-                  w  = this._get_double();
+                  x  = this._getDouble();                                      // -1 for parameters, row index for fields
+                  w  = this._getDouble();
                   t1 =this._message.substring(this._r_idx, this._r_idx + w);   // variable name, parameter ou field
                   this._r_idx += w + 1; // + 1 -> ','
-                  w  = this._get_double();
+                  w  = this._getDouble();
                   t2 =this._message.substring(this._r_idx, this._r_idx + w);   // Array with current and possible values
                   this._r_idx += w + 1; // +1 -> ';''
                   console.log(' Prepare radio button: idx=' + x + ', var=' + t1 + ', values=' + JSON.parse(t2));
@@ -1110,11 +1112,11 @@
 
                   if ( ',' === this._message[this._r_idx] ) {
                     this._r_idx++;
-                    w = this._get_double();
+                    w = this._getDouble();
                     this._sub_document_uri = this._message.substring(this._r_idx, this._r_idx + w);
                     this._r_idx += w;
                     this._r_idx++; // ','
-                    w = this._get_double();
+                    w = this._getDouble();
                     this._sub_document_jrxml = this._message.substring(this._r_idx, this._r_idx + w);
                     this._r_idx += w;
                   }
@@ -1131,7 +1133,7 @@
 
 
                   var fields = [];
-                  w = this._get_double();
+                  w = this._getDouble();
                   if ( w > 2 ) {
                     var tmp = this._message.substring(this._r_idx + 1, this._r_idx + w - 1);
                     fields = tmp.split(',');
@@ -1148,10 +1150,10 @@
 
               } else if ( option === 'p' ) { // Prepare editor defines the bounding box
 
-                x = this._get_double() / s;
-                y = this._get_double() / s;
-                w = this._get_double() / s;
-                h = this._get_double() / s;
+                x = this._getDouble() / s;
+                y = this._getDouble() / s;
+                w = this._getDouble() / s;
+                h = this._getDouble() / s;
                 this._inputBoxDrawString = this._message.substring(this._r_idx);
                 this.$.input.alignPosition(x, y, w, h);
 
@@ -1163,19 +1165,19 @@
 
               } else if ( option === 's' ) { // ... start editor ...
 
-                x = this._get_double();
-                y = this._get_double();
-                h = this._get_double();
-                this._focused_band_id = this._get_double();
+                x = this._getDouble();
+                y = this._getDouble();
+                h = this._getDouble();
+                this._focused_band_id = this._getDouble();
 
                 if ( '{' === this._message[this._r_idx] ) {
                   this._r_idx += 1; // '{'
 
-                  w = this._get_double();
+                  w = this._getDouble();
                   var id = this._message.substring(this._r_idx, this._r_idx + w);
                   this._r_idx += w + 1;
 
-                  w = this._get_double();
+                  w = this._getDouble();
                   var value = this._message.substring(this._r_idx, this._r_idx + w);
                   this._r_idx += w + 1; // +1 -> '}'
 
@@ -1185,7 +1187,7 @@
                   this.$.input.setValue(id);
 
                 } else {
-                  w = this._get_double();
+                  w = this._getDouble();
 
                   //this._input_box._start_editor_handler(x, y, h, this._message.substring(this._r_idx, this._r_idx + w));
                   this.$.input.setValue(this._message.substring(this._r_idx, this._r_idx + w));
@@ -1206,18 +1208,18 @@
 
               } else if ( option === 'u' ) {  // ... update editor ...
 
-                w  = this._get_double();
+                w  = this._getDouble();
                 t1 = this._message.substring(this._r_idx, this._r_idx + w);
                 this._r_idx += w;
                 if ( this._message[this._r_idx] !== ';' ) {
                   this._r_idx += 1;
-                  w  = this._get_double();
+                  w  = this._getDouble();
                   t2 = this._message.substring(this._r_idx, this._r_idx + w);
                   this._r_idx += w;
 
                   if ( this._message[this._r_idx] !== ';' ) {
                     this._r_idx += 1;
-                    w  = this._get_double();
+                    w  = this._getDouble();
                     t3 = this._message.substring(this._r_idx, this._r_idx + w);
                     this._r_idx += w + 1;
                   } else {
@@ -1232,7 +1234,7 @@
                 console.log("=== update: t1='" + t1 + "' t2='" + t2 + "' t3='" + t3 + "'");
 
                 if ( ';' !== this._message[this._r_idx - 1] ) {
-                  w = this._get_double();
+                  w = this._getDouble();
 
                   var json = this._message.substring(this._r_idx, this._r_idx + w);
 
@@ -1268,16 +1270,16 @@
 
                 var tmp_stroke_style = this._ctx.strokeStyle;
                 this._ctx.strokeStyle = "#FF0000";
-                this._ctx.strokeRect(this._get_double(), this._get_double(), this._get_double(), this._get_double());
+                this._ctx.strokeRect(this._getDouble(), this._getDouble(), this._getDouble(), this._getDouble());
                 this._ctx.strokeStyle = tmp_stroke_style;
 
               } else if ( option === 'h' ) { // ... tootip hint ...
 
-                x  = this._get_double() / s;
-                y  = this._get_double() / s;
-                w  = this._get_double() / s;
-                h  = this._get_double() / s;
-                w  = this._get_double();
+                x  = this._getDouble() / s;
+                y  = this._getDouble() / s;
+                w  = this._getDouble() / s;
+                h  = this._getDouble() / s;
+                w  = this._getDouble();
                 t1 = this._message.substring(this._r_idx, this._r_idx + w);
                 this.$.input.serverTooltipUpdate(x, y, w, h, t1.toUpperCase());
                 this._r_idx += w + 1;
@@ -1297,14 +1299,14 @@
               } else {
                 option = 'F';
               }
-              x = this._get_double();
-              y = this._get_double();
-              w = this._get_double();
+              x = this._getDouble();
+              y = this._getDouble();
+              w = this._getDouble();
               this._t = this._message.substring(this._r_idx, this._r_idx + w);
               this._r_idx += w;
               if ( this._message[this._r_idx] == ',') {
                 this._r_idx++;
-                option_num = this._get_double();
+                option_num = this._getDouble();
 
                 switch (option) {
                   case 'F':
@@ -1386,7 +1388,7 @@
              */
             case 'w':
 
-              w = this._get_double();
+              w = this._getDouble();
               if ( w <= 1 ) {
                 w = this._ratio;
               }
@@ -1419,10 +1421,10 @@
               } else {
                 option = 'F';
               }
-              x = this._get_double();
-              y = this._get_double();
-              w = this._get_double();
-              h = this._get_double();
+              x = this._getDouble();
+              y = this._getDouble();
+              w = this._getDouble();
+              h = this._getDouble();
               var ox = (w / 2) * this._KAPPA,
                   oy = (h / 2) * this._KAPPA,
                   xe = x + w,
@@ -1469,19 +1471,19 @@
              */
             case 'I':
 
-              w = this._get_double();
+              w = this._getDouble();
               this._t = this._message.substring(this._r_idx, this._r_idx + w);
               this._r_idx += w + 1;
 
-              x = this._get_double();
-              y = this._get_double();
-              w = this._get_double();
-              h = this._get_double();
+              x = this._getDouble();
+              y = this._getDouble();
+              w = this._getDouble();
+              h = this._getDouble();
               if ( this._message[this._r_idx - 1] != ';' ) {
-                sx = this._get_double();
-                sy = this._get_double();
-                sw = this._get_double();
-                sh = this._get_double();
+                sx = this._getDouble();
+                sy = this._getDouble();
+                sw = this._getDouble();
+                sh = this._getDouble();
               } else {
                 sx = -1.0;
               }
@@ -1518,7 +1520,7 @@
              */
             case 'F':
 
-              w = this._get_double();
+              w = this._getDouble();
               this._t = this._message.substring(this._r_idx, this._r_idx + w);
               this._r_idx += w + 1;
               this._font_spec[this._FONT_NAME_INDEX] = this._t;
@@ -1532,19 +1534,19 @@
             case 'f':
               if ( 'm' == this._message[this._r_idx] ) {
                   this._r_idx++;
-                  /*this._input_box._f_flags               = */this._get_double();
-                  /*this._input_box._f_top                 = */this._get_double();
-                  /*this._input_box._f_ascent              = */this._get_double();
-                  /*this._input_box._f_descent             = */this._get_double();
-                  /*this._input_box._f_bottom              = */this._get_double();
-                  /*this._input_box._f_leading             = */this._get_double();
-                  /*this._input_box._f_avg_char_width      = */this._get_double();
-                  /*this._input_box._f_max_char_width      = */this._get_double();
-                  /*this._input_box._f_underline_thickness = */this._get_double();
-                  /*this._input_box._f_underline_position  = */this._get_double();
+                  /*this._input_box._f_flags               = */this._getDouble();
+                  /*this._input_box._f_top                 = */this._getDouble();
+                  /*this._input_box._f_ascent              = */this._getDouble();
+                  /*this._input_box._f_descent             = */this._getDouble();
+                  /*this._input_box._f_bottom              = */this._getDouble();
+                  /*this._input_box._f_leading             = */this._getDouble();
+                  /*this._input_box._f_avg_char_width      = */this._getDouble();
+                  /*this._input_box._f_max_char_width      = */this._getDouble();
+                  /*this._input_box._f_underline_thickness = */this._getDouble();
+                  /*this._input_box._f_underline_position  = */this._getDouble();
               } else {
-                  this._font_mask = this._get_double();
-                  this._font_spec[this._SIZE_INDEX]   = Math.round(this._get_double());
+                  this._font_mask = this._getDouble();
+                  this._font_spec[this._SIZE_INDEX]   = Math.round(this._getDouble());
                   this._font_spec[this._BOLD_INDEX]   = (this._font_mask & this._BOLD_MASK)   ? 'bold '   : '';
                   this._font_spec[this._ITALIC_INDEX] = (this._font_mask & this._ITALIC_MASK) ? 'italic ' : '';
                   this._ctx.font = this._font_spec.join('');
@@ -1554,10 +1556,10 @@
             /*
              * === 'X' Set translation X<x>,<y>;
              */
-            case 'X': //===
+            case 'X': //=== Legacy command, deprecated
 
-              this._translate_x = this._get_double();
-              this._translate_y = this._get_double();
+              this._getDouble();
+              this._getDouble();
               break;
 
             /*
@@ -1567,8 +1569,8 @@
 
               switch (this._message[this._r_idx++]) {
                 case 'r':
-                  this._ctx.translate(this._get_double(), this._get_double());
-                  this._ctx.rotate(this._get_double());
+                  this._ctx.translate(this._getDouble(), this._getDouble());
+                  this._ctx.rotate(this._getDouble());
                   break;
                 case 'c':
                   this._ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -1586,11 +1588,11 @@
 
               option = this._message[this._r_idx++];
               if ( 'g' === option ) {
-                this._grid_major = this._get_double();
-                this._grid_minor = this._get_double();
+                this._grid_major = this._getDouble();
+                this._grid_minor = this._getDouble();
               } else if ( 'p' === option ) {
-                var new_page_number = this._get_double();
-                var new_page_count = this._get_double();
+                var new_page_number = this._getDouble();
+                var new_page_count = this._getDouble();
 
                 if ( this._page_number != new_page_number || this._page_count != new_page_count ) {
                   if ( this.on_page_properties_changed != undefined ) {
@@ -1983,15 +1985,15 @@
             this._r_idx   = 1;
             this._message = a_message.data;
 
-            var w = this._get_double();
+            var w = this._getDouble();
             var k = this._message.substring(this._r_idx, this._r_idx + w);
             this._r_idx += w + 1; // +1 -> ','
 
-                w = this._get_double();
+                w = this._getDouble();
             var t = this._message.substring(this._r_idx, this._r_idx + w);
             this._r_idx += w + 1; // +1 -> ','
 
-                w = this._get_double();
+                w = this._getDouble();
             var m = this._message.substring(this._r_idx, this._r_idx + w);
             this._r_idx += w + 1; // +1 -> ','
 
