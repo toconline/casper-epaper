@@ -137,6 +137,11 @@
         this._textArea.style.color      = this._epaper._text_color;
       },
 
+      hideOverlays: function () {
+        this.hideTooltip();
+        this._setOverlay(undefined);
+      },
+
       /**
        * Configure the editor mode
        *
@@ -146,6 +151,7 @@
       setMode: function (a_mode, a_nullable_list) {
         var top, left, width, height, btn_size;
 
+        this.hideOverlays();
         this._comboFilter = '';
         this._mode        = a_mode;
         switch ( a_mode ) {
@@ -380,7 +386,7 @@
             return;
           } else if ( ['enter', 'F2'].indexOf(vkey) > -1 ) {
             this._textArea.selectionStart = this._textArea.value.length;
-            this._textArea.selectionEnd   = this._textArea.value.length;
+            this._textArea.selectionEnd = this._textArea.value.length;
             this._initialSelection = false;
             event.preventDefault();
             return;

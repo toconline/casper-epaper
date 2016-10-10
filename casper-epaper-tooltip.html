@@ -110,7 +110,8 @@
             return {
               'exit': [{
                 name: 'fade-out-animation',
-                node: this
+                node: this,
+                timing: { delay: 200, duration: 750 }
               }]
             }
           }
@@ -165,6 +166,8 @@
       show: function (content, positionTarget) {
         var tooltipWidth, tooltipArrowX, tooltipLeft, arrowLoc, fitInto;
 
+        console.log('= show: '+content);
+
         fitInto = this.fitInto.getBoundingClientRect();
         if ( positionTarget === undefined ) {
           positionTarget = this.positionTarget.getBoundingClientRect();
@@ -175,8 +178,9 @@
           positionTarget.right  = positionTarget.left + positionTarget.width;
         }
 
-        this.cancelAnimation();
         this._showing = true;
+        this._animationPlaying = false;
+        this.cancelAnimation();
         this.setVisible(true);
 
         // ... set text and size the tooltip, max width up to 90% of page width ...
@@ -211,6 +215,7 @@
         if (!this._showing) {
           return;
         }
+        console.log('= hide: '+this._animationPlaying);
 
         // If the entry animation is still playing, don't try to play the exit
         // animation since this will reset the opacity to 1. Just end the animation.
@@ -226,8 +231,11 @@
       },
 
       _onAnimationFinish: function() {
+        console.log('= animation finished: '+this._showing);
         this._animationPlaying = false;
-        this.setVisible(false);
+        if ( this._showing === false ) {
+          this.setVisible(false);
+        }
       },
 
       _updateBalloon: function () {
