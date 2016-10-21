@@ -23,7 +23,7 @@
 <link rel="import" href="../iron-icon/iron-icon.html">
 <link rel="import" href="../iron-icons/iron-icons.html">
 <link rel="import" href="../casper-epaper/casper-epaper-datepicker.html">
-<link rel="import" href="../casper-combolist/casper-combolist.html">
+<link rel="import" href="../casper-epaper/casper-epaper-combolist.html">
 
 <!--
 `casper-epaper-input` customised input component that overlays the rendering canvas
@@ -66,7 +66,7 @@
     <iron-autogrow-textarea id="input" tabindex="0"></iron-autogrow-textarea>
     <iron-icon id="dropdown_btn" rotate$="[[_overlayVisible]]" on-tap="_toggleOverlay" icon="arrow-drop-down"></iron-icon>
     <iron-icon id="edit_btn" on-tap="_toggleSubEditor" icon="cancel"></iron-icon>
-    <casper-combolist id="combo"></casper-combolist>
+    <casper-epaper-combolist id="combo"></casper-epaper-combolist>
     <casper-epaper-datepicker id="date"></casper-epaper-datepicker>
   </template>
   <script>
