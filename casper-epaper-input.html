@@ -101,7 +101,7 @@
       },
 
       detached: function () {
-        this.clearModel();
+        this._clearModel();
         this.unlisten(this.$.combo, 'on-combo-list-closed'      , '_onComboListClosed');
         this.unlisten(this.$.combo, 'on-combo-selection-changed', '_onComboSelectionChanged');
         this.unlisten(this.$.date , 'date-overlay-closed'       , '_onDateOverlayClosed');
@@ -244,6 +244,8 @@
       onGetDataResponse: function (jsonapi) {
         this.$.combo.$.spinner.active = false;
         this.$.combo.setModelFromJsonApi(jsonapi)
+        this._layoutComboList();
+        this.$.combo.fireResize();
       },
 
       autoSizeOverlay: function (min_width) {
@@ -279,37 +281,24 @@
       },
 
       /**
-       * Show / hide the combo box list
+       * Show the combo box list
        */
       _layoutComboList: function () {
+        var sc = this._epaper._ratio;
+        var page_margin = 40 * this._epaper._ratio;
+        var max_width, max_height;
 
-        //if ( this.$.combo.isVisible() ) {
-        //  this.$.combo.setVisible(false);
-        //} else {
-          var sc = this._epaper._ratio;
-          var page_margin = 40 * this._epaper._ratio;
-          var max_width, max_height;
+        var left  = parseInt(this.style.left);
+        var width = parseInt(this.style.width);
 
-          var left  = parseInt(this.style.left);
-          var width = parseInt(this.style.width);
+        if ( (left / this._epaper._sx) > this._epaper._page_width / 2 ) {
+          max_width = left + width /*+ this._open_combo_button._bb_w*/ - page_margin;
+        } else {
+          max_width = this._epaper._page_width * this._epaper._sx - page_margin - left;
+        }
 
-          if ( (left / this._epaper._sx) > this._epaper._page_width / 2 ) {
-            max_width = left + width /*+ this._open_combo_button._bb_w*/ - page_margin;
-          } else {
-            max_width = this._epaper._page_width * this._epaper._sx - page_margin - left;
-          }
-
-          //if ( (this.style.top / this._epaper._sy) > this._epaper._page_height / 2 ) {
-          //  max_height = this.style.top  - page_margin;
-          //} else {
-          //  max_height = this._epaper._page_height * this._epaper._sx - page_margin - this._bb_y -  this._bb_h;
-          //}
-
-          //this._tooltip.set_visible(false);
-          this.$.combo.autoSize(width, max_width);
-          this.$.combo.setVisible(true, this._comboFilter);
-        //}
-        //this._overlayVisible = this.$.combo.isVisible();
+        this.$.combo.autoSize(width, max_width);
+        this.$.combo.setVisible(true, this._comboFilter);
       },
 
       setValue: function (value, displayValue) {

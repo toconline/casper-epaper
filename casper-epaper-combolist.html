@@ -22,6 +22,7 @@
 <link rel="import" href="../iron-list/iron-list.html">
 <link rel="import" href="../iron-icon/iron-icon.html">
 <link rel="import" href="../iron-dropdown/iron-dropdown.html">
+<link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
 <link rel="import" href="../paper-input/paper-input.html">
 <link rel="import" href="../paper-fab/paper-fab.html">
 <link rel="import" href="../paper-spinner/paper-spinner-lite.html">
@@ -38,14 +39,11 @@ An auxiliary combo list for the casper-epaper editor
   <template>
     <style>
       :host {
-        display: block;
+        /*display: block;*/
         position: absolute;
-        width: 50px;
       }
 
       iron-dropdown {
-        min-height: 150px;
-        /*max-height: 400px;*/
         margin: 0px;
         padding: 0px;
         @apply(--shadow-elevation-3dp);
@@ -62,6 +60,10 @@ An auxiliary combo list for the casper-epaper editor
         margin-bottom: 1px;
       }
 
+      iron-list {
+        @apply(--layout-flex-auto);
+      }
+
       iron-icon {
         cursor: pointer;
         padding:  2px;
@@ -75,10 +77,17 @@ An auxiliary combo list for the casper-epaper editor
         font-size: 12px;
       }
 
-      iron-list {
-        height: 200px;
-        margin: 0px;
-        padding: 0px;
+      #scroller {
+        overflow: auto;
+        min-height: 70px;
+        max-height: var(--casper-combo-box-overlay-max-height, 65vh);
+
+        /* Fixes item background from getting on top of scrollbars on Safari */
+        transform: translate3d(0,0,0);
+
+        /* Enable momentum scrolling on iOS (iron-list v1.2+ no longer does it for us) */
+        -webkit-overflow-scrolling: touch;
+
         -webkit-user-select: none;
         -moz-user-select: none;
         -ms-user-select: none;
@@ -106,6 +115,7 @@ An auxiliary combo list for the casper-epaper editor
         right: 6px;
         bottom: 6px;
         color: white;
+        opacity: 0.75;
         --paper-fab-background: var(--dark-primary-color);
         --paper-fab-keyboard-focus-background: var(--dark-primary-color);
       }
@@ -137,12 +147,14 @@ An auxiliary combo list for the casper-epaper editor
           <input is="iron-input" id="input" class="header" bind-value="{{_query}}">
           <iron-icon id="clear" suffix on-tap="_clearQuery" icon="clear" style="color: #eee;" alt="limpar" title="limpar"></iron-icon>
         </paper-input-container>
-        <iron-list id="list" items="[[_filteredItems]]" as="item" selected-item="{{selectedItem}}" on-tap="_selectItem">
-          <template>
-            <casper-epaper-htmldiv tabindex$="[[tabIndex]]" class$="[[_getItemClass(selected)]]" inner-html="[[_renderRow(item)]]"></casper-epaper-htmldiv>
-          </template>
-        </iron-list>
-        <paper-spinner-lite id="spinner"></paper-spinner-lite>
+        <div id="scroller" scroller="[[_getScroller()]]" on-tap="_stopPropagation">
+          <iron-list id="list" items="[[_filteredItems]]" as="item" selected-item="{{selectedItem}}" on-tap="_selectItem" scroll-target="[[_getScroller()]]">
+            <template>
+              <casper-epaper-htmldiv tabindex$="[[tabIndex]]" class$="[[_getItemClass(selected)]]" inner-html="[[_renderRow(item)]]"></casper-epaper-htmldiv>
+            </template>
+          </iron-list>
+          <paper-spinner-lite id="spinner"></paper-spinner-lite>
+        </div>
         <paper-fab mini icon="add" class="blue"></paper-fab>
       </div>
     </iron-dropdown>
@@ -270,6 +282,10 @@ An auxiliary combo list for the casper-epaper editor
         }
       },
 
+      _getScroller: function() {
+        return this.$.scroller;
+      },
+
       ready: function () {
         this._canvas        = undefined;
         this._modelCache    = {};
@@ -277,7 +293,7 @@ An auxiliary combo list for the casper-epaper editor
         this._initialId     = undefined;
         this._selectedId    = undefined;
         this._notifiyIdOnly = false;
-        this.$.dialog.sizingTarget = this.$.list;
+        //this.$.dialog.sizingTarget = this.$.list;
         this.displayFields  = ['id', 'description'];
       },
 
@@ -375,30 +391,22 @@ An auxiliary combo list for the casper-epaper editor
        *
        * Horizontal size determined by the maximum text width, vertical size is determined by the number of rows
        *
-       * @param a_min_width minimum width of list box
-       * @param a_max_width maximum width of the box
-       * @param a_max_height maximum height
+       * @param min_width minimum width of list box
+       * @param max_width maximum width of the box
        */
-      autoSize: function (a_min_width, a_max_width, a_max_height) {
+      autoSize: function (min_width, max_width) {
         var i, len, current_font, width, height, plen, ctx;
-
         var fm;
-
-        //this.$.dialog.style.width = a_max_width + 'px';
-        //return;
 
         this._canvas = this._canvas || document.createElement("canvas");
         ctx = this._canvas.getContext('2d');
 
-        ctx.font = this.$.list.getComputedStyleValue('font'); // This is *NOT* the correct font!!!
-
-        //var d = Polymer.dom(this.$.list).querySelector('div');
-
-        console.log('=== TODO BETTER SIZING');
+        ctx.font = this.$.list.getComputedStyleValue('font'); // TODO This is *NOT* the correct font!!!
         //console.log('=== font is '+ctx.font);
+
         if ( this.items === undefined ) {
           len   = 1;
-          width = a_min_width;
+          width = min_width;
         } else {
           len = this.items.length;
           width = 0;
@@ -411,48 +419,23 @@ An auxiliary combo list for the casper-epaper editor
           width += 8;
         }
 
-        //
-        //height  = this._line_height * len + 2 * this._v_pad;
-        //console.log('=== the text width is='+width);
         width = Math.ceil(width);
-        if ( a_min_width !== undefined && width < a_min_width ) {
-          width = Math.ceil(a_min_width);
+        if ( min_width !== undefined && width < min_width ) {
+          width = Math.ceil(min_width);
         }
-        if ( a_max_width !== undefined && width > a_max_width ) {
-          width = Math.ceil(a_max_width);
+        if ( max_width !== undefined && width > max_width ) {
+          width = Math.ceil(max_width);
         }
-        //console.log('=== final width is '+width);
-
         this.$.dialog.style.width = width + 'px';
-
-
-        //if ( a_max_height !== undefined && height > a_max_height ) {
-        //  height = Math.round(a_max_height);
-        //  this._max_height = height;
-        //} else {
-        //  this._max_height = undefined;
-        //}
-        //this.set_size(width, height);
-        //this._ctx.font = current_font;
+        this.fireResize();
+        console.log('~~~~ auto sized '+width);
       },
 
-      /**
-       * @brief Adjust the height to match the number of visible rows
-       */
-      adjust_height: function () {
-        console.log('---- DEPRECATED? adjust_height');
-        //var height, lines;
-        //
-        //if ( this._lines === undefined || this._lines.length === 0 ) {
-        //  lines = 1;
-        //} else {
-        //  lines = this._lines.length;
-        //}
-        //height = this._line_height * lines + 2 * this._v_pad;
-        //if ( this._max_height !== undefined && height > this._max_height ) {
-        //  height = this._max_height;
-        //}
-        //this.set_size(this._bb_w, height);
+      fireResize: function () {
+        this.async(function () {
+            this.$.list.fire('iron-resize');
+            this.$.dialog.fire('iron-resize');
+          }.bind(this), 0);
       },
 
       /**
@@ -578,6 +561,7 @@ An auxiliary combo list for the casper-epaper editor
       _dialogOpened: function () {
         this.moveSelection('keep');
         this.$.input.focus();
+        this.fireResize();
       },
 
       _onSelectionChanged: function () {
@@ -814,6 +798,7 @@ An auxiliary combo list for the casper-epaper editor
           this._filteredItems = [];
           this._filteredItems = visible_rows;
         }
+        this.fireResize();
       },
 
       /**
