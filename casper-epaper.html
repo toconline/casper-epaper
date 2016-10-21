@@ -200,6 +200,7 @@
         this.$.tooltip.fitInto = this.$.canvas;
         this.$.servertip.epaper = this;
         this.$.servertip.input = this.$.input;
+
         this.listen(this.$.canvas, 'mousemove', '_moveHandler');
         this.listen(this.$.canvas, 'mousedown', '_mouseDownHandler');
         this.listen(this.$.canvas, 'mouseup'  , '_mouseUpHandler');
@@ -1088,8 +1089,7 @@
                   this.$.input.setMode(edit_mode);
                   this.$.input.setDisplayFields(fields);
                   if ( version === 2 ) {
-                    // ... outra coisa ...
-                    console.log("Combo Query:" + t3);
+                    this.$.input.setCombolistQuery(t3);
                   } else {
                     this.$.input.setModelFromJson(t2,t3);
                   }
@@ -1182,11 +1182,7 @@
                   w = this._getDouble();
                   var value = this._message.substring(this._r_idx, this._r_idx + w);
                   this._r_idx += w + 1; // +1 -> '}'
-
-                  //console.log("Start Combo: " + id + ", " + value);
-
-                  //this._input_box._start_editor_handler(x, y, h, id);
-                  this.$.input.setValue(id);
+                  this.$.input.setValue(id, value);
 
                 } else {
                   w = this._getDouble();
@@ -1973,7 +1969,13 @@
       on_socket_message: function (a_message) {
         switch (a_message.data[0]) {
           case 'S':
-            this._request_callback(a_message.data);
+            if ( a_message.data.indexOf('S:ok:data:') === 0 ) {
+              if ( this.$.input !== undefined ) {
+                this.$.input.onGetDataResponse(a_message.data.substring('S:ok:data:'.length));
+              }
+            } else {
+              this._request_callback(a_message.data);
+            }
             break;
 
           case 'N':

@@ -92,7 +92,7 @@
         this._comboFilter      = '';
         this._overlayVisible   = false;
         this._overlay          = undefined;
-
+        this._comboListQuery   = undefined;
         this.$.dropdown_btn.style.display = 'none';
         this.$.edit_btn.style.display     = 'none';
         this.listen(this.$.combo, 'on-combo-list-closed'      , '_onComboListClosed');
@@ -101,6 +101,7 @@
       },
 
       detached: function () {
+        this.clearModel();
         this.unlisten(this.$.combo, 'on-combo-list-closed'      , '_onComboListClosed');
         this.unlisten(this.$.combo, 'on-combo-selection-changed', '_onComboSelectionChanged');
         this.unlisten(this.$.date , 'date-overlay-closed'       , '_onDateOverlayClosed');
@@ -226,7 +227,23 @@
        *               undefined the model is retrieved from the _modelCache
        */
       setModelFromJson: function (combo_id, json) {
+        this._comboListQuery = undefined;
+        this.$.combo.$.spinner.active = false;
         return this.$.combo.setModelFromJson(combo_id, json);
+      },
+
+      setCombolistQuery: function (query) {
+        this._comboListQuery = query;
+        this._textArea.value = '';
+        this._textArea.selectionStart = undefined;
+        this._textArea.selectionEnd = undefined;
+        this.$.combo.clearModel();
+        this.$.combo.$.spinner.active = true;
+      },
+
+      onGetDataResponse: function (jsonapi) {
+        this.$.combo.$.spinner.active = false;
+        this.$.combo.setModelFromJsonApi(jsonapi)
       },
 
       autoSizeOverlay: function (min_width) {
@@ -250,6 +267,9 @@
               this._layoutComboList();
             }
             this._overlay.setVisible(true, this._comboFilter);
+            if ( this._comboListQuery !== undefined ) {
+              this._epaper.send_command('get data "'+this._comboListQuery+'";');
+            }
           }
           this._overlayVisible = this._overlay.isVisible();
         }
@@ -292,10 +312,10 @@
         //this._overlayVisible = this.$.combo.isVisible();
       },
 
-      setValue: function (value) {
+      setValue: function (value, displayValue) {
         switch ( this._mode) {
           case 'c':
-            this._setValueC(value);
+            this._setValueC(value, displayValue);
             break;
           case 'd':
             this._setValueD(value);
@@ -409,12 +429,19 @@
       /*                                                                                       */
       /*****************************************************************************************/
 
-      _setValueC: function (a_id) {
+      _setValueC: function (id, displayValue) {
         this.$.combo.setVisible(false);
-        this.$.combo.selectById(a_id);
+        if ( id !== undefined && id.length > 0 ) {
+          this.$.combo.selectById(id);
+        } else {
+          this.$.combo.clearModel();
+        }
         this._overlayVisible = false;
         this._textArea.selectionStart = undefined;
-        this._textArea.selectionEnd   = undefined;
+        this._textArea.selectionEnd = undefined;
+        if (this._comboListQuery !== undefined && displayValue !== undefined) {
+          this._textArea.value = displayValue;
+        }
       },
 
       _onKeypressC: function (event) {
