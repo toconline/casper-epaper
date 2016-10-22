@@ -499,6 +499,10 @@
        */
       _moveHandler: function (a_event) {
 
+        if ( this.$.input.overlayVisible ) {
+          return;
+        }
+
         if ( this.$.servertip ) {
           this.$.servertip.onMouseMove(a_event.offsetX, a_event.offsetY);
         }
@@ -1236,15 +1240,15 @@
 
                   var json = this._message.substring(this._r_idx, this._r_idx + w);
 
-                  this.$.input.setModelFromJson(undefined, json);
-                  this.$.input.autoSizeOverlay(this.$.input.style.width);
+                  //this.$.input.setModelFromJson(undefined, json);
+                  //this.$.input.autoSizeOverlay(this.$.input.style.width);
 
                   //console.log("JSON: " + json);
 
                   this._r_idx += w + 1;
                 } else {
-                  this.$.input.setModelFromJson(undefined, '[]');
-                  this.$.input.autoSizeOverlay(this.$.input.style.width);
+                  //this.$.input.setModelFromJson(undefined, '[]');
+                  //this.$.input.autoSizeOverlay(this.$.input.style.width);
                 }
 
                 //if ( this._input_box._enabled ) {

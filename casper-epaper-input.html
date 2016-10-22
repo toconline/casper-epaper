@@ -64,7 +64,7 @@
   </style>
   <template>
     <iron-autogrow-textarea id="input" tabindex="0"></iron-autogrow-textarea>
-    <iron-icon id="dropdown_btn" rotate$="[[_overlayVisible]]" on-tap="_toggleOverlay" icon="arrow-drop-down"></iron-icon>
+    <iron-icon id="dropdown_btn" rotate$="[[overlayVisible]]" on-tap="_toggleOverlay" icon="arrow-drop-down"></iron-icon>
     <iron-icon id="edit_btn" on-tap="_toggleSubEditor" icon="cancel"></iron-icon>
     <casper-epaper-combolist id="combo"></casper-epaper-combolist>
     <casper-epaper-datepicker id="date"></casper-epaper-datepicker>
@@ -72,6 +72,13 @@
   <script>
     Polymer({
       is: 'casper-epaper-input',
+
+      properties: {
+        overlayVisible: {
+          type: Boolean,
+          value: false
+        }
+      },
 
       listeners: {
         'keypress': '_onKeypress',
@@ -90,7 +97,7 @@
         this._initialSelection = false;
         this._mode             = 'n';
         this._comboFilter      = '';
-        this._overlayVisible   = false;
+        this.overlayVisible   = false;
         this._overlay          = undefined;
         this._comboListQuery   = undefined;
         this.$.dropdown_btn.style.display = 'none';
@@ -204,7 +211,6 @@
           this.$.edit_btn.style.display = 'none';
           break;
         }
-        //this.$.edit_btn.style.display = 'inline';
       },
 
       /**
@@ -245,11 +251,6 @@
         this.$.combo.$.spinner.active = false;
         this.$.combo.setModelFromJsonApi(jsonapi)
         this._layoutComboList();
-        this.$.combo.fireResize();
-      },
-
-      autoSizeOverlay: function (min_width) {
-        this.$.combo.autoSize(min_width);
       },
 
       _setOverlay: function (overlay) {
@@ -257,7 +258,7 @@
           this._overlay.setVisible(false);
         }
         this._overlay = overlay;
-        this._overlayVisible = false;
+        this.overlayVisible = false;
       },
 
       _toggleOverlay: function (event) {
@@ -268,12 +269,13 @@
             if ( this._overlay === this.$.combo ) {
               this._layoutComboList();
             }
+            this.hideTooltip();
             this._overlay.setVisible(true, this._comboFilter);
             if ( this._comboListQuery !== undefined ) {
               this._epaper.send_command('get data "'+this._comboListQuery+'";');
             }
           }
-          this._overlayVisible = this._overlay.isVisible();
+          this.overlayVisible = this._overlay.isVisible();
         }
         if ( event !== undefined ) {
           event.stopPropagation();
@@ -298,7 +300,9 @@
         }
 
         this.$.combo.autoSize(width, max_width);
-        this.$.combo.setVisible(true, this._comboFilter);
+        if ( ! this.$.combo.isVisible() ) {
+          this.$.combo.setVisible(true, this._comboFilter);
+        }
       },
 
       setValue: function (value, displayValue) {
@@ -425,7 +429,7 @@
         } else {
           this.$.combo.clearModel();
         }
-        this._overlayVisible = false;
+        this.overlayVisible = false;
         this._textArea.selectionStart = undefined;
         this._textArea.selectionEnd = undefined;
         if (this._comboListQuery !== undefined && displayValue !== undefined) {
@@ -434,7 +438,7 @@
       },
 
       _onKeypressC: function (event) {
-        if ( this._overlayVisible === false ) {
+        if ( this.overlayVisible === false ) {
           this._comboFilter += event.key;
           this.$.combo.setQuery(this._comboFilter);
           event.preventDefault();
@@ -445,7 +449,7 @@
         var vkey;
 
         vkey = this._keycodeToVkey(event);
-        if ( this._overlayVisible === false ) {
+        if ( this.overlayVisible === false ) {
           if ( ['down', 'up', 'left', 'right'].indexOf(vkey) > -1 ) {
             if ( this._comboFilter.length !== 0 && ['down', 'up'].indexOf(vkey) > -1) {
               this.$.combo.moveSelection(vkey);
@@ -469,7 +473,7 @@
         } else {
           if ( vkey === 'esc' ) {
             this.$.combo.setVisible(false);
-            this._overlayVisible = false;
+            this.overlayVisible = false;
             event.preventDefault();
           }
         }
@@ -478,7 +482,7 @@
       _onComboSelectionChanged: function (event) {
         if ( event.detail.displayValue ) {
           this._textArea.value = event.detail.displayValue;
-          if ( this._mode === 'c' && this._overlayVisible === false) {
+          if ( this._mode === 'c' && this.overlayVisible === false) {
             this._textArea.selectionStart = event.detail.matchStart;
             this._textArea.selectionEnd   = event.detail.matchEnd;
           }
@@ -488,7 +492,7 @@
       _onComboListClosed: function (event) {
         var key;
 
-        this._overlayVisible = false;
+        this.overlayVisible = false;
         this._comboFilter    = '';
 
         key = event.detail.closingKey;
@@ -524,16 +528,10 @@
       },
 
       _onDateOverlayClosed: function (event) {
-        this._overlayVisible = false;
+        this.overlayVisible = false;
         var vkey = event.detail.closingKey;
         var cmd  = '';
 
-        /*
-        console.log('*** closing key:  '+vkey );
-        console.log('*** previousDate: '+event.detail.previousDate);
-        console.log('*** currentDate:  '+event.detail.currentDate);
-        TODO
-        */
         if ( event.detail.previousDate !== event.detail.currentDate && vkey !== 'esc' ) {
           cmd = 'set text "'+event.detail.currentDate+'" true; ';
           if ( vkey === undefined ) {

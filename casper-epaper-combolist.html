@@ -39,14 +39,14 @@ An auxiliary combo list for the casper-epaper editor
   <template>
     <style>
       :host {
-        /*display: block;*/
+        display: block;
         position: absolute;
       }
 
       iron-dropdown {
         margin: 0px;
         padding: 0px;
-        @apply(--shadow-elevation-3dp);
+        @apply(--shadow-elevation-4dp);
       }
 
       .dropdown-content {
@@ -65,6 +65,7 @@ An auxiliary combo list for the casper-epaper editor
       }
 
       iron-icon {
+        color: var(--dark-theme-text-color);
         cursor: pointer;
         padding:  2px;
         width:   16px;
@@ -142,10 +143,10 @@ An auxiliary combo list for the casper-epaper editor
                    vertical-align="auto">
       <div class="dropdown-content">
         <paper-input-container no-label-float on-tap="_inputTap">
-          <iron-icon prefix icon="search" style="color: #eee;"></iron-icon>
+          <iron-icon prefix icon="search"></iron-icon>
           <label class="header">pesquisar</label>
           <input is="iron-input" id="input" class="header" bind-value="{{_query}}">
-          <iron-icon id="clear" suffix on-tap="_clearQuery" icon="clear" style="color: #eee;" alt="limpar" title="limpar"></iron-icon>
+          <iron-icon id="clear" suffix on-tap="_clearQuery" icon="clear" alt="limpar" title="limpar"></iron-icon>
         </paper-input-container>
         <div id="scroller" scroller="[[_getScroller()]]" on-tap="_stopPropagation">
           <iron-list id="list" items="[[_filteredItems]]" as="item" selected-item="{{selectedItem}}" on-tap="_selectItem" scroll-target="[[_getScroller()]]">
@@ -293,16 +294,17 @@ An auxiliary combo list for the casper-epaper editor
         this._initialId     = undefined;
         this._selectedId    = undefined;
         this._notifiyIdOnly = false;
-        //this.$.dialog.sizingTarget = this.$.list;
         this.displayFields  = ['id', 'description'];
       },
 
       attached: function () {
-        this.$.input.addEventListener('keydown', this._keyDownHandler.bind(this), true);
+        //this.$.input.addEventListener('keydown', this._keyDownHandler.bind(this), true);
+        this.listen(this.$.input, 'keydown', '_keyDownHandler');
       },
 
       detached: function () {
-        this.$.input.removeEventListener('keydown', this._keyDownHandler, true);
+        //this.$.input.removeEventListener('keydown', this._keyDownHandler, true);
+        this.unlisten(this.$.input, 'keydown', '_keyDownHandler');
       },
 
       /**
@@ -432,9 +434,11 @@ An auxiliary combo list for the casper-epaper editor
       },
 
       fireResize: function () {
+        this.$.list._render && this.$.list._render();
+        this.$.list.notifyResize();
+        //this.querySelector('iron-list').notifyResize();
         this.async(function () {
-            this.$.list.fire('iron-resize');
-            this.$.dialog.fire('iron-resize');
+            this.$.dialog.notifyResize(); //fire('iron-resize');
           }.bind(this), 0);
       },
 
@@ -449,6 +453,7 @@ An auxiliary combo list for the casper-epaper editor
        *               undefined the model is retrieved from the _modelCache
        */
       setModelFromJson: function (combo_id, json) {
+        console.log("setting from json");
         if ( combo_id === undefined ) {
           this.items = JSON.parse(json);
         } else {
@@ -536,6 +541,7 @@ An auxiliary combo list for the casper-epaper editor
         this._notifiyIdOnly = false;
         this._selectedId    = undefined;
         this._initialId     = undefined;
+        this.fireResize();
       },
 
       moveSelection: function (a_direction) {
@@ -558,7 +564,7 @@ An auxiliary combo list for the casper-epaper editor
         }
       },
 
-      _dialogOpened: function () {
+      _dialogOpened: function () {;
         this.moveSelection('keep');
         this.$.input.focus();
         this.fireResize();
@@ -648,6 +654,7 @@ An auxiliary combo list for the casper-epaper editor
         this._query = a_query;
         this._filterModel(this._query);
         this.$.clear.style.opacity = this._query && this._query.length ? 1 : 0.0;
+        this.moveSelection('keep');
         if ( a_focus ) {
           this.$.input.focus();
         }
@@ -867,8 +874,11 @@ An auxiliary combo list for the casper-epaper editor
        */
       _getItemClass: function (selected) {
         return selected ? 'item selected' : 'item';
-      }
+      },
 
+      _stopPropagation: function (event) {
+        event.stopPropagation();
+      }
     });
   </script>
 </dom-module>
