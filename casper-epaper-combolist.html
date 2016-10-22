@@ -298,13 +298,29 @@ An auxiliary combo list for the casper-epaper editor
       },
 
       attached: function () {
-        //this.$.input.addEventListener('keydown', this._keyDownHandler.bind(this), true);
         this.listen(this.$.input, 'keydown', '_keyDownHandler');
+        this.listen(this.$.dialog, 'iron-resize', '_onResizeDlg');
+        this.listen(this.$.list, 'iron-resize', '_onResizeList');
       },
 
       detached: function () {
-        //this.$.input.removeEventListener('keydown', this._keyDownHandler, true);
         this.unlisten(this.$.input, 'keydown', '_keyDownHandler');
+        this.unlisten(this.$.dialog, 'iron-resize', '_onResizeDlg');
+        this.unlisten(this.$.list,  'iron-resize', '_onResizeList');
+      },
+
+      _onResizeList: function () {
+        console.log('~~~~~ list'
+                      +' list: '  +this.$.list.getBoundingClientRect().height
+                      +' dialog: '+this.$.dialog.getBoundingClientRect().height
+                      +' input: ' +this.$.input.getBoundingClientRect().height);
+      },
+
+      _onResizeDlg: function () {
+        console.log('      dialog'
+                      +' list: '  +this.$.list.getBoundingClientRect().height
+                      +' dialog: '+this.$.dialog.getBoundingClientRect().height
+                      +' input: ' +this.$.input.getBoundingClientRect().height);
       },
 
       /**
@@ -312,26 +328,26 @@ An auxiliary combo list for the casper-epaper editor
        *
        * The dialog will be placed along one the edges of the supplied element
        *
-       * @param a_element The HTML element
+       * @param element The HTML element
        */
-      setPositionTarget: function (a_element) {
-        this.$.dialog.positionTarget = a_element;
+      setPositionTarget: function (element) {
+        this.$.dialog.positionTarget = element;
       },
 
-      setFitInto: function (a_element) {
-        this.$.dialog.fitInto = a_element;
+      setFitInto: function (element) {
+        this.$.dialog.fitInto = element;
       },
 
       /**
        * Show or hide the widget
        *
        * @param a_visible true to make visible, false to hide this widget
-       * @return "das" widget
        */
       setVisible: function (a_visible, a_query) {
         this._closingKey = undefined;
         if (a_visible) {
-          this.setQuery(a_query, true);
+          this._query = a_query
+          this._filterModel(this._query);
           this.$.dialog.open();
         } else {
           this.$.dialog.close();
@@ -418,7 +434,7 @@ An auxiliary combo list for the casper-epaper editor
               width = plen;
             }
           }
-          width += 8;
+          width += 30;
         }
 
         width = Math.ceil(width);
@@ -429,17 +445,8 @@ An auxiliary combo list for the casper-epaper editor
           width = Math.ceil(max_width);
         }
         this.$.dialog.style.width = width + 'px';
-        this.fireResize();
+        this.$.list.style.width = width + 'px';
         console.log('~~~~ auto sized '+width);
-      },
-
-      fireResize: function () {
-        this.$.list._render && this.$.list._render();
-        this.$.list.notifyResize();
-        //this.querySelector('iron-list').notifyResize();
-        this.async(function () {
-            this.$.dialog.notifyResize(); //fire('iron-resize');
-          }.bind(this), 0);
       },
 
       /**
@@ -491,9 +498,8 @@ An auxiliary combo list for the casper-epaper editor
           items.push(item);
         }
         this.items = items;
-        this._filterModel(this._query);
         this._selectedId = this._initialId;
-        this.moveSelection('keep');
+        this._filterModel(this._query);
       },
 
       /**
@@ -541,7 +547,6 @@ An auxiliary combo list for the casper-epaper editor
         this._notifiyIdOnly = false;
         this._selectedId    = undefined;
         this._initialId     = undefined;
-        this.fireResize();
       },
 
       moveSelection: function (a_direction) {
@@ -564,10 +569,11 @@ An auxiliary combo list for the casper-epaper editor
         }
       },
 
-      _dialogOpened: function () {;
+      _dialogOpened: function () {
+        this.$.list._render && this.$.list._render();
+        this.$.dialog.notifyResize();
         this.moveSelection('keep');
         this.$.input.focus();
-        this.fireResize();
       },
 
       _onSelectionChanged: function () {
@@ -650,18 +656,12 @@ An auxiliary combo list for the casper-epaper editor
         }
       },
 
-      setQuery: function (a_query, a_focus) {
-        this._query = a_query;
+      _clearQuery: function () {
+        this._query = undefined;
         this._filterModel(this._query);
         this.$.clear.style.opacity = this._query && this._query.length ? 1 : 0.0;
         this.moveSelection('keep');
-        if ( a_focus ) {
-          this.$.input.focus();
-        }
-      },
-
-      _clearQuery: function () {
-        this.setQuery(undefined, true);
+        this.$.input.focus();
       },
 
       /**
@@ -802,10 +802,8 @@ An auxiliary combo list for the casper-epaper editor
           }
         }
         if ( visible_rows.length ) {
-          this._filteredItems = [];
           this._filteredItems = visible_rows;
         }
-        this.fireResize();
       },
 
       /**

@@ -251,6 +251,7 @@
         this.$.combo.$.spinner.active = false;
         this.$.combo.setModelFromJsonApi(jsonapi)
         this._layoutComboList();
+        this.$.combo.$.dialog.fire('iron-overlay-opened');
       },
 
       _setOverlay: function (overlay) {
