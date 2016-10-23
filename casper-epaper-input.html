@@ -249,7 +249,8 @@
 
       onGetDataResponse: function (jsonapi) {
         this.$.combo.$.spinner.active = false;
-        this.$.combo.setModelFromJsonApi(jsonapi)
+        this.$.combo.setModelFromJsonApi(jsonapi,
+          '<span class="right">NIF: [[tax_registration_number]]</span>[[description]]<span></span>');
         this._layoutComboList();
         this.$.combo.$.dialog.fire('iron-overlay-opened');
       },
@@ -428,7 +429,7 @@
         if ( id !== undefined && id.length > 0 ) {
           this.$.combo.selectById(id);
         } else {
-          this.$.combo.clearModel();
+          this._textArea.value = '';
         }
         this.overlayVisible = false;
         this._textArea.selectionStart = undefined;

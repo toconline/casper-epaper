@@ -99,7 +99,7 @@ An auxiliary combo list for the casper-epaper editor
         outline: 0;
         font-size: 12 px;
         cursor: pointer;
-        padding: 1px 3px;
+        padding: 3px;
       }
 
       .item:hover {
@@ -151,7 +151,8 @@ An auxiliary combo list for the casper-epaper editor
         <div id="scroller" scroller="[[_getScroller()]]" on-tap="_stopPropagation">
           <iron-list id="list" items="[[_filteredItems]]" as="item" selected-item="{{selectedItem}}" on-tap="_selectItem" scroll-target="[[_getScroller()]]">
             <template>
-              <casper-epaper-htmldiv tabindex$="[[tabIndex]]" class$="[[_getItemClass(selected)]]" inner-html="[[_renderRow(item)]]"></casper-epaper-htmldiv>
+              <casper-epaper-htmldiv tabindex$="[[tabIndex]]" class$="[[_getItemClass(selected)]]" inner-html="[[_renderRow(item)]]">
+              </casper-epaper-htmldiv>
             </template>
           </iron-list>
           <paper-spinner-lite id="spinner"></paper-spinner-lite>
@@ -294,33 +295,16 @@ An auxiliary combo list for the casper-epaper editor
         this._initialId     = undefined;
         this._selectedId    = undefined;
         this._notifiyIdOnly = false;
+        this.lineTemplate   = undefined;
         this.displayFields  = ['id', 'description'];
       },
 
       attached: function () {
         this.listen(this.$.input, 'keydown', '_keyDownHandler');
-        this.listen(this.$.dialog, 'iron-resize', '_onResizeDlg');
-        this.listen(this.$.list, 'iron-resize', '_onResizeList');
       },
 
       detached: function () {
         this.unlisten(this.$.input, 'keydown', '_keyDownHandler');
-        this.unlisten(this.$.dialog, 'iron-resize', '_onResizeDlg');
-        this.unlisten(this.$.list,  'iron-resize', '_onResizeList');
-      },
-
-      _onResizeList: function () {
-        console.log('~~~~~ list'
-                      +' list: '  +this.$.list.getBoundingClientRect().height
-                      +' dialog: '+this.$.dialog.getBoundingClientRect().height
-                      +' input: ' +this.$.input.getBoundingClientRect().height);
-      },
-
-      _onResizeDlg: function () {
-        console.log('      dialog'
-                      +' list: '  +this.$.list.getBoundingClientRect().height
-                      +' dialog: '+this.$.dialog.getBoundingClientRect().height
-                      +' input: ' +this.$.input.getBoundingClientRect().height);
       },
 
       /**
@@ -459,8 +443,8 @@ An auxiliary combo list for the casper-epaper editor
        * @param json json string with the data model to associate with the combo it. If this parameter is
        *               undefined the model is retrieved from the _modelCache
        */
-      setModelFromJson: function (combo_id, json) {
-        console.log("setting from json");
+      setModelFromJson: function (combo_id, json, lineTemplate) {
+        this.lineTemplate = lineTemplate;
         if ( combo_id === undefined ) {
           this.items = JSON.parse(json);
         } else {
@@ -479,10 +463,11 @@ An auxiliary combo list for the casper-epaper editor
         }
       },
 
-      setModelFromJsonApi: function (json_api) {
+      setModelFromJsonApi: function (jsonApi, lineTemplate) {
         var len, ja_items, items;
 
-        ja_items = JSON.parse(json_api)['data'];
+        this.lineTemplate = lineTemplate;
+        ja_items = JSON.parse(jsonApi)['data'];
         len      = ja_items.length;
         items    = [];
         for (var i = 0; i < len; ++i ) {
@@ -856,12 +841,23 @@ An auxiliary combo list for the casper-epaper editor
 
       _renderRow: function (a_item) {
         var fields_len = this.displayFields.length;
-        var it = [];
 
-        for ( f = 0; f < fields_len; f++ ) {
-          it.push(a_item[this.displayFields[f]]);
+        if ( this.lineTemplate === undefined ) {
+          var it = [];
+
+          for ( var f = 0; f < fields_len; f++ ) {
+            it.push(a_item[this.displayFields[f]]);
+          }
+          return it.join(' - ');
+        } else {
+          var rv = this.lineTemplate;
+
+          for ( var f = 0; f < fields_len; f++ ) {
+            var fn = this.displayFields[f];
+            rv = rv.replace('[['+fn+']]', a_item[fn]);
+          }
+          return rv;
         }
-        return it.join(' - ');
       },
 
       /**
