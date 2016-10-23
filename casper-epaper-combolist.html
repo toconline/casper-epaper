@@ -157,7 +157,7 @@ An auxiliary combo list for the casper-epaper editor
           </iron-list>
           <paper-spinner-lite id="spinner"></paper-spinner-lite>
         </div>
-        <paper-fab mini icon="add" class="blue"></paper-fab>
+        <paper-fab mini icon="add" class="blue" hidden$="[[!showFab]]"></paper-fab>
       </div>
     </iron-dropdown>
   </template>
@@ -169,7 +169,7 @@ An auxiliary combo list for the casper-epaper editor
      * Currently limited to Portuguese only, tough it can be easily extended to other latin script and
      * MIGHT work even without explicit locale tests.
      *
-     * @param character to collate
+     * @param char character to collate
      * @return the collated character
      */
     var _collateChar = function (char) {
@@ -266,7 +266,6 @@ An auxiliary combo list for the casper-epaper editor
         },
         selectedItem: {
           type: Object,
-          default: undefined,
           observer: '_onSelectionChanged'
         },
         _query: {
@@ -281,6 +280,10 @@ An auxiliary combo list for the casper-epaper editor
         },
         items: {
           type: Array
+        },
+        showFab: {
+          type: Boolean,
+          value: false
         }
       },
 

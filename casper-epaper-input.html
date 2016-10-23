@@ -235,6 +235,7 @@
       setModelFromJson: function (combo_id, json) {
         this._comboListQuery = undefined;
         this.$.combo.$.spinner.active = false;
+        this.$.combo.showFab = false; // TODO this is hack bind this to open
         return this.$.combo.setModelFromJson(combo_id, json);
       },
 
@@ -252,6 +253,7 @@
         this.$.combo.setModelFromJsonApi(jsonapi,
           '<span class="right">NIF: [[tax_registration_number]]</span>[[description]]<span></span>');
         this._layoutComboList();
+        this.$.combo.showFab = true; // TODO this is hack bind this to open
         this.$.combo.$.dialog.fire('iron-overlay-opened');
       },
 
@@ -273,7 +275,7 @@
             }
             this.hideTooltip();
             this._overlay.setVisible(true, this._comboFilter);
-            if ( this._comboListQuery !== undefined ) {
+            if ( this._comboListQuery !== undefined && this._overlay === this.$.combo ) {
               this._epaper.send_command('get data "'+this._comboListQuery+'";');
             }
           }
@@ -302,7 +304,7 @@
         }
 
         this.$.combo.autoSize(width, max_width);
-        if ( ! this.$.combo.isVisible() ) {
+        if ( ! this.$.combo.isVisible() && this._overlay === this.$.combo ) {
           this.$.combo.setVisible(true, this._comboFilter);
         }
       },
