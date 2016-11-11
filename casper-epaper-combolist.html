@@ -123,6 +123,7 @@ An auxiliary combo list for the casper-epaper editor
 
       paper-spinner-lite {
         position: absolute;
+        pointer-events:none;
         top: 50%;
         left: 50%;
         margin-left: -20px;
@@ -298,7 +299,6 @@ An auxiliary combo list for the casper-epaper editor
         this._initialId     = undefined;
         this._selectedId    = undefined;
         this._notifiyIdOnly = false;
-        this.lineTemplate   = undefined;
         this.displayFields  = ['id', 'description'];
       },
 
@@ -323,6 +323,15 @@ An auxiliary combo list for the casper-epaper editor
 
       setFitInto: function (element) {
         this.$.dialog.fitInto = element;
+      },
+
+      setCasperBinding: function (binding) {
+        this._binding = binding;
+        if ( this._binding !== undefined ) {
+          this.displayFields = this._binding.attachment.display;
+        } else {
+          this.displayFields = [];
+        }
       },
 
       /**
@@ -446,8 +455,7 @@ An auxiliary combo list for the casper-epaper editor
        * @param json json string with the data model to associate with the combo it. If this parameter is
        *               undefined the model is retrieved from the _modelCache
        */
-      setModelFromJson: function (combo_id, json, lineTemplate) {
-        this.lineTemplate = lineTemplate;
+      setModelFromJson: function (combo_id, json) {
         if ( combo_id === undefined ) {
           this.items = JSON.parse(json);
         } else {
@@ -466,10 +474,9 @@ An auxiliary combo list for the casper-epaper editor
         }
       },
 
-      setModelFromJsonApi: function (jsonApi, lineTemplate) {
+      setModelFromJsonApi: function (jsonApi) {
         var len, ja_items, items;
 
-        this.lineTemplate = lineTemplate;
         ja_items = JSON.parse(jsonApi)['data'];
         len      = ja_items.length;
         items    = [];
@@ -845,21 +852,21 @@ An auxiliary combo list for the casper-epaper editor
       _renderRow: function (a_item) {
         var fields_len = this.displayFields.length;
 
-        if ( this.lineTemplate === undefined ) {
-          var it = [];
-
-          for ( var f = 0; f < fields_len; f++ ) {
-            it.push(a_item[this.displayFields[f]]);
-          }
-          return it.join(' - ');
-        } else {
-          var rv = this.lineTemplate;
+        if ( this._binding !== undefined && this._binding.attachment !== undefined && this._binding.attachment.html !== undefined ) {
+          var rv = this._binding.attachment.html;
 
           for ( var f = 0; f < fields_len; f++ ) {
             var fn = this.displayFields[f];
             rv = rv.replace('[['+fn+']]', a_item[fn]);
           }
           return rv;
+        } else {
+          var it = [];
+
+          for ( var f = 0; f < fields_len; f++ ) {
+            it.push(a_item[this.displayFields[f]]);
+          }
+          return it.join(' - ');
         }
       },
 

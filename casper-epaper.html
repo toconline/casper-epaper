@@ -1041,63 +1041,66 @@
 
                 case 'c':  // 'c'<version>,<empty_line><length>,<field_id>,<length>,<display_field>{,<length>,<field>}[,<length>,<list json>] Simple combo  client side
                   var version = this._getDouble();
-                  console.log("Combo List Version " + version);
-
-                  // empty_line: 0 or 1
-                  // console.log("Combo Empty Line: " + this._getDouble());
-                  var nullable_list = this._getDouble();
-                  // fields '}'
-                  var fields = [];
-                  w = this._getDouble();
-                  if ( w > 2 ) {
-                    var tmp = this._message.substring(this._r_idx + 1, this._r_idx + w - 1);
-                    fields = tmp.split(',');
-                    //console.log("Combo FIELDS: " + fields);
-                  }
-                  this._r_idx += w + 1;
-
-                  // list id
-                  w  = this._getDouble();
-                  t2 = this._message.substring(this._r_idx, this._r_idx + w);
-                  //console.log("Combo list id: " + t2);
-                  this._r_idx += w + 1;
-
-                  // sub document params <length>,<uri>,<length>,<jrxml>
-                  w = this._getDouble();
-                  if ( w == 0 ) {
-                    this._sub_document_uri = undefined;
-                  } else {
-                    this._sub_document_uri = this._message.substring(this._r_idx, this._r_idx + w);
-                  }
-                  this._r_idx += w + 1;
-                  w = this._getDouble();
-                  if ( w == 0 ) {
-                    this._sub_document_jrxml = undefined;
-                  } else {
-                    this._sub_document_jrxml = this._message.substring(this._r_idx, this._r_idx + w);
-                  }
-                  this._r_idx += w;
-
-                  if ( ',' === this._message[this._r_idx] ) {
-                    this._r_idx++;
-                    // list [optional]
-                    w  = this._getDouble();
-                    t3 = this._message.substring(this._r_idx, this._r_idx + w);
-                    //console.log("Combo JSON: " + t3);
-                    this._r_idx += w;
-                  } else {
-                    t3 = undefined;
-                  }
-
-                  //this._input_box.configure_editor(edit_mode, this._sub_document_jrxml, nullable_list);
-                  this.$.input.setMode(edit_mode);
-                  this.$.input.setDisplayFields(fields);
                   if ( version === 2 ) {
-                    this.$.input.setCombolistQuery(t3);
+                    w  = this._getDouble();
+                    t2 = this._message.substring(this._r_idx, this._r_idx + w);
+                    this._r_idx += w + 1;
+                    try {
+                      this.$.input.setCasperBinding(JSON.parse(t2));
+                    } catch (err) {
+                      console.log("*** JSON error in combo box config!!1");
+                    }
                   } else {
+                    // empty_line: 0 or 1
+                    var nullable_list = this._getDouble();
+                    // fields '}'
+                    var fields = [];
+                    w = this._getDouble();
+                    if ( w > 2 ) {
+                      var tmp = this._message.substring(this._r_idx + 1, this._r_idx + w - 1);
+                      fields = tmp.split(',');
+                      //console.log("Combo FIELDS: " + fields);
+                    }
+                    this._r_idx += w + 1;
+
+                    // list id
+                    w  = this._getDouble();
+                    t2 = this._message.substring(this._r_idx, this._r_idx + w);
+                    //console.log("Combo list id: " + t2);
+                    this._r_idx += w + 1;
+
+                    // sub document params <length>,<uri>,<length>,<jrxml>
+                    w = this._getDouble();
+                    if ( w == 0 ) {
+                      this._sub_document_uri = undefined;
+                    } else {
+                      this._sub_document_uri = this._message.substring(this._r_idx, this._r_idx + w);
+                    }
+                    this._r_idx += w + 1;
+                    w = this._getDouble();
+                    if ( w == 0 ) {
+                      this._sub_document_jrxml = undefined;
+                    } else {
+                      this._sub_document_jrxml = this._message.substring(this._r_idx, this._r_idx + w);
+                    }
+                    this._r_idx += w;
+
+                    if ( ',' === this._message[this._r_idx] ) {
+                      this._r_idx++;
+                      // list [optional]
+                      w  = this._getDouble();
+                      t3 = this._message.substring(this._r_idx, this._r_idx + w);
+                      //console.log("Combo JSON: " + t3);
+                      this._r_idx += w;
+                    } else {
+                      t3 = undefined;
+                    }
+
+                    this.$.input.setMode(edit_mode);
+                    this.$.input.setDisplayFields(fields);
                     this.$.input.setModelFromJson(t2,t3);
+                    this._r_idx++;
                   }
-                  this._r_idx++;
                   break;
 
                 case 'R': // 'R'<idx>,<length>,<variable>,<lenght>,<value_array>
@@ -1260,6 +1263,7 @@
                 //if ( this._input_box._enabled ) {
                 //  this._input_box._stop_editor_handler();
                 //}
+                this.$.input.setCasperBinding(undefined);
                 this._inputBoxDrawString = undefined;
                 this._r_idx += 1;
 

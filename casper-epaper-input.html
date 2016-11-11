@@ -88,6 +88,7 @@
 
       ready: function () {
         this._input        = this.$.input;
+        this._binding      = undefined;
         this._textArea     = this.$.input.$.textarea;
         this.$.date.inputBox = this.$.input.$.textarea;
         this.$.combo.setPositionTarget(this.$.input);
@@ -148,6 +149,25 @@
       hideOverlays: function () {
         this.hideTooltip();
         this._setOverlay(undefined);
+      },
+
+      setCasperBinding: function (binding) {
+        this._binding = binding;
+        if ( binding !== undefined ) {
+          switch(this._binding.attachment.type) {
+            case 'dropDownList':
+              this.setMode('c');
+              break;
+            default:
+              this.setMode('n');
+              break;
+          }
+          this.$.combo.setCasperBinding(this._binding);
+          this.setCombolistQuery(this._binding.load.route);
+        } else {
+          this.$.combo.setCasperBinding(undefined);
+          this.setCombolistQuery(undefined);
+        }
       },
 
       /**
@@ -250,8 +270,8 @@
 
       onGetDataResponse: function (jsonapi) {
         this.$.combo.$.spinner.active = false;
-        this.$.combo.setModelFromJsonApi(jsonapi,
-          '<span class="right">NIF: [[tax_registration_number]]</span>[[description]]<span></span>');
+        this.$.combo.setModelFromJsonApi(jsonapi);
+        //'<span class="right">NIF: [[tax_registration_number]]</span>[[description]]<span></span>');
         this._layoutComboList();
         this.$.combo.showFab = true; // TODO this is hack bind this to open
         this.$.combo.$.dialog.fire('iron-overlay-opened');
@@ -543,12 +563,9 @@
           }
         }
         if ( vkey !== 'esc' && vkey !== undefined ) {
-          cmd += 'set key "'+vkey.replace(/\+/g, '"+"')+'"';
+          cmd += 'set key "'+vkey.replace(/\+/g, '"+"')+'";';
         }
         if ( cmd.length ) {
-          /*
-          console.log('*** cmd:  '+cmd);
-          */
           this._epaper.send_command(cmd);
         }
       },
