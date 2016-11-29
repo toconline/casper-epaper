@@ -154,16 +154,22 @@
       setCasperBinding: function (binding) {
         this._binding = binding;
         if ( binding !== undefined ) {
-          switch(this._binding.attachment.type) {
+          switch(binding.attachment.type) {
             case 'dropDownList':
+            case 'dropDownTree':
               this.setMode('c');
               break;
             default:
               this.setMode('n');
               break;
           }
-          this.$.combo.setCasperBinding(this._binding);
-          this.setCombolistQuery(this._binding.load.route);
+          this.$.combo.setCasperBinding(binding);
+          this.setCombolistQuery(binding.attachment.route);
+          if ( binding.hint && binding.hint.expression && binding.hint.expression.length ) {
+            this.showTooltip(binding.hint.expression);
+          } else {
+            this.hideTooltip();
+          }
         } else {
           this.$.combo.setCasperBinding(undefined);
           this.setCombolistQuery(undefined);
