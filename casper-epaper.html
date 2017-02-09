@@ -130,7 +130,6 @@
         this._calculate_attribute_defaults();
 
         this._socket            = new EPaperSocket(this, this.url, this.port, this.uri);
-        this._listener          = undefined;
         this._canvas            = this.$.canvas;
         this._canvas_width      = this._canvas.width;
         this._canvas_height     = this._canvas.height;
@@ -377,13 +376,27 @@
         console.log('=== set size [width: ' + width + ', height: ' + height + '] ' + act);
       },
 
-      reconnect: function () {
-        this.clear();
-        this._socket.connect();
+      /**
+       * Goto to the specified page
+       *
+       * @param {number} pageNumber the page to render
+       */
+      gotoPage: function (pageNumber) {
+        this.send_command("document set page " + pageNumber + ";");
       },
 
-      set_listener: function (a_listener) {
-        this._listener = a_listener;
+      /**
+       * @brief Retrieve the number of pages in the document
+       *
+       * @return page count
+       */
+      getPageCount: function () {
+        return this._page_count;
+      },
+
+      reconnect: function () {
+        this._clear();
+        this._socket.connect();
       },
 
       close_document: function (a_success_handler) {
@@ -443,6 +456,18 @@
           }
 
         });
+      },
+
+      /**
+       * @brief Clear the local document model
+       */
+      _clear: function () {
+        this._bands = undefined;
+        this._images = {};
+        this._focused_band_id = undefined;
+        //this._input_box._enabled = false;
+        //this.make_widgets_invisble();
+        this._clearPage();
       },
 
       _document_changed: function (a_document) {
@@ -665,7 +690,7 @@
         this._paint_band();
       },
 
-      clear_page: function () {
+      _clearPage: function () {
         var saved_fill = this._ctx.fillStyle;
 
         this._ctx.fillStyle = this._background_color;
@@ -694,7 +719,7 @@
         // ... save context clear the complete canvas ...
         this._save_paint_context();
         this._ctx.save();
-        this.clear_page();
+        this._clearPage();
 
         // ... repaint the bands top to down to respect the painter's algorithm ...
         if ( this._bands !== undefined ) {
@@ -773,7 +798,7 @@
                 this._reset_render_state();
                 this._r_idx++;
               } else {
-                this.clear_page();
+                this._clearPage();
               }
               this._r_idx++;
               this._bands = undefined;
@@ -1659,7 +1684,7 @@
         this._canvas.style.height = this._canvas_height + 'px';
         this._sx = this._canvas.width  / this._page_width;
         this._sy = this._canvas.height / this._page_height;
-        this.clear_page();
+        this._clearPage();
       },
 
       _binary_find_band_by_id: function (a_id) {
@@ -2018,9 +2043,7 @@
             break;
 
           case 'N':
-            if ( this._listener !== undefined ) {
-              this._listener.on_notification_received(a_message.data.substring(2));
-            }
+            this._fireEvent('casper-epaper-notification', { message: a_message.data.substring(2) });
             break;
 
           case 'E':
@@ -2044,9 +2067,22 @@
               console.log("command is not terminated ...");
             }
 
-            if ( undefined !== this._listener && undefined !== this._listener.on_error_received ) {
-                this._listener.on_error_received(t, m);
+            //if ( undefined !== this._listener && undefined !== this._listener.on_error_received ) {
+            //  this._listener.on_error_received(t, m);
+            //}
+            var errorDetail = undefined;
+            if ( m.indexOf('S:failure:load:') == 0 ) {
+              error = JSON.parse(m.replace('S:failure:load:',''));
+              errorDetail = error.errors.first();
+            } else if ( m.indexOf('S:failure:pdf:') == 0 ) {
+              error = JSON.parse(m.replace('S:failure:pdf:',''));
+              errorDetail = error.errors.first();
             }
+
+            if ( errorDetail !== undefined ) {
+              this._fireEvent('casper-epaper-error', errorDetail);
+            }
+            
             break;
 
           case 'D':
@@ -2061,24 +2097,25 @@
 
       on_socket_open: function (a_message) {
         this._is_socket_open = true;
-
-        if ( this._listener !== undefined ) {
-          this._listener.on_socket_open();
-        }
+        this._fireEvent('casper-socket-open', { casperEpaper: this});
       },
 
       on_socket_close: function (a_message) {
         this._is_socket_open = false;
-
-        if ( this._listener !== undefined ) {
-          this._listener.on_socket_close();
-        }
+        this._fireEvent('casper-socket-close', { casperEpaper: this});
       },
 
       is_socket_open: function() {
         return this._is_socket_open;
       },
 
+      _fireEvent: function (eventName, eventData) {
+        if ( false ) {
+          this.fire(eventName, eventData);
+        } else {
+          window.parent.document.dispatchEvent(new CustomEvent(eventName, { detail: eventData }));
+        }
+      }
 
     });
   </script>
