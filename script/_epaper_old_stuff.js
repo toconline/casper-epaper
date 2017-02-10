@@ -431,52 +431,6 @@
     );
   };
 
-  /**
-   * @brief Retrieve the number of pages in the document
-   *
-   * @return page count
-   */
-  EPaper.prototype.get_page_count = function () {
-    return this._page_count;
-  };
-
-  /**
-   * @brief Change the current page
-   *
-   * @param a_page_number 1 for the first page
-   */
-  EPaper.prototype.goto_page = function (a_page_number) {
-    this.send_command("document set page " + a_page_number + ";");
-  };
-
-  /**
-   * @brief Change the size of the canvas.
-   *
-   * @param a_width Canvas height in px
-   * @param a_height Canvas Height in px
-   */
-  EPaper.prototype.set_size = function (a_width, a_height, a_forced) {
-
-    var act;
-
-    if ( a_width !== this._canvas_width || a_height !== this._canvas_height || a_forced ) {
-      if (a_forced) {
-        this._canvas_height = 100;
-        this._canvas_width = 100;
-        this.setup_scale();
-      }
-
-      this._canvas_width  = a_width;
-      this._canvas_height = a_height;
-      this.setup_scale();
-      this.send_command("document set scale " + this._sx.toFixed(4) + ' ' + this._sy.toFixed(4) + ";");
-      act = '(size changed)';
-    } else {
-      act = '(no change ignored!)';
-    }
-    console.log('=== set size [width: ' + a_width + ', height: ' + a_height + '] ' + act);
-
-  };
 
   /**
    * @brief Adds a detail line bellow the currently focused line
