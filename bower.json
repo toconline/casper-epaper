@@ -3,7 +3,7 @@
   "description": "Casper ePaper document renderer",
   "main": "casper-epaper.html",
   "dependencies": {
-    "polymer": "Polymer/polymer#^1.4.0",
+    "polymer": "Polymer/polymer#^1.8.0",
     "iron-component-page": "^1.1.7",
     "promise-polyfill": "polymerlabs/promise-polyfill#^1.0.0",
     "paper-card": "PolymerElements/paper-card#^1.1.2",
