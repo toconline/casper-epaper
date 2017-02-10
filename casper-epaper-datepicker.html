@@ -20,9 +20,7 @@
 
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../vaadin-date-picker/vaadin-date-picker-light.html">
-<script type="text/javascript" src="../moment/min/moment.min.js"></script>
-<script type="text/javascript" src="../moment/locale/pt.js"></script>
-<script type="text/javascript" src="../moment/locale/uk.js"></script>
+<script type="text/javascript" src="../moment/min/moment-with-locales.js"></script>
 
 <!--
 `casper-epaper-datepicker` customised input component that overlays the rendering canvas
@@ -99,6 +97,7 @@
         moment.locale(isoCountryCode || 'pt');
         this.$.picker.i18n = {
             monthNames: moment.months(),
+            weekdays: moment.weekdays(), 
             weekdaysShort: moment.weekdaysShort(),
             firstDayOfWeek: moment.localeData().firstDayOfWeek(),
             today: 'hoje',
