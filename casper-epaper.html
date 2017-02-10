@@ -127,7 +127,7 @@
       _FONT_NAME_INDEX: 4,
 
       ready: function () {
-        this._calculate_attribute_defaults();
+        this._calculateAttributeDefaults();
 
         this._socket            = new EPaperSocket(this, this.url, this.port, this.uri);
         this._canvas            = this.$.canvas;
@@ -163,7 +163,7 @@
         this._saved_draw_string = '';
         this._inputBoxDrawString = undefined;
 
-        this._setup_pixel_ratio();
+        this._setupPixelRatio();
 
         this._edition = false;
 
@@ -176,7 +176,7 @@
         }
 
         // ... clear the page before we start ...
-        this._setup_scale();
+        this._setupScale();
 
         // ... FOUT Mitigation @TODO proper FOUT mitigation ...
         var styles    = ['', 'bold ', 'italic ', 'italic bold '];
@@ -359,12 +359,12 @@
           if (forced) {
             this._canvas_height = 100;
             this._canvas_width = 100;
-            this._setup_scale();
+            this._setupScale();
           }
     
           this._canvas_width  = width;
           this._canvas_height = height;
-          this._setup_scale(); 
+          this._setupScale(); 
           if ( this._document_id !== undefined ) {
             this.send_command("document set scale " + this._sx.toFixed(4) + ' ' + this._sy.toFixed(4) + ";");
           }
@@ -506,7 +506,7 @@
       /**
        * @brief Assing defaults to undefined component attributes
        */
-      _calculate_attribute_defaults: function () {
+      _calculateAttributeDefaults: function () {
         if ( this.url === undefined ) {
           if ( window.location.protocol === 'https:' ) {
             this.url = 'wss://' + window.location.hostname;
@@ -521,7 +521,7 @@
       /**
        * @brief Determine the device pixel ratio: 1 on classical displays 2 on retina/UHD displays
        */
-      _setup_pixel_ratio: function () {
+      _setupPixelRatio: function () {
         var devicePixelRatio  = window.devicePixelRatio || 1;
         if (devicePixelRatio > 1.6) {
           devicePixelRatio = 2;
@@ -614,7 +614,7 @@
       //                                                                                       //
       //***************************************************************************************//
 
-      _paint_grid: function (a_major, a_minor) {
+      _paintGrid: function (a_major, a_minor) {
         var width  = this._canvas.width;
         var height = this._canvas.height;
         var x      = 0;
@@ -709,10 +709,10 @@
         }
       },
 
-      _on_paint_message: function (a_message) {
+      _onPaintMessage: function (a_message) {
         this._r_idx   = 1;
         this._message = a_message;
-        this._paint_band();
+        this._paintBand();
       },
 
       /**
@@ -724,7 +724,7 @@
         this._ctx.fillStyle = this._background_color;
         this._ctx.fillRect(0, 0, this._canvas.width, this._canvas.height);
         if ( this._grid_major !== 0.0 ) {
-          this._paint_grid(this._grid_major, this._grid_minor);
+          this._paintGrid(this._grid_major, this._grid_minor);
         }
         this._ctx.fillStyle = saved_fill;
       },
@@ -737,7 +737,7 @@
        *
        * @note This function must keep the object context and canvas context unmodified
        */
-      _repaint_page: function () {
+      _repaintPage: function () {
         var band;
 
         this._reset_redraw_timer();
@@ -745,7 +745,7 @@
         //console.time("repaint_page");
 
         // ... save context clear the complete canvas ...
-        this._save_paint_context();
+        this._savePaintContext();
         this._ctx.save();
         this._clearPage();
 
@@ -756,35 +756,35 @@
             band = this._bands[i];
             this._r_idx       = band._idx;
             this._message     = band._draw_string;
-            this._paint_band();
+            this._paintBand();
           }
         }
 
         // ... now that whole page was redrawn the input box  ...
         if ( this._edition && this._inputBoxDrawString !== undefined ) {
-          this._paint_string(this._inputBoxDrawString);
+          this._paintString(this._inputBoxDrawString);
         }
 
         this._ctx.restore();
-        this._restore_paint_context();
+        this._restorePaintContext();
 
         //console.timeEnd("repaint_page");
       },
 
-      _save_paint_context: function () {
+      _savePaintContext: function () {
         this._saved_idx         = this._r_idx;
         this._saved_draw_string = this._message;
       },
 
-      _restore_paint_context: function () {
+      _restorePaintContext: function () {
         this._r_idx           = this._saved_idx;
         this._message         = this._saved_draw_string;
       },
 
-      _paint_string: function (a_draw_string) {
+      _paintString: function (a_draw_string) {
         this._message = a_draw_string;
         this._r_idx   = 0;
-        this._paint_band();
+        this._paintBand();
       },
 
       /**
@@ -793,7 +793,7 @@
        * The paint instructions are in the _message string, this string is walked using _r_idx index handling each
        * command until the end of the message
        */
-      _paint_band: function () {
+      _paintBand: function () {
 
         var do_paint   = true;
         var option     = '';
@@ -853,7 +853,7 @@
 
               // ... search for a band with same id on the stored band array ...
               var band = null;
-              sx = this._binary_find_band_by_id(w);
+              sx = this._binaryFindBandById(w);
               if ( sx !== -1 ) {
                 band = this._bands[sx];
               } else {
@@ -894,7 +894,7 @@
             case 'U':
 
               if ( this._bands !== undefined && this._bands.length ) {
-                this._repaint_page();
+                this._repaintPage();
               }
               return;
 
@@ -1284,9 +1284,9 @@
                 }
 
                 // Paint the input box and align the HTML control style
-                this._save_paint_context();
-                this._paint_string(this._inputBoxDrawString);
-                this._restore_paint_context();
+                this._savePaintContext();
+                this._paintString(this._inputBoxDrawString);
+                this._restorePaintContext();
                 this.$.input.alignStyle(x,y,h);
                 this.$.input.focus();
                 this._r_idx += 1;
@@ -1701,11 +1701,11 @@
       },
 
       /**
-       * @brief Adjust the canvas dimension taking into account the pixel ratio
+       * Adjust the canvas dimension taking into account the pixel ratio
        *
        * Also calculates the scale the server should use in _sx and _sy
        */
-      _setup_scale: function () {
+      _setupScale: function () {
         this._canvas.width  = this._canvas_width  * this._ratio;
         this._canvas.height = this._canvas_height * this._ratio;
         this._canvas.style.width  = this._canvas_width  + 'px';
@@ -1715,7 +1715,7 @@
         this._clearPage();
       },
 
-      _binary_find_band_by_id: function (a_id) {
+      _binaryFindBandById: function (a_id) {
 
         if ( this._bands !== undefined && this._bands.length > 0 ) {
           var mid;
@@ -1771,7 +1771,7 @@
        */
       _create_redraw_timer_handler: function (a_self) {
         return function () {
-          a_self._repaint_page();
+          a_self._repaintPage();
         }
       },
 
@@ -1911,7 +1911,7 @@
         }
       },
 
-      _binary_find_band_by_y: function (a_y) {
+      _binaryFindBandByY: function (a_y) {
 
         if ( this._bands !== undefined && this._bands.length > 0 ) {
           var mid;
@@ -1943,7 +1943,7 @@
           this._deactivateLineContextMenu();
           return;
         } else {
-          var idx = this._binary_find_band_by_y(a_y);
+          var idx = this._binaryFindBandByY(a_y);
 
           if ( idx != -1 ) {
             if ( this._bands[idx]._type === 'DT' && this._bands[idx].editable_ == true ) {
@@ -2114,7 +2114,7 @@
             break;
 
           case 'D':
-            this._on_paint_message(a_message.data);
+            this._onPaintMessage(a_message.data);
             break;
 
           default:

@@ -88,7 +88,7 @@
             }
         };
 
-        this.epaper.call_rpc('hint', 'get hint ' + x.toFixed(2) + ',' + y.toFixed(2) + ';', hintCallback.bind(this));
+        this.epaper._callRpc('hint', 'get hint ' + x.toFixed(2) + ',' + y.toFixed(2) + ';', hintCallback.bind(this));
       },
 
       /**
