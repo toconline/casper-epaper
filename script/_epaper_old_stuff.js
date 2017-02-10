@@ -469,20 +469,6 @@
   };
 
   /**
-   * @brief Clear the local document model
-   */
-  EPaper.prototype.clear = function () {
-
-    this._bands = undefined;
-    this._images = {};
-    this._focused_band_id = undefined;
-    this._input_box._enabled = false;
-    this.make_widgets_invisble();
-    this.clear_page();
-  };
-
-
-  /**
    * From http://jsfiddle.net/AbdiasSoftware/M4cTx/
    */
 
@@ -542,4 +528,4 @@
     ctx.drawImage(oc, 0, 0, w, h, 0, 0, tw, th);
     return fc;
 };
-+
+
