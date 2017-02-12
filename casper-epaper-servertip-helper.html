@@ -28,7 +28,7 @@
       properties: {
         threshold: {
           type: Number,
-          value: 5
+          value: 4
         },
         hoveringTime: {
           type: Number,
@@ -47,48 +47,16 @@
       },
 
       ready: function () {
-        this._last_x       = undefined;
-        this._last_y       = undefined;
-        this._center_x     = undefined;
-        this._center_y     = undefined;
-        this._left         = undefined;
-        this.threshold     = 5;
-        this.hoveringTime  = 500;
+        this._last_x          = undefined;
+        this._last_y          = undefined;
+        this._center_x        = undefined;
+        this._center_y        = undefined;
+        this._left            = undefined;
+        this.threshold        = 4;
+        this.hoveringTime     = 500;
+        this._scalePxToServer = 1.0;
         this._timer_key    = '_epaper_tt_onover_timer';
         this._resetTimer();
-      },
-
-      /**
-       * Requests the server side hint for the current overing point
-       *
-       * @param x X coordinate where the mouse is overing
-       * @param y Y coordinate where the mouse is overing
-       */
-      getHint: function (x, y) {
-        var hintCallback = function (a_epaper, a_message) {
-            var x, y, w, h, l, t;
-
-            a_epaper._message = a_message;
-            a_epaper._r_idx   = 'S:ok:hint:'.length;
-            x = a_epaper._getDouble();
-            y = a_epaper._getDouble();
-            w = a_epaper._getDouble();
-            h = a_epaper._getDouble();
-            l = a_epaper._getDouble();
-            if ( l ) {
-              t = a_message.substring(a_epaper._r_idx, a_epaper._r_idx + l);
-
-              // Update the bounding box
-              this._left   = x;
-              this._top    = y;
-              this._width  = w;
-              this._height = h;
-
-              this.input.showTooltip(t.toUpperCase(), { left: x, top: y, width: w, height: h });
-            }
-        };
-
-        this.epaper._callRpc('hint', 'get hint ' + x.toFixed(2) + ',' + y.toFixed(2) + ';', hintCallback.bind(this));
       },
 
       /**
@@ -97,12 +65,14 @@
        * @param x horizontal coordinate of the mouse event (relative to canvas)
        * @param y vertical coordinate of the mouse event (relative to canvas)
        */
-      onMouseMove: function (x, y) {
+      onMouseMove: function (x, y, s) {
         var mouse_over;
 
         if ( ! this.enabled ) {
           return;
         }
+
+        this._scalePxToServer = s;
 
         if ( this._left === undefined ) {
           if ( this._center_x === undefined               ||
@@ -121,6 +91,41 @@
         }
         this._last_x = x;
         this._last_y = y;
+      },
+
+      /**
+       * Requests the server side hint for the current hovering point
+       *
+       * @param x X coordinate where the mouse is overing
+       * @param y Y coordinate where the mouse is overing
+       * @param s Scale that converts form px in screen to pt in the document
+       */
+      _getHint: function (x, y) {
+        var hintCallback = function (a_epaper, a_message) {
+            var x, y, w, h, l, t;
+
+            a_epaper._message = a_message;
+            a_epaper._r_idx   = 'S:ok:hint:'.length;
+            x = a_epaper._getDouble() / this._scalePxToServer;
+            y = a_epaper._getDouble() / this._scalePxToServer;
+            w = a_epaper._getDouble() / this._scalePxToServer;
+            h = a_epaper._getDouble() / this._scalePxToServer;
+            l = a_epaper._getDouble();
+            if ( l ) {
+              t = a_message.substring(a_epaper._r_idx, a_epaper._r_idx + l);
+
+              // Update the bounding box
+              this._left   = x;
+              this._top    = y;
+              this._width  = w;
+              this._height = h;
+
+              this.input.showTooltip(t.toUpperCase(), { left: x, top: y, width: w, height: h });
+            }
+        };
+
+        this.epaper._callRpc('hint', 'get hint ' + (this._scalePxToServer * x).toFixed(2) + ',' + (this._scalePxToServer * y).toFixed(2) + ';', 
+                              hintCallback.bind(this));
       },
 
       /**
@@ -154,7 +159,7 @@
         if ( Math.abs(this._center_x - this._last_x) <= this.threshold &&
              Math.abs(this._center_y - this._last_y) <= this.threshold ) {
           if ( true ) { //this._input_box.enable_toolip()) {
-            this.getHint(this._center_x, this._center_y);
+            this._getHint(this._center_x, this._center_y);
           }
           this._resetTimer();
         } else {
