@@ -280,6 +280,9 @@
                 self._jrxml        = self._command.jrxml;
                 self._locale       = self._command.locale;
                 self._subdocument  = self._command.subdocument;
+
+                this._scalePxToServer = this._page_width * this._ratio / this._canvas.width;
+
                 a_resolve(self);
               }
             });
@@ -319,7 +322,7 @@
               //self._input_box._enabled = false;
             }
             self.send_command('document load ' + '"' + self._command.path + '"' + (self._command.params !== undefined ? ',"' + self._command.params + '"' : '') + ','
-                              + self._sx.toFixed(4) + ',' + self._sy.toFixed(4) + ',' + self._subdocument + ',' + self._edition + ';', function (a_response) {
+                              + self._sx.toFixed(2) + ',' + self._sx.toFixed(2) + ',' + self._subdocument + ',' + self._edition + ';', function (a_response) {
               var response = self._validate_response('load', a_response);
               if ( response instanceof Error ) {
                 a_reject(response);
@@ -352,9 +355,6 @@
        * @param {boolean} forced when true forces a size change
        */
       setSize: function (width, height, forced) {
-    
-        var act;
-    
         if ( width !== this._canvas_width || height !== this._canvas_height || forced ) {
           if (forced) {
             this._canvas_height = 100;
@@ -366,13 +366,9 @@
           this._canvas_height = height;
           this._setupScale(); 
           if ( this._document_id !== undefined ) {
-            this.send_command("document set scale " + this._sx.toFixed(4) + ' ' + this._sy.toFixed(4) + ";");
+            this.send_command("document set scale " + this._sx.toFixed(2) + ' ' + this._sx.toFixed(2) + ";");
           }
-          act = '(size changed)';
-        } else {
-          act = '(no change ignored!)';
         }
-        console.log('=== set size [width: ' + width + ', height: ' + height + '] ' + act);
       },
 
       /**
@@ -584,8 +580,12 @@
           return;
         }
 
+        if ( isNaN(this._scalePxToServer)) {
+          return;
+        }
+
         if ( this.$.servertip ) {
-          this.$.servertip.onMouseMove(a_event.offsetX, a_event.offsetY);
+          this.$.servertip.onMouseMove(a_event.offsetX, a_event.offsetY, this._scalePxToServer);
         }
         if ( this._edition ) {
           this._update_context_menu(a_event.offsetY * this._ratio);
@@ -593,16 +593,11 @@
       },
 
       _mouseDownHandler: function (a_event) {
-        var x = a_event.offsetX * this._ratio;
-        var y = a_event.offsetY * this._ratio;
+        /* empty */
       },
 
       _mouseUpHandler: function (a_event) {
-        var x, y;
-
-        x = (  a_event.offsetX  * this._page_width  / parseInt(this._canvas.style.width  || this._canvas.width ) );
-        y = (  a_event.offsetY  * this._page_height / parseInt(this._canvas.style.height || this._canvas.height));
-        this.send_command("set click " + x.toString().replace(',', '.') + ', ' + y.toString().replace(',', '.') + ';');
+        this.send_command("set click " + (event.offsetX * this._scalePxToServer).toFixed(2) + ', ' + (event.offsetY * this._scalePxToServer).toFixed(2) + ';');
         if ( this._edition ) {
           this.$.input.grabFocus();
         }
@@ -1703,7 +1698,7 @@
       /**
        * Adjust the canvas dimension taking into account the pixel ratio
        *
-       * Also calculates the scale the server should use in _sx and _sy
+       * Also calculates the scale the server should
        */
       _setupScale: function () {
         this._canvas.width  = this._canvas_width  * this._ratio;
@@ -1711,7 +1706,7 @@
         this._canvas.style.width  = this._canvas_width  + 'px';
         this._canvas.style.height = this._canvas_height + 'px';
         this._sx = this._canvas.width  / this._page_width;
-        this._sy = this._canvas.height / this._page_height;
+        this._scalePxToServer = this._page_width * this._ratio / this._canvas.width;
         this._clearPage();
       },
 
