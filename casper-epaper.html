@@ -281,8 +281,6 @@
                 self._locale       = self._command.locale;
                 self._subdocument  = self._command.subdocument;
 
-                this._scalePxToServer = this._page_width * this._ratio / this._canvas.width;
-
                 a_resolve(self);
               }
             });
@@ -329,12 +327,16 @@
               } else {
                 self._path   = self._command.path;
                 self._params = self._command.params;
+                self._scalePxToServer = this._page_width * this._ratio / this._canvas.width;
+                self.$.servertip.enabled = true;
+
                 a_resolve(self);
               }
             });
           });
         };
 
+        this.$.servertip.enabled = false;
         this.$.input.hideOverlays();
 
         // ... perform the command sequence ...

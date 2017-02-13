@@ -20,29 +20,37 @@
 
 <link rel="import" href="../polymer/polymer.html">
 
+<!--
+ `casper-epaper-servertip-helper` Helper to request server tooltip when the mouse hovers over a point
+-->
 <dom-module id="casper-epaper-servertip-helper">
   <script>
     Polymer({
       is: 'casper-epaper-servertip-helper',
 
       properties: {
+        /** Mouse move threshold, movement bellow this treshold is ignored */
         threshold: {
           type: Number,
           value: 4
         },
+        /** Time the mouse has to stay in overing inside the threshold to trigger a request */ 
         hoveringTime: {
           type: Number,
           value: 500
         },
+        /** Parent casper-epaper element that owns the this helper */
         epaper: {
           type: Object
         },
+        /** Associated input box */
         input: {
           type: Object
         },
+        /** true to enable hint requests */
         enabled: {
           type: Boolean,
-          value: true
+          value: false
         }
       },
 
@@ -55,15 +63,19 @@
         this.threshold        = 4;
         this.hoveringTime     = 500;
         this._scalePxToServer = 1.0;
-        this._timer_key    = '_epaper_tt_onover_timer';
+        this._timer           = undefined;
+      },
+
+      detached: function () {
         this._resetTimer();
       },
 
       /**
        * Handle mouse over event
        *
-       * @param x horizontal coordinate of the mouse event (relative to canvas)
-       * @param y vertical coordinate of the mouse event (relative to canvas)
+       * @param {number} x horizontal coordinate of the mouse event (relative to canvas)
+       * @param {number} y vertical coordinate of the mouse event (relative to canvas)
+       * @param {number} s scale to convert screen px to server pt scale 
        */
       onMouseMove: function (x, y, s) {
         var mouse_over;
@@ -96,9 +108,8 @@
       /**
        * Requests the server side hint for the current hovering point
        *
-       * @param x X coordinate where the mouse is overing
-       * @param y Y coordinate where the mouse is overing
-       * @param s Scale that converts form px in screen to pt in the document
+       * @param {number} x coordinate where the mouse is overing
+       * @param {number} y coordinate where the mouse is overing
        */
       _getHint: function (x, y) {
         var hintCallback = function (a_epaper, a_message) {
@@ -129,38 +140,40 @@
       },
 
       /**
-       * Update the reference point for mouse overing
+       * Update the reference point for mouse hovering, starts our re-starts the sampling timer
        *
-       * @param x horizontal coordinate of the new reference center
-       * @param y vertical coordinate of the new reference center
+       * @param {number} x horizontal coordinate of the new reference center
+       * @param {number} y vertical coordinate of the new reference center
        */
       _updateCenter: function (x, y) {
         this._center_x = x;
         this._center_y = y;
 
-        if ( window[this._timer_key] !== undefined ) {
-          window.clearTimeout(window[this._timer_key]);
-          window[this._timer_key] = undefined;
+        if ( this._timer !== undefined ) {
+          this.cancelAsync(this._timer);
         }
-        window[this._timer_key] = setInterval(this._onOverHandler.bind(this), this.hoveringTime);
+        this._timer = this.async(this._onOverHandler.bind(this), this.hoveringTime);
       },
 
       /**
        * Resets the mouse over control timer
        */
       _resetTimer: function () {
-        if ( window[this._timer_key] !== undefined ) {
-          window.clearTimeout(window[this._timer_key]);
-          window[this._timer_key] = undefined;
+        if ( this._timer !== undefined ) {
+          this.cancelAsync(this._timer);
+          this._timer = undefined;
         }
       },
 
+      /**
+       * Checks if the mouse has stayed inside the threshold
+       *
+       * If the mouse has stayed within the threshold get the hint, if not just update the reference point.
+       */
       _onOverHandler: function () {
         if ( Math.abs(this._center_x - this._last_x) <= this.threshold &&
              Math.abs(this._center_y - this._last_y) <= this.threshold ) {
-          if ( true ) { //this._input_box.enable_toolip()) {
-            this._getHint(this._center_x, this._center_y);
-          }
+          this._getHint(this._center_x, this._center_y);
           this._resetTimer();
         } else {
           this._updateCenter(this._last_x, this._last_y);
