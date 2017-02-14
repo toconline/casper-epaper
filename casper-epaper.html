@@ -337,7 +337,8 @@
         };
 
         this.$.servertip.enabled = false;
-        this.$.input.hideOverlays();
+        this.$.input.setVisible(false);
+        this._hideWidgets();
 
         // ... perform the command sequence ...
         prepare_open_command(this, a_document);
@@ -461,6 +462,11 @@
       //                                                                                       //
       //***************************************************************************************//
 
+      _hideWidgets: function () {
+        this._deactivateLineContextMenu();
+        this.$.input.hideOverlays();
+      },
+
       _callRpc: function (a_invoke_id, a_command, a_success_handler, a_failure_handler) {
 
         a_failure_handler = a_failure_handler || function (a_epaper, a_message) {
@@ -487,7 +493,7 @@
        * @brief Clear the local document model
        */
       _clear: function (keepLastCommand) {
-        this.$.input.hideOverlays();
+        this._hideWidgets();
         this._bands = undefined;
         this._images = {};
         this._focused_band_id = undefined;
@@ -1245,9 +1251,9 @@
                 w = this._getDouble() / s;
                 h = this._getDouble() / s;
                 this._inputBoxDrawString = this._message.substring(this._r_idx);
+                
                 this.$.input.alignPosition(x, y, w, h);
-
-                //this._input_box.prepare_editor(x, y, w, h, this._message.substring(this._r_idx));
+                this.$.input.setVisible(true);
 
                 this._update_context_menu(y + h / 2);
 
@@ -1972,7 +1978,6 @@
       },
 
       _activateLineContextMenu: function (a_band) {
-
         var button_y = a_band._ty + a_band._height / 2 - (this._BTN_SIZE * this._ratio) / 2;
         var button_x = (this._page_width - this._right_margin) * this._sx;
 
@@ -2001,7 +2006,6 @@
 
       on_edit_subdocument: function (a_src_widget) {
 
-        //this._tear_paper(a_src_widget._bb_y + a_src_widget._bb_h + 5, 200 * this._ratio, 1000);
         this.open_document(this._sub_document_jrxml,
                            this._locale,
                            this._prefix,
@@ -2018,7 +2022,6 @@
 
       on_close_subdocument: function () {
         this.closeDocument();
-        //this.glue_paper();
       },
 
       on_add_entity: function (a_src_widget) {
@@ -2026,7 +2029,7 @@
       },
 
       /**
-       * @brief Cover the whole canvas with a white transparent overlay
+       * Cover the whole canvas with a white transparent overlay
        */
       _washout_canvas: function () {
         var saved_fill = this._ctx.fillStyle;

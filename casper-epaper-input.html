@@ -101,8 +101,8 @@
         this.overlayVisible   = false;
         this._overlay          = undefined;
         this._comboListQuery   = undefined;
-        this.$.dropdown_btn.style.display = 'none';
-        this.$.edit_btn.style.display     = 'none';
+        this._visible          = true;
+        this.setVisible(true);
         this.listen(this.$.combo, 'on-combo-list-closed'      , '_onComboListClosed');
         this.listen(this.$.combo, 'on-combo-selection-changed', '_onComboSelectionChanged');
         this.listen(this.$.date , 'date-overlay-closed'       , '_onDateOverlayClosed');
@@ -116,30 +116,48 @@
       },
 
       /**
+       * Show or hide the input control
+       *
+       * @param {boolean} visible
+       */
+      setVisible: function (visible) {
+        if ( this._visible !== visible ) {
+          if ( visible ) {
+            this.$.input.style.display = 'inline-block';
+          } else {
+            this.$.input.style.display        = 'none';
+            this.$.dropdown_btn.style.display = 'none';
+            this.$.edit_btn.style.display     = 'none';
+          }
+          this._visible = visible;
+        }
+      },
+
+      /**
        * Position and size the input overlay on top the editable element
        *
-       * @param a_x Upper left corner (x)
-       * @param a_y Upper left corner (y)
-       * @param a_width box width in px
-       * @param a_height box height in px
+       * @param {number} x Upper left corner (x)
+       * @param {number} y Upper left corner (y)
+       * @param {number} w box width in px
+       * @param {number} h box height in px
        */
-      alignPosition: function (a_x, a_y, a_w, a_h) {
-        this.style.left           = a_x + 'px';
-        this.style.top            = a_y + 'px';
-        this.style.width          = a_w + 'px';
-        this.style.height         = a_h + 'px';
+      alignPosition: function (x, y, w, h) {
+        this.style.left           = x + 'px';
+        this.style.top            = y + 'px';
+        this.style.width          = w + 'px';
+        this.style.height         = h + 'px';
         this.$.input.style.left   = '0px';
         this.$.input.style.top    = '0px';
-        this.$.input.style.width  = a_w + 'px';
-        this.$.input.style.height = a_h + 'px';
+        this.$.input.style.width  = w + 'px';
+        this.$.input.style.height = h + 'px';
       },
 
       /**
        * @param a_text_left    Starting point of left aligned text # TODO paddding
-       * @param a_baseline     Vertical baseline of the first text line # TODO remove??? or do PADDING?
-       * @param a_baseline    Maximum width of the text #TODO remove?
+       * @param a_baseline    Vertical baseline of the first text line # TODO remove??? or do PADDING?
+       * @param a_vaseline    Maximum width of the text #TODO remove?
        */
-      alignStyle: function (a_text_left, a_baseline, a_baseline) {
+      alignStyle: function (a_text_left, a_baseline, a_vaseline) {
         this._textArea.style.margin     = '1px';
         this._textArea.style.fontFamily = this._epaper._font_spec[this._epaper._FONT_NAME_INDEX];
         this._textArea.style.fontSize   = this._epaper._font_spec[this._epaper._SIZE_INDEX] / 2 + 'px'; // TODO SCALLING
@@ -149,6 +167,7 @@
       hideOverlays: function () {
         this.hideTooltip();
         this._setOverlay(undefined);
+        this.$.combo.setVisible(false);
       },
 
       setCasperBinding: function (binding) {
