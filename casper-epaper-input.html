@@ -31,7 +31,7 @@
 <dom-module id="casper-epaper-input">
   <style>
     :host {
-      display: inline-block;
+      display: none;
       position: absolute;
     }
 
@@ -87,10 +87,12 @@
       },
 
       ready: function () {
-        this._input        = this.$.input;
-        this._binding      = undefined;
-        this._textArea     = this.$.input.$.textarea;
+        this._input          = this.$.input;
+        this._binding        = undefined;
+        this._textArea       = this.$.input.$.textarea;
         this.$.date.inputBox = this.$.input.$.textarea;
+        this._visible        = true;
+        this.setVisible(false);
         this.$.combo.setPositionTarget(this.$.input);
       },
 
@@ -101,11 +103,10 @@
         this.overlayVisible   = false;
         this._overlay          = undefined;
         this._comboListQuery   = undefined;
-        this._visible          = true;
-        this.setVisible(true);
         this.listen(this.$.combo, 'on-combo-list-closed'      , '_onComboListClosed');
         this.listen(this.$.combo, 'on-combo-selection-changed', '_onComboSelectionChanged');
         this.listen(this.$.date , 'date-overlay-closed'       , '_onDateOverlayClosed');
+        console.log('+++++ input attached');
       },
 
       detached: function () {
@@ -113,6 +114,7 @@
         this.unlisten(this.$.combo, 'on-combo-list-closed'      , '_onComboListClosed');
         this.unlisten(this.$.combo, 'on-combo-selection-changed', '_onComboSelectionChanged');
         this.unlisten(this.$.date , 'date-overlay-closed'       , '_onDateOverlayClosed');
+        console.log('---- input deattached');
       },
 
       /**
@@ -123,12 +125,15 @@
       setVisible: function (visible) {
         if ( this._visible !== visible ) {
           if ( visible ) {
-            this.$.input.style.display = 'inline-block';
+            console.log('=== input visibility set to: ' + visible);
+            this.style.display = 'inline-block';
           } else {
-            this.$.input.style.display        = 'none';
+            console.log('=== input visibility set to: ' + visible);
+            this.style.display                = 'none';
             this.$.dropdown_btn.style.display = 'none';
             this.$.edit_btn.style.display     = 'none';
           }
+          //this.updateStyles();
           this._visible = visible;
         }
       },

@@ -236,29 +236,23 @@
         }
       },
 
+      gotoChapter: function (chapterIndex, pageNumber) {
+        this._chapterIndex = chapterIndex;
+        this._chapter      = this._document.chapters[chapterIndex];
+        this._openChapter();
+      },
+
       /**
        * Open server document
        *
        * @param a_document an object that specifies the layout and data of the document
        */
       open: function (a_document) {
+        this._prepareOpenCommand(a_document);
+        this._openChapter();
+      },
 
-        var prepare_open_command = function (a_document) {
-          this._document     = JSON.parse(JSON.stringify(a_document));
-          this._chapterCount = this._document.chapters.length;
-          for ( var idx = 0; idx < this._chapterCount; idx++ ) {
-            this._document.chapters[idx].prefix       = this._document.chapters[idx].prefix       || 'https://localhost/';
-            this._document.chapters[idx].locale       = this._document.chapters[idx].locale       || 'pt_PT';
-            this._document.chapters[idx].schema       = this._document.chapters[idx].schema       || '';         // TODO remove
-            this._document.chapters[idx].table_prefix = this._document.chapters[idx].table_prefix || '';         // TODO remove
-            this._document.chapters[idx].edit         = this._document.chapters[idx].edit         || false; 
-            this._document.chapters[idx].subdocument  = this._document.chapters[idx].subdocument  || false; 
-          }
-          this._chapterIndex = 0;
-          this._chapter      = this._document.chapters[0];
-          this._edition      = false;
-        }.bind(this);
-
+      _openChapter: function () {
         // Promise to open the report layout in case it not loaded yet
         var open_document = function () {
           return new Promise(function (a_resolve, a_reject) {
@@ -343,12 +337,12 @@
           }.bind(this));
         }.bind(this);
 
+        this._inputBoxDrawString = undefined;
         this.$.servertip.enabled = false;
         this.$.input.setVisible(false);
         this._hideWidgets();
 
         // ... perform the command sequence ...
-        prepare_open_command(a_document);
         open_document()
           .then(configure_api)
           .then(load_document)
@@ -469,6 +463,30 @@
       //                                                                                       //
       //***************************************************************************************//
 
+      /**
+       * Sanitizes the document object model, auto selects the first chapter
+       *
+       * @param {Object} document the document model 
+       */
+      _prepareOpenCommand: function (document) {
+        this._document     = JSON.parse(JSON.stringify(document));
+        this._chapterCount = this._document.chapters.length;
+        for ( var idx = 0; idx < this._chapterCount; idx++ ) {
+          this._document.chapters[idx].prefix       = this._document.chapters[idx].prefix       || 'https://localhost/';
+          this._document.chapters[idx].locale       = this._document.chapters[idx].locale       || 'pt_PT';
+          this._document.chapters[idx].schema       = this._document.chapters[idx].schema       || '';         // TODO remove
+          this._document.chapters[idx].table_prefix = this._document.chapters[idx].table_prefix || '';         // TODO remove
+          this._document.chapters[idx].edit         = this._document.chapters[idx].edit         || false; 
+          this._document.chapters[idx].subdocument  = this._document.chapters[idx].subdocument  || false; 
+        }
+        this._chapterIndex = 0;
+        this._chapter      = this._document.chapters[0];
+        this._edition      = false;
+      },
+
+      /**
+       * Hides all canvas overlays
+       */
       _hideWidgets: function () {
         this._deactivateLineContextMenu();
         this.$.input.hideOverlays();
@@ -1206,8 +1224,6 @@
                   w  = this._getDouble();
                   t2 =this._message.substring(this._r_idx, this._r_idx + w);   // Array with current and possible values
                   this._r_idx += w + 1; // +1 -> ';''
-                  console.log(' Prepare radio button: idx=' + x + ', var=' + t1 + ', values=' + JSON.parse(t2));
-                  //this._input_box.configure_editor(edit_mode);
                   this.$.input.setMode(edit_mode);
                   break;
 
@@ -1223,7 +1239,6 @@
                     this._sub_document_jrxml = this._message.substring(this._r_idx, this._r_idx + w);
                     this._r_idx += w;
                   }
-                  //this._input_box.configure_editor(edit_mode, this._sub_document_jrxml);
                   this.$.input.setMode(edit_mode);
 
                   this._r_idx += 1;
