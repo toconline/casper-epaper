@@ -95,6 +95,11 @@
           type: Number,
           value: 842
         },
+        /** zoom factor when zoom is 1 one pt in report is one px in the screen */
+        zoom: {
+          type: Number,
+          value: 1
+        },
         /** object that specifies the document being displayed/edited */
         document: {
           type: Object,
@@ -242,6 +247,28 @@
         this._openChapter();
       },
 
+      previousChapter: function () {
+        if ( this._document && this._document.chapters && this._document.chapters.length >= 1 ) {
+          if (this._chapterIndex >= 1 ) {
+            this._chapterIndex -= 1;
+            this.gotoChapter(this._chapterIndex, -1);
+            return true;
+          }
+        }
+        return false;
+      },
+
+      nextChapter: function (dryrun) {
+        if ( this._document && this._document.chapters && this._document.chapters.length >= 1 ) {
+          if ( this._chapterIndex < (this._document.chapters.length - 1) ) {
+            this._chapterIndex += 1;
+            this.gotoChapter(this._chapterIndex, 1);
+            return true;
+          }
+        }
+        return false;
+      },
+
       /**
        * Open server document
        *
@@ -263,7 +290,7 @@
               var response = this._validate_response('open', a_response);
               if ( response instanceof Error ) {
                 a_reject(response);
-              } else {
+              } else if ( response !== undefined ) {
 
                 this._message     = response;
                 this._r_idx       = 0;
@@ -287,9 +314,12 @@
         // Promise to configure the JSON API in case it's config has changed
         var configure_api = function () {
           return new Promise(function (a_resolve, a_reject) {
-            if ( this._prefix === this._chapter.prefix && this._schema === this._chapter.schema && this._table_prefix === this._chapter.table_prefix ) {
-              return a_resolve(this);
-            }
+              
+            // @TODO is the server losing the json api configuration ?? we need to send always, todo check and maybe move to server side info
+
+            //if ( this._prefix === this._chapter.prefix && this._schema === this._chapter.schema && this._table_prefix === this._chapter.table_prefix ) {
+            //  return a_resolve(this);
+            //}
 
             this.send_command('document config json_api "' + this._chapter.prefix + '","' + this._chapter.schema + '","' + this._chapter.table_prefix + '";', function (a_response) {
               var response = this._validate_response('json_api', a_response);
@@ -324,6 +354,7 @@
                   this._scalePxToServer = this._page_width * this._ratio / this._canvas.width;
                   this.$.servertip.enabled = true;
 
+                  this.setZoom(this.zoom, true);
                   this._fireEvent('casper-epaper-loaded', { 
                                                             pageWidth:    this._page_width,
                                                             pageHeight:   this._page_height,
@@ -352,26 +383,20 @@
       },
 
       /**
-       * Change the size of the epaper canvas.
+       * Set the zoom factor (document pt to screen px ratio)
        *
-       * @param {number} width canvas width in px
-       * @param {number} height canvas height in px
-       * @param {boolean} forced when true forces a size change
+       * @param {number}  zoom factor must be a number
+       * @param {boolean} forced truish to force the zoom update 
        */
-      setSize: function (width, height, forced) {
-        if ( width !== this._canvas_width || height !== this._canvas_height || forced ) {
-          if (forced) {
-            this._canvas_height = 100;
-            this._canvas_width = 100;
-            this._setupScale();
-          }
-    
-          this._canvas_width  = width;
-          this._canvas_height = height;
-          this._setupScale(); 
-          if ( this._document_id !== undefined ) {
-            this.send_command("document set scale " + this._sx.toFixed(2) + ' ' + this._sx.toFixed(2) + ";");
-          }
+      setZoom: function (zoom, forced) {
+        var w; // Canvas width in px
+        var h; // Canvas height in px
+
+        if ( this.zoom !== zoom || forced ) {
+          this.zoom = zoom;
+          w = Math.round((this._page_width  || this.width ) * this.zoom);
+          h = Math.round((this._page_height || this.height) * this.zoom);
+          this._setSize(w, h);
         }
       },
 
@@ -469,8 +494,9 @@
        * @param {Object} document the document model 
        */
       _prepareOpenCommand: function (document) {
-        this._document     = JSON.parse(JSON.stringify(document));
-        this._chapterCount = this._document.chapters.length;
+        this._document       = JSON.parse(JSON.stringify(document));
+        this._chapterCount   = this._document.chapters.length;
+        this._totalPageCount = 0;
         for ( var idx = 0; idx < this._chapterCount; idx++ ) {
           this._document.chapters[idx].prefix       = this._document.chapters[idx].prefix       || 'https://localhost/';
           this._document.chapters[idx].locale       = this._document.chapters[idx].locale       || 'pt_PT';
@@ -478,6 +504,8 @@
           this._document.chapters[idx].table_prefix = this._document.chapters[idx].table_prefix || '';         // TODO remove
           this._document.chapters[idx].edit         = this._document.chapters[idx].edit         || false; 
           this._document.chapters[idx].subdocument  = this._document.chapters[idx].subdocument  || false; 
+          this._document.chapters[idx].pageCount    = this._document.pageCount                  || 1;
+          this._totalPageCount += this._document.chapters[idx].pageCount;
         }
         this._chapterIndex = 0;
         this._chapter      = this._document.chapters[0];
@@ -545,6 +573,30 @@
         }
         this.port = this.port || window.location.port;
         this.uri  = this.uri  || 'epaper';
+      },
+
+      /**
+       * Change the size of the epaper canvas.
+       *
+       * @param {number} width canvas width in px
+       * @param {number} height canvas height in px
+       * @param {boolean} forced when true forces a size change
+       */
+      _setSize: function (width, height, forced) {
+        if ( width !== this._canvas_width || height !== this._canvas_height || forced ) {
+          if (forced) {
+            this._canvas_height = 100;
+            this._canvas_width = 100;
+            this._setupScale();
+          }
+    
+          this._canvas_width  = width;
+          this._canvas_height = height;
+          this._setupScale(); 
+          if ( this._document_id !== undefined ) {
+            this.send_command("document set scale " + this._sx.toFixed(2) + ' ' + this._sx.toFixed(2) + ";");
+          }
+        }
       },
 
       /**
@@ -2093,7 +2145,22 @@
             break;
 
           case 'N':
-            this._fireEvent('casper-epaper-notification', { message: a_message.data.substring(2) });
+            var message = a_message.data.substring(2);
+
+            if ( message.startsWith('update:focus,forward') ) {
+              if ( this.nextChapter() ) {
+                return;
+              }
+            } else if ( message.startsWith('update:focus,backward') ) {
+              if ( this.previousChapter() ) {
+                return;
+              }
+            } else if (message.startsWith('update:variable,PAGE_COUNT,')) {
+
+            } else if (message.startsWith('update:variable,PAGE_NUMBER,')) {
+
+            }
+            this._fireEvent('casper-epaper-notification', { message: message });
             break;
 
           case 'E':

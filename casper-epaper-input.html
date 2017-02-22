@@ -100,13 +100,12 @@
         this._initialSelection = false;
         this._mode             = 'n';
         this._comboFilter      = '';
-        this.overlayVisible   = false;
+        this.overlayVisible    = false;
         this._overlay          = undefined;
         this._comboListQuery   = undefined;
         this.listen(this.$.combo, 'on-combo-list-closed'      , '_onComboListClosed');
         this.listen(this.$.combo, 'on-combo-selection-changed', '_onComboSelectionChanged');
         this.listen(this.$.date , 'date-overlay-closed'       , '_onDateOverlayClosed');
-        console.log('+++++ input attached');
       },
 
       detached: function () {
@@ -114,7 +113,6 @@
         this.unlisten(this.$.combo, 'on-combo-list-closed'      , '_onComboListClosed');
         this.unlisten(this.$.combo, 'on-combo-selection-changed', '_onComboSelectionChanged');
         this.unlisten(this.$.date , 'date-overlay-closed'       , '_onDateOverlayClosed');
-        console.log('---- input deattached');
       },
 
       /**
@@ -125,15 +123,12 @@
       setVisible: function (visible) {
         if ( this._visible !== visible ) {
           if ( visible ) {
-            console.log('=== input visibility set to: ' + visible);
             this.style.display = 'inline-block';
           } else {
-            console.log('=== input visibility set to: ' + visible);
             this.style.display                = 'none';
             this.$.dropdown_btn.style.display = 'none';
             this.$.edit_btn.style.display     = 'none';
           }
-          //this.updateStyles();
           this._visible = visible;
         }
       },
