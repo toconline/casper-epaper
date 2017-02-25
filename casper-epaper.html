@@ -150,6 +150,7 @@
         this._ctx.globalCompositeOperation = 'copy';
         this._page_count        = 0;
         this._page_number       = 1;
+        this._totalPageCount    = 0;
         this._message           = '';
         this._r_idx             = 0.0;
         this._bands             = undefined;
@@ -228,23 +229,32 @@
       //                                                                                       //
       //***************************************************************************************//
 
-      _validate_response: function (a_expected_response, a_response) {
-        var expected_start;
-
-        expected_start = 'S:ok:' + a_expected_response;
-        if ( match = a_response.match(/^S:failure:.*?:(.*)/) ) {
-          return new Error(JSON.parse(match[1]));
-        } else if ( a_response.indexOf('S:error:') === 0 || a_response.indexOf('S:exception:') === 0 ) {
-          return new Error(a_response);
-        } else if (a_response.indexOf(expected_start) === 0 ) {
-          return a_response.substring(expected_start.length + 1);
-        }
+      /**
+       * Open server document
+       *
+       * @param a_document an object that specifies the layout and data of the document
+       */
+      open: function (a_document) {
+        this._prepareOpenCommand(a_document);
+        this._openChapter();
       },
 
       gotoChapter: function (chapterIndex, pageNumber) {
-        this._chapterIndex = chapterIndex;
-        this._chapter      = this._document.chapters[chapterIndex];
-        this._openChapter();
+        if ( this._document && this._document.chapters && this._document.chapters.length >= 1 ) {
+          this._chapterIndex = chapterIndex;
+          this._chapter      = this._document.chapters[chapterIndex];
+          this._openChapter(pageNumber);
+        } else {
+          // warning
+        }
+      },
+
+      previousPage: function () {
+
+      },
+
+      nextPage: function () {
+
       },
 
       previousChapter: function () {
@@ -267,119 +277,6 @@
           }
         }
         return false;
-      },
-
-      /**
-       * Open server document
-       *
-       * @param a_document an object that specifies the layout and data of the document
-       */
-      open: function (a_document) {
-        this._prepareOpenCommand(a_document);
-        this._openChapter();
-      },
-
-      _openChapter: function () {
-        // Promise to open the report layout in case it not loaded yet
-        var open_document = function () {
-          return new Promise(function (a_resolve, a_reject) {
-            if ( this._jrxml === this._chapter.jrxml && this._locale === this._chapter.locale && this._subdocument === this._chapter.subdocument ) {
-              return a_resolve(this);
-            }
-            this.send_command('document open "' + this._chapter.jrxml + '","' + this._chapter.locale + '",' + this._chapter.subdocument + ',false;', function (a_response) {
-              var response = this._validate_response('open', a_response);
-              if ( response instanceof Error ) {
-                a_reject(response);
-              } else if ( response !== undefined ) {
-
-                this._message     = response;
-                this._r_idx       = 0;
-                this._document_id = this._getDouble();
-                this._page_width  = this._getDouble();
-                this._page_height = this._getDouble();
-                if ( isNaN(this._page_height) ) {
-                  this._page_height = 4000;
-                }
-                this._right_margin = this._getDouble();
-                this._jrxml        = this._chapter.jrxml;
-                this._locale       = this._chapter.locale;
-                this._subdocument  = this._chapter.subdocument;
-
-                a_resolve(this);
-              }
-            });
-          }.bind(this));
-        }.bind(this);
-
-        // Promise to configure the JSON API in case it's config has changed
-        var configure_api = function () {
-          return new Promise(function (a_resolve, a_reject) {
-              
-            // @TODO is the server losing the json api configuration ?? we need to send always, todo check and maybe move to server side info
-
-            //if ( this._prefix === this._chapter.prefix && this._schema === this._chapter.schema && this._table_prefix === this._chapter.table_prefix ) {
-            //  return a_resolve(this);
-            //}
-
-            this.send_command('document config json_api "' + this._chapter.prefix + '","' + this._chapter.schema + '","' + this._chapter.table_prefix + '";', function (a_response) {
-              var response = this._validate_response('json_api', a_response);
-
-              if ( response instanceof Error ) {
-                a_reject(response);
-              } else {
-                if ( a_response.startsWith('S:ok:json_api') ) {
-                  this._prefix       = this._chapter.prefix;
-                  this._schema       = this._chapter.schema;
-                  this._table_prefix = this._chapter.table_prefix;
-                  a_resolve(self);
-                }
-              }
-            });
-          }.bind(this));
-        }.bind(this);
-
-        // Promise to load the document data
-        var load_document = function () {
-          return new Promise(function (a_resolve, a_reject) {
-            this.send_command('document load ' + '"' + this._chapter.path + '"' + (this._chapter.params !== undefined ? ',"' + this._chapter.params + '"' : '') + ','
-                              + this._sx.toFixed(2) + ',' + this._sx.toFixed(2) + ',' + this._subdocument + ',' + this._chapter.edit + ';', function (a_response) {
-              var response = this._validate_response('load', a_response);
-              if ( response instanceof Error ) {
-                a_reject(response);
-              } else {
-                if ( a_response.startsWith('S:ok:load') ) {
-                  this._path    = this._chapter.path;
-                  this._params  = this._chapter.params;
-                  this._edition = this._chapter.edit;
-                  this._scalePxToServer = this._page_width * this._ratio / this._canvas.width;
-                  this.$.servertip.enabled = true;
-
-                  this.setZoom(this.zoom, true);
-                  this._fireEvent('casper-epaper-loaded', { 
-                                                            pageWidth:    this._page_width,
-                                                            pageHeight:   this._page_height,
-                                                            document:     this._document,
-                                                            chapterIndex: this._chapterIndex     
-                                                          });
-                  a_resolve(this);
-                }
-              }
-            });
-          }.bind(this));
-        }.bind(this);
-
-        this._inputBoxDrawString = undefined;
-        this.$.servertip.enabled = false;
-        this.$.input.setVisible(false);
-        this._hideWidgets();
-
-        // ... perform the command sequence ...
-        open_document()
-          .then(configure_api)
-          .then(load_document)
-          .catch(function(a_error) {
-            alert("Paper error " + a_error);
-          });
       },
 
       /**
@@ -406,7 +303,20 @@
        * @param {number} pageNumber the page to render
        */
       gotoPage: function (pageNumber) {
-        this.send_command("document set page " + pageNumber + ";");
+        if ( this._document && this._document.chapters && this._document.chapters.length >= 1 ) {
+          var currentPage = 1;
+
+          for ( var i = 0;  i < this._document.chapters.length; i++ ) {
+            if ( pageNumber >= currentPage && pageNumber < (currentPage + this._document.chapters[i].pageCount) ) {
+              if ( i === this._chapterIndex ) {
+                this.send_command("document set page " + 1 + pageNumber - currentPage + ";");
+              } else {
+                this.gotoChapter(i, 1 + pageNumber - currentPage);
+              }
+            }
+            currentPage += this._document.chapters[i].pageCount;
+          }
+        }
       },
 
       /**
@@ -415,7 +325,7 @@
        * @return page count
        */
       getPageCount: function () {
-        return this._page_count;
+        return this._totalPageCount;
       },
 
       /**
@@ -488,6 +398,20 @@
       //                                                                                       //
       //***************************************************************************************//
 
+      _validate_response: function (a_expected_response, a_response) {
+        var expected_start;
+
+        expected_start = 'S:ok:' + a_expected_response;
+        if ( match = a_response.match(/^S:failure:.*?:(.*)/) ) {
+          return new Error(JSON.parse(match[1]));
+        } else if ( a_response.indexOf('S:error:') === 0 || a_response.indexOf('S:exception:') === 0 ) {
+          return new Error(a_response);
+        } else if (a_response.indexOf(expected_start) === 0 ) {
+          return a_response.substring(expected_start.length + 1);
+        }
+        return undefined;
+      },
+
       /**
        * Sanitizes the document object model, auto selects the first chapter
        *
@@ -510,6 +434,123 @@
         this._chapterIndex = 0;
         this._chapter      = this._document.chapters[0];
         this._edition      = false;
+      },
+
+      /**
+       * Opens the currently selected chapter
+       *
+       * @param {number} pageNumber page starts at 1
+       */
+      _openChapter: function (pageNumber) {
+        // Promise to open the report layout in case it not loaded yet
+        var open_document = function () {
+          return new Promise(function (a_resolve, a_reject) {
+            if ( this._jrxml === this._chapter.jrxml && this._locale === this._chapter.locale && this._subdocument === this._chapter.subdocument ) {
+              return a_resolve(this);
+            }
+            this.send_command('document open "' + this._chapter.jrxml + '","' + this._chapter.locale + '",' + this._chapter.subdocument + ',false;', function (a_response) {
+              var response = this._validate_response('open', a_response);
+              if ( response instanceof Error ) {
+                a_reject(response);
+              } else if ( response !== undefined ) {
+
+                this._message     = response;
+                this._r_idx       = 0;
+                this._document_id = this._getDouble();
+                this._page_width  = this._getDouble();
+                this._page_height = this._getDouble();
+                if ( isNaN(this._page_height) ) {
+                  this._page_height = 4000;
+                }
+                this._right_margin = this._getDouble();
+                this._jrxml        = this._chapter.jrxml;
+                this._locale       = this._chapter.locale;
+                this._subdocument  = this._chapter.subdocument;
+
+                a_resolve(this);
+              }
+            });
+          }.bind(this));
+        }.bind(this);
+
+        // Promise to configure the JSON API in case it's config has changed
+        var configure_api = function () {
+          return new Promise(function (a_resolve, a_reject) {
+              
+            // @TODO this will go the session and we won't need to reconfigure anymore, or ... we'll decide to keep the odds open
+
+            //if ( this._prefix === this._chapter.prefix && this._schema === this._chapter.schema && this._table_prefix === this._chapter.table_prefix ) {
+            //  return a_resolve(this);
+            //}
+
+            this.send_command('document config json_api "' + this._chapter.prefix + '","' + this._chapter.schema + '","' + this._chapter.table_prefix + '";', function (a_response) {
+              var response = this._validate_response('json_api', a_response);
+
+              if ( response instanceof Error ) {
+                a_reject(response);
+              } else {
+                if ( a_response.startsWith('S:ok:json_api') ) {
+                  this._prefix       = this._chapter.prefix;
+                  this._schema       = this._chapter.schema;
+                  this._table_prefix = this._chapter.table_prefix;
+                  a_resolve(self);
+                }
+              }
+            });
+          }.bind(this));
+        }.bind(this);
+
+        // Promise to load the document data
+        var load_document = function () {
+          return new Promise(function (a_resolve, a_reject) {
+            var args = { 
+              edit:        this._chapter.edit,
+              path:        this._chapter.path,
+              scale:       parseFloat(this._sx.toFixed(2)),
+              subdocument: this._subdocument,
+              focus:       this._openFocus,
+              page:        this._nextPage
+            };
+            this.send_command('document load "' + JSON.stringify(args).replace(/"/g,'""') + '";', function (a_response) {
+              var response = this._validate_response('load', a_response);
+              if ( response instanceof Error ) {
+                a_reject(response);
+              } else {
+                if ( a_response.startsWith('S:ok:load') ) {
+                  this._path    = this._chapter.path;
+                  this._params  = this._chapter.params;
+                  this._edition = this._chapter.edit;
+                  this._scalePxToServer = this._page_width * this._ratio / this._canvas.width;
+                  this.$.servertip.enabled = true;
+
+                  this.setZoom(this.zoom, true);
+                  this._fireEvent('casper-epaper-loaded', { 
+                                                            pageWidth:    this._page_width,
+                                                            pageHeight:   this._page_height,
+                                                            document:     this._document,
+                                                            chapterIndex: this._chapterIndex     
+                                                          });
+                  a_resolve(this);
+                }
+              }
+            });
+          }.bind(this));
+        }.bind(this);
+
+        this._inputBoxDrawString = undefined;
+        this.$.servertip.enabled = false;
+        this.$.input.setVisible(false);
+        this._hideWidgets();
+        this._nextPage  = pageNumber || 1;
+        this._openFocus = this._nextPage > 0 ? 'start' : 'end';
+
+        // ... perform the command sequence ...
+        open_document()
+          .then(configure_api)
+          .then(load_document)
+          .catch(function(a_error) {
+            alert("Paper error " + a_error);
+          });
       },
 
       /**
@@ -615,7 +656,6 @@
                                 this._ctx.oBackingStorePixelRatio ||
                                 this._ctx.backingStorePixelRatio || 1;
         this._ratio = devicePixelRatio / backingStoreRatio;
-        console.log("=== devicePixelRatio: " + devicePixelRatio + " backingStoreRatio: " + backingStoreRatio + " ratio: " + this._ratio);
       },
 
       /**
@@ -648,6 +688,8 @@
         this._table_prefix = undefined;
         this._edit         = false;
         this._subdocument  = false;
+        this._openFocus    = undefined;
+        this._nextPage     = undefined;
       },
 
       //***************************************************************************************//
@@ -2112,6 +2154,25 @@
         this._ctx.fillStyle = saved_fill;
       },
 
+      /**
+       * Update total page count when a chaper page count is updated
+       *
+       * @param {number} chapterIndex the index of the chapter that changed
+       * @param {number} pageCount the updated page counts 
+       */
+      _updatePageCount: function (chapterIndex, pageCount) {
+        var previousTotalPages = this._totalPageCount;
+
+        if ( this._document && this._document.chapters && chapterIndex >= 0 && chapterIndex < this._document.chapters.length) {
+          this._totalPageCount -= ( this._document.chapters[chapterIndex].pageCount || 1);
+          this._document.chapters[chapterIndex].pageCount  = pageCount;
+          this._totalPageCount += pageCount;
+          if ( this._totalPageCount !== previousTotalPages ) {
+            this._fireEvent('casper-epaper-notification', { message: 'update:variable,PAGE_COUNT,' + this._totalPageCount + ';' });
+          }
+        }
+      },
+
       //***************************************************************************************//
       //                                                                                       //
       //                               ~~~ Websocket handlers ~~~                              //
@@ -2156,9 +2217,18 @@
                 return;
               }
             } else if (message.startsWith('update:variable,PAGE_COUNT,')) {
+              var pageCount;
+
+              pageCount = parseInt(message.substring('update:variable,PAGE_COUNT,'.length));
+              this._updatePageCount(this._chapterIndex, pageCount);
+              return;
 
             } else if (message.startsWith('update:variable,PAGE_NUMBER,')) {
+              var pageNumber;
 
+              pageNumber = parseInt(message.substring('update:variable,PAGE_NUMBER,'.length));
+              console.log('=== page number: ' + pageNumber);
+              return;
             }
             this._fireEvent('casper-epaper-notification', { message: message });
             break;
