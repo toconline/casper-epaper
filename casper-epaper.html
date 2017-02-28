@@ -35,6 +35,8 @@
        <body>
          <awesome-sauce></awesome-sauce>
 
+  bug prevent page notification, better prevent commands while waiting for load/open
+  
   @TODO prevent gethint while loading
   @TODO prevent most comands while loading
   @TODO canvas shift 0.5 0.5 to improve quality
@@ -240,7 +242,6 @@
        */
       open: function (a_document) {
         this._prepareOpenCommand(a_document);
-        this._updatePageNumber(1);
         this._openChapter();
       },
 
