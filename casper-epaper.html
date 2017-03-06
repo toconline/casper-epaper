@@ -371,6 +371,10 @@
 
       closeDocument: function (a_success_handler) {
         this._clear();
+        this._resetCommandData();
+        this._fireEvent('casper-epaper-notification', { message: 'update:variable,PAGE_COUNT,1;' });
+        this._fireEvent('casper-epaper-notification', { message: 'update:variable,PAGE_NUMBER,1;' });
+        this._document = undefined;
         this._callRpc('close', 'document close "' + this._document_id + '";', function(a_epaper, a_message) {
             var expected_response = 'S:ok:close:' + a_epaper._document_id;
             if ( a_message.indexOf(expected_response) === 0 ) {
