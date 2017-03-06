@@ -125,6 +125,11 @@
           type: Boolean,
           value: false
         },
+        /** id of the containing element that can be scrolled */
+        scroller: {
+          type: String,
+          value: undefined
+        }
       },
 
       /*
@@ -149,7 +154,7 @@
         this._canvas_width      = this._canvas.width;
         this._canvas_height     = this._canvas.height;
         this.$.input._epaper    = this;
-        this._scroll_container_ = undefined;  // TODO hack
+        this._scrollContainer   = document.getElementById(this.scroller);
         this._ctx               = this._canvas.getContext('2d', {alpha: false});
         this._initial_pointer   = this._canvas.style.cursor;
         this._ctx.globalCompositeOperation = 'copy';
@@ -1413,8 +1418,6 @@
 
                 } else {
                   w = this._getDouble();
-
-                  //this._input_box._start_editor_handler(x, y, h, this._message.substring(this._r_idx, this._r_idx + w));
                   this.$.input.setValue(this._message.substring(this._r_idx, this._r_idx + w));
                   this._r_idx += w;
                 }
@@ -1424,12 +1427,9 @@
                 this._paintString(this._inputBoxDrawString);
                 this._restorePaintContext();
                 this.$.input.alignStyle(x,y,h);
-                this.$.input.focus();
+                this.$.input.grabFocus();
                 this._r_idx += 1;
-
-                // TODO if ( false == this._band_tearing ) {
-                  this._adjust_scroll();
-                //}
+                this._adjustScroll();
 
               } else if ( option === 'u' ) {  // ... update editor ...
 
