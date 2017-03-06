@@ -282,11 +282,18 @@
         return false;
       },
 
+      jsonApiConfig: function (schema, prefix, shardedSchema, apiPrefix = 'https://localhost/') {
+        this._defaultSchema = schema;
+        this._defaultPrefix = prefix;
+        this._defaultShardedSchema = shardedSchema;
+        this._defaultApiPrefix = apiPrefix;
+      },
+
       /**
        * Set the zoom factor (document pt to screen px ratio)
        *
        * @param {number}  zoom factor must be a number
-       * @param {boolean} forced truish to force the zoom update 
+       * @param {boolean} forced truish to force the zoom update
        */
       setZoom: function (zoom, forced) {
         var w; // Canvas width in px
@@ -312,13 +319,13 @@
         if ( this._document && this._document.chapters && this._document.chapters.length >= 1 ) {
           var currentPage = 1;
 
-          pageNumber = parseInt(pageNumber); 
+          pageNumber = parseInt(pageNumber);
           for ( var i = 0;  i < this._document.chapters.length; i++ ) {
             if ( pageNumber >= currentPage && pageNumber < (currentPage + this._document.chapters[i].pageCount) ) {
               var newPageNumber;
 
               newPageNumber = 1 + pageNumber - currentPage;
-              if ( i === this._chapterIndex ) {  
+              if ( i === this._chapterIndex ) {
                 if ( this._chapterPageNumber !== newPageNumber ) {
                   this.send_command('document set page ' + newPageNumber + ';');
                 }
@@ -428,19 +435,19 @@
       /**
        * Sanitizes the document object model, auto selects the first chapter
        *
-       * @param {Object} document the document model 
+       * @param {Object} document the document model
        */
       _prepareOpenCommand: function (document) {
         this._document       = JSON.parse(JSON.stringify(document));
         this._chapterCount   = this._document.chapters.length;
         this._totalPageCount = 0;
         for ( var idx = 0; idx < this._chapterCount; idx++ ) {
-          this._document.chapters[idx].prefix       = this._document.chapters[idx].prefix       || 'https://localhost/';
+          this._document.chapters[idx].prefix       = this._document.chapters[idx].prefix       || this._defaultApiPrefix;
           this._document.chapters[idx].locale       = this._document.chapters[idx].locale       || 'pt_PT';
-          this._document.chapters[idx].schema       = this._document.chapters[idx].schema       || '';         // TODO remove
-          this._document.chapters[idx].table_prefix = this._document.chapters[idx].table_prefix || '';         // TODO remove
-          this._document.chapters[idx].edit         = this._document.chapters[idx].edit         || false; 
-          this._document.chapters[idx].subdocument  = this._document.chapters[idx].subdocument  || false; 
+          this._document.chapters[idx].schema       = this._document.chapters[idx].schema       || this._defaultSchema;
+          this._document.chapters[idx].table_prefix = this._document.chapters[idx].table_prefix || this._defaultPrefix;
+          this._document.chapters[idx].edit         = this._document.chapters[idx].edit         || false;
+          this._document.chapters[idx].subdocument  = this._document.chapters[idx].subdocument  || false;
           this._document.chapters[idx].pageCount    = this._document.pageCount                  || 1;
           this._totalPageCount += this._document.chapters[idx].pageCount;
         }
@@ -489,7 +496,7 @@
         // Promise to configure the JSON API in case it's config has changed
         var configure_api = function () {
           return new Promise(function (a_resolve, a_reject) {
-              
+
             // @TODO this will go the session and we won't need to reconfigure anymore, or ... we'll decide to keep the odds open
 
             //if ( this._prefix === this._chapter.prefix && this._schema === this._chapter.schema && this._table_prefix === this._chapter.table_prefix ) {
@@ -516,7 +523,7 @@
         // Promise to load the document data
         var load_document = function () {
           return new Promise(function (a_resolve, a_reject) {
-            var args = { 
+            var args = {
               edit:        this._chapter.edit,
               path:        this._chapter.path,
               scale:       this._sx,
@@ -538,7 +545,7 @@
                   this._scalePxToServer = this._page_width * this._ratio / this._canvas.width;
                   this.setZoom(this.zoom, true);
                   this._repaintPage();
-                  this._fireEvent('casper-epaper-loaded', { 
+                  this._fireEvent('casper-epaper-loaded', {
                                                             pageWidth:    this._page_width,
                                                             pageHeight:   this._page_height,
                                                             document:     this._document,
@@ -650,10 +657,10 @@
             this._canvas_width = 100;
             this._setupScale();
           }
-    
+
           this._canvas_width  = width;
           this._canvas_height = height;
-          this._setupScale(); 
+          this._setupScale();
           if ( this._document_id !== undefined && this._documentScale !== this._sx ) {
             this.send_command('document set scale ' + this._sx + ' ' + this._sx + ';');
             this._documentScale = this._sx;
@@ -694,8 +701,8 @@
         this._ctx.font        = this._font_spec.join('');
       },
 
-      /** 
-       * Initialize the  centralize here all that is needeed to init/clear the relation with server 
+      /**
+       * Initialize the  centralize here all that is needeed to init/clear the relation with server
        */
       _resetCommandData: function (keepLastCommand) {
         if ( ! keepLastCommand ) {
@@ -1389,7 +1396,7 @@
                 w = this._getDouble() / s;
                 h = this._getDouble() / s;
                 this._inputBoxDrawString = this._message.substring(this._r_idx);
-                
+
                 this.$.input.alignPosition(x, y, w, h);
                 this.$.input.setVisible(true);
 
@@ -1917,7 +1924,7 @@
       //                                                                                       //
       //***************************************************************************************//
 
-      _adjust_scroll: function () {
+      _adjustScroll: function () {
 
         var v_l  = undefined;
         var v_t  = undefined;
@@ -2175,7 +2182,7 @@
        * Update total page count when a chaper page count is updated
        *
        * @param {number} chapterIndex the index of the chapter that changed
-       * @param {number} pageCount the updated page counts 
+       * @param {number} pageCount the updated page counts
        */
       _updatePageCount: function (chapterIndex, pageCount) {
         var previousTotalPages = this._totalPageCount;
@@ -2194,7 +2201,7 @@
        * Given the chapter page number calculate the document page number and fire update event
        *
        * @param {number} pageNumber
-       */ 
+       */
       _updatePageNumber: function (pageNumber) {
 
         if ( this._document && this._document.chapters ) {
@@ -2205,7 +2212,7 @@
           }
           if ( this._loading === false ) {
             this._fireEvent('casper-epaper-notification', { message: 'update:variable,PAGE_NUMBER,' + page + ';' });
-          } 
+          }
           this._pageNumber = page;
         }
       },
@@ -2306,7 +2313,7 @@
             if ( errorDetail !== undefined ) {
               this._fireEvent('casper-epaper-error', errorDetail);
             }
-            
+
             break;
 
           case 'D':
@@ -2343,4 +2350,4 @@
 
     });
   </script>
-</dom-module> 
+</dom-module>
