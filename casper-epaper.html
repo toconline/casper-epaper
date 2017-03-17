@@ -327,6 +327,7 @@
               newPageNumber = 1 + pageNumber - currentPage;
               if ( i === this._chapterIndex ) {
                 if ( this._chapterPageNumber !== newPageNumber ) {
+                  this._resetScroll();
                   this.send_command('document set page ' + newPageNumber + ';');
                 }
               } else {
@@ -570,6 +571,7 @@
         this.$.servertip.enabled = false;
         this.$.input.setVisible(false);
         this._hideWidgets();
+        this._resetScroll();
         this._nextPage  = pageNumber || 1;
         this._openFocus = this._nextPage > 0 ? 'start' : 'end';
         this._loading = true;
@@ -1922,107 +1924,39 @@
         }
       },
 
+      _resetScroll: function () {
+        if ( this._scrollContainer ) {
+          this._scrollContainer.scrollTop  = 0;
+          this._scrollContainer.scrollLeft = 0;
+        }
+      },
+
       _adjustScroll: function () {
+        if ( this._scrollContainer ) {
+          var inputCr = this.$.input.getBoundingClientRect();
+          var leftEdge, rightEdge, topEdge, bottomEdge;
 
-        if ( true ) {
-          console.log('=== iw=' + window.innerWidth + ' ih=' + window.innerHeight );
-          var input = this.$.input.getBoundingClientRect(); 
-
-          if ( input.top >  window.innerHeight * 0.9 || (input.top + input.height) >  window.innerHeight * 0.9 ) {
-            debugger;
-          }
-        } else {
-          console.log('=== TODO TODO TODO normal scrolling w/o iframe');
-        }
-        
-        var v_l  = undefined;
-        var v_t  = undefined;
-        var v_w  = undefined;
-        var v_h  = undefined;
-        var sb_w = 0;
-        var sb_h = 0;
-
-        if ( true ) { //undefined !== this._scrollContainer ) {
-          v_l  = this._scrollContainer.scrollLeft;
-          v_t  = this._scrollContainer.scrollTop;
-          v_w  = this._scrollContainer.offsetWidth;
-          v_h  = this._scrollContainer.offsetHeight;
-          sb_w = this._scrollContainer.offsetWidth - this._scrollContainer.clientWidth;
-          sb_h = this._scrollContainer.offsetHeight - this._scrollContainer.clientHeight;
-        }/* else {
-          v_l  = ( (window.pageXOffset || document.scrollLeft) - ( document.clientLeft || 0.0 ) ) || 0.0;
-          v_t  = ( (window.pageYOffset || document.scrollTop)  - ( document.clientTop  || 0.0 ) ) || 0.0;
-          v_w  = window.innerWidth;
-          v_h  = window.innerHeight;
-          sb_w = ( window.innerWidth - document.documentElement.clientWidth ) || 0;
-          sb_h = ( window.innerHeight - document.documentElement.clientHeight ) || 0
-        }
-        */
-
-        var br = this.$.input.getBoundingClientRect();
-        var i_w  = br.width;
-        var i_h  = br.height;
-        var i_l  = br.left;
-        var i_t  = br.top;
-
-        // horizontal
-        var s_x  = undefined
-        if ( i_w < ( v_w - sb_w ) ) {
-          var x_t  = 4.0;
-          var i_r  = i_l + i_w;
-          var v_ll = v_l;
-          if ( undefined === this._scrollContainer ) {
-             v_ll -= this._canvas.offsetLeft;
-          }
-          var v_rl = v_l + v_w - sb_w;
-          if ( undefined === this._scrollContainer ) {
-             v_rl -= this._canvas.offsetLeft;
-          }
-          if ( i_l < v_ll ) {
-            s_x = v_l - ( v_ll - i_l ) - x_t;
-          } else if ( i_r > v_rl ) {
-            s_x = v_l + ( i_r - v_rl ) + x_t;
-          }
-        }
-
-        // vertical
-        var s_y  = undefined
-        if ( ( v_h - sb_h ) > i_h ) {
-          var y_t  = 4.0;
-          var i_b  = i_t + i_h;
-          var v_bl = v_t + v_h - sb_h;
-          if ( undefined === this._scrollContainer ) {
-            v_bl -= this._canvas.offsetTop;
-          }
-          var v_tl = v_t;
-          if ( undefined === this._scrollContainer ) {
-            v_tl -= - this._canvas.offsetTop;
-          }
-          if ( i_t < v_tl ) {
-            s_y = v_t - ( v_tl - i_t ) - y_t;
-          } else if ( i_b > v_bl ) {
-            s_y = v_t + ( i_b - v_bl ) + y_t;
-          }
-        }
-
-        // adjust scroll?
-        if ( undefined !== s_x || undefined !== s_y ) {
-          if ( undefined !== this._scrollContainer ) {
-            this._scrollContainer.scrollLeft = s_x || v_l;
-            this._scrollContainer.scrollTop  = s_y || v_t;
+          if ( this.iframe ) {
+            leftEdge   = window.innerWidth  * 0.05;
+            rightEdge  = window.innerWidth  * 0.95;
+            topEdge    = window.innerHeight * 0.05;
+            bottomEdge = window.innerHeight * 0.95;
           } else {
-            //window.scrollTo(s_x || v_l, s_y || v_t);
+            console.log('=== TODO TODO TODO normal scrolling w/o iframe');
           }
+
+          // ... for each edge check if the input is outside ...
+          if ( inputCr.width > rightEdge - leftEdge ) {
+            rightDelta = 0;
+          } else {
+            rightDelta = Math.max(inputCr.right  - rightEdge   , 0);
+          } 
+          leftDelta   = Math.min(inputCr.left   - leftEdge    , 0);
+          topDelta    = Math.min(inputCr.top    - topEdge     , 0);
+          bottomDelta = Math.max(inputCr.bottom - bottomEdge  , 0);
+          this._scrollContainer.scrollTop  += topDelta + bottomDelta;
+          this._scrollContainer.scrollLeft += leftDelta + rightDelta;
         }
-
-        // adjust input 'helper'?
-        /*if ( undefined !== this._input_box._html_input ) {
-          this._input_box._html_input.style.left   = "0px";
-          this._input_box._html_input.style.top    = "0px";
-          this._input_box._html_input.style.width  = i_w + "px";
-          this._input_box._html_input.style.height = i_h + "px";
-        }*/
-
       },
 
       //***************************************************************************************//
