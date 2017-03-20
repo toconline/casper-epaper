@@ -178,6 +178,9 @@
             case 'dropDownTree':
               this.setMode('c');
               break;
+            case 'radioButton':
+              this.setMode('R');
+              break;
             default:
               this.setMode('n');
               break;
@@ -397,6 +400,9 @@
           case 'c':
             this._onKeypressC(event);
             break;
+          case 'R':
+            this._onKeypressR(event);
+            break;
           //case 'l': // TODO LEDGER MODE
           //  this._onKeyDown_l(event);
           //  break;
@@ -410,6 +416,9 @@
         switch ( this._mode) {
           case 'c':
             this._onKeyDownC(event);
+            break;
+          case 'R':
+            this._onKeyDownR(event);
             break;
           //case 'l': // TODO LEDGER MODE
           //  this._onKeyDown_l(event);
@@ -594,6 +603,30 @@
           this._epaper.send_command(cmd);
         }
       },
+
+      /*****************************************************************************************/
+      /*                                                                                       */
+      /*                             ~~~ R Mode Radio Button ~~~                               */
+      /*                                                                                       */
+      /*****************************************************************************************/
+
+      _onKeypressR: function (event) {
+        event.preventDefault();
+      },
+
+      _onKeyDownR: function (event) {
+        if ( event.keyCode === 32 ) {
+          this._epaper.send_command('set key "toggle";');
+        } else {
+          this._onKeyDownN(event);
+        }
+      },
+
+      /*****************************************************************************************/
+      /*                                                                                       */
+      /*                             ~~~ Input helper functions ~~~                            */
+      /*                                                                                       */
+      /*****************************************************************************************/
 
       /**
        * Escapes double quotes for the server protocol
