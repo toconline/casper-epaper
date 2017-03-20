@@ -1069,7 +1069,7 @@
 
                 this._ctx.beginPath();
 
-                if ( x === x2 && this._ratio == 1 ) {
+                /*if ( x === x2 && this._ratio == 1 ) {
 
                   w = Math.round(this._ctx.lineWidth) & 0x1 ? -0.5 : 0;
                   this._ctx.moveTo(x  + w, y  + w);
@@ -1081,12 +1081,12 @@
                   this._ctx.moveTo(x  + w, y  + w)
                   this._ctx.lineTo(x2 + w, y2 + w);
 
-                } else {
+                } else {*/
 
                   this._ctx.moveTo(x , y);
                   this._ctx.lineTo(x2, y2);
 
-                }
+                //}
 
                 this._ctx.stroke();
 
@@ -1812,7 +1812,7 @@
                   this._ctx.rotate(this._getDouble());
                   break;
                 case 'c':
-                  this._ctx.setTransform(1, 0, 0, 1, 0, 0);
+                  this._ctx.setTransform(1, 0, 0, 1, 0.5, 0.5);
                   this._r_idx++;
                   break;
               }
