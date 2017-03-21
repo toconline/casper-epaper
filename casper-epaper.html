@@ -1237,14 +1237,12 @@
                     this._r_idx += w;
                     console.log("Open JRXML: " + this._sub_document_jrxml)
                   }
-                  //this._input_box.configure_editor(edit_mode, this._sub_document_jrxml);
                   this.$.input.setMode(edit_mode);
                   this._r_idx += 1; // 't'
                   break;
 
                 case 't':  // Text ( default )
 
-                  //this._input_box.configure_editor(edit_mode);
                   this.$.input.setMode(edit_mode);
 
                   this._r_idx += 1; // 't'
@@ -1255,11 +1253,9 @@
                   if ( ',' === this._message[this._r_idx] ) {
                     this._r_idx++;
                     w = this._getDouble();
-                    //this._input_box.configure_editor(edit_mode, this._message.substring(this._r_idx, this._r_idx + w));
                     this.$.input.setMode(edit_mode);
                     this._r_idx += w;
                   } else {
-                    //this._input_box.configure_editor(edit_mode);
                     this.$.input.setMode(edit_mode);
                   }
                   this._r_idx++;
@@ -1270,11 +1266,9 @@
                   if ( ',' === this._message[this._r_idx] ) {
                       this._r_idx++;
                       w = this._getDouble();
-                      //this._input_box.configure_editor(edit_mode, this._message.substring(this._r_idx, this._r_idx + w));
                       this.$.input.setMode(edit_mode);
                       this._r_idx += w;
                   } else {
-                    //this._input_box.configure_editor(edit_mode);
                     this.$.input.setMode(edit_mode);
                   }
                   this._r_idx++;
@@ -1375,7 +1369,6 @@
 
                 case 'l':  // 'l' Combo that searches on a ledger tree
 
-                  //this._input_box.configure_editor(edit_mode);
                   this.$.input.setMode(edit_mode);
 
 
@@ -1487,15 +1480,8 @@
                   //this.$.input.autoSizeOverlay(this.$.input.style.width);
                 }
 
-                //if ( this._input_box._enabled ) {
-                  //this._input_box._update_editor_handler(t1, t2, t3);
-                //}
-
               } else if ( option === 'f' ) { // ... finish or stop the editor ...
 
-                //if ( this._input_box._enabled ) {
-                //  this._input_box._stop_editor_handler();
-                //}
                 this.$.input.setCasperBinding(undefined);
                 this._inputBoxDrawString = undefined;
                 this._r_idx += 1;
@@ -1773,16 +1759,16 @@
             case 'f':
               if ( 'm' == this._message[this._r_idx] ) {
                   this._r_idx++;
-                  /*this._input_box._f_flags               = */this._getDouble();
-                  /*this._input_box._f_top                 = */this._getDouble();
-                  /*this._input_box._f_ascent              = */this._getDouble();
-                  /*this._input_box._f_descent             = */this._getDouble();
-                  /*this._input_box._f_bottom              = */this._getDouble();
-                  /*this._input_box._f_leading             = */this._getDouble();
-                  /*this._input_box._f_avg_char_width      = */this._getDouble();
-                  /*this._input_box._f_max_char_width      = */this._getDouble();
-                  /*this._input_box._f_underline_thickness = */this._getDouble();
-                  /*this._input_box._f_underline_position  = */this._getDouble();
+                  this.$.input._f_flags               = this._getDouble();
+                  this.$.input._f_top                 = this._getDouble();
+                  this.$.input._f_ascent              = this._getDouble();
+                  this.$.input._f_descent             = this._getDouble();
+                  this.$.input._f_bottom              = this._getDouble();
+                  this.$.input._f_leading             = this._getDouble();
+                  this.$.input._f_avg_char_width      = this._getDouble();
+                  this.$.input._f_max_char_width      = this._getDouble();
+                  this.$.input._f_underline_thickness = this._getDouble();
+                  this.$.input._f_underline_position  = this._getDouble();
               } else {
                   this._font_mask = this._getDouble();
                   this._font_spec[this._SIZE_INDEX]   = Math.round(this._getDouble());

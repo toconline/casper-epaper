@@ -83,6 +83,8 @@
       listeners: {
         'keypress': '_onKeypress',
         'keydown': '_onKeyDown',
+        'mousedown': '_onMouseDown',
+        'mouseup': '_onMouseUp',
         'tap': '_onTap'
       },
 
@@ -146,22 +148,40 @@
         this.style.top            = y + 'px';
         this.style.width          = w + 'px';
         this.style.height         = h + 'px';
-        this.$.input.style.left   = '0px';
-        this.$.input.style.top    = '0px';
-        this.$.input.style.width  = w + 'px';
-        this.$.input.style.height = h + 'px';
+        this._input.style.left    = '0px';
+        this._input.style.top     = '0px';
+        this._input.style.width   = w + 'px';
+        this._input.style.height  = h + 'px';
+        this._input.scrollTop     = 0;
+        this._input.scrollLeft    = 0;
+        this._x                   = x;
+        this._y                   = y;
       },
 
       /**
-       * @param a_text_left    Starting point of left aligned text # TODO paddding
+       * Align the HTML input text size baseline and left edge with the text drawn in the canvas, also sets color
+       *
+       * @param a_text_left   Starting point of left aligned text # TODO paddding
        * @param a_baseline    Vertical baseline of the first text line # TODO remove??? or do PADDING?
-       * @param a_vaseline    Maximum width of the text #TODO remove?
        */
-      alignStyle: function (a_text_left, a_baseline, a_vaseline) {
-        this._textArea.style.margin     = '1px';
-        this._textArea.style.fontFamily = this._epaper._font_spec[this._epaper._FONT_NAME_INDEX];
-        this._textArea.style.fontSize   = this._epaper._font_spec[this._epaper._SIZE_INDEX] / 2 + 'px'; // TODO SCALLING
-        this._textArea.style.color      = this._epaper._text_color;
+      alignStyle: function (a_text_left, a_baseline) {
+
+        // Make baseline and edge relative to input pox 
+        var ratio = this._epaper._ratio;
+        var tl    = a_text_left / ratio - this._x;
+        var bl    = a_baseline  / ratio - this._y;
+        var top   = this._f_top / ratio;
+
+        console.log(' ==> tl=' + tl + ' bl=' + bl + ' top=' + top);
+
+
+        //this._textArea.style.padding     = '0px'; 
+        this._textArea.style.marginLeft  = Math.max(tl,1) + 'px';
+        this._textArea.style.marginRight = Math.max(tl,1) + 'px';
+        this._textArea.style.marginTop   = Math.max(bl + top, 1) + 'px';
+        this._textArea.style.fontFamily  = this._epaper._font_spec[this._epaper._FONT_NAME_INDEX];
+        this._textArea.style.fontSize    = this._epaper._font_spec[this._epaper._SIZE_INDEX] / ratio + 'px';
+        this._textArea.style.color       = this._epaper._text_color;
       },
 
       hideOverlays: function () {
@@ -714,10 +734,31 @@
 
       /*****************************************************************************************/
       /*                                                                                       */
-      /*                            ~~~ Tooltip management ~~~                                 */
+      /*                                ~~~ Mice handler ~~~                                   */
       /*                                                                                       */
       /*****************************************************************************************/
 
+      _onMouseDown: function (event) {
+        if ( this._mode === 'R' ) {
+          event.preventDefault();
+          this._epaper.send_command('set key "toggle";'); 
+        } else {
+          this._initialSelection = false;
+          this.grabFocus();
+        }
+      },
+
+      _onMouseUp: function (event) {
+        if ( this._mode === 'R' ) {
+          event.preventDefault();
+        }
+      },
+
+      /*****************************************************************************************/
+      /*                                                                                       */
+      /*                            ~~~ Tooltip management ~~~                                 */
+      /*                                                                                       */
+      /*****************************************************************************************/
 
       /**
        * Called when the server updates the tooltip, passes the bounding box and text
