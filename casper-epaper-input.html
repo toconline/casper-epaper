@@ -161,8 +161,8 @@
       /**
        * Align the HTML input text size baseline and left edge with the text drawn in the canvas, also sets color
        *
-       * @param a_text_left   Starting point of left aligned text # TODO paddding
-       * @param a_baseline    Vertical baseline of the first text line # TODO remove??? or do PADDING?
+       * @param {number} a_text_left   Starting point of left aligned text # TODO paddding
+       * @param {number} a_baseline    Vertical baseline of the first text line # TODO remove??? or do PADDING?
        */
       alignStyle: function (a_text_left, a_baseline) {
 
@@ -303,7 +303,7 @@
       setModelFromJson: function (combo_id, json) {
         this._comboListQuery = undefined;
         this.$.combo.$.spinner.active = false;
-        this.$.combo.showFab = false; // TODO this is hack bind this to open
+        this.$.combo.showFab = false;
         return this.$.combo.setModelFromJson(combo_id, json);
       },
 
@@ -319,9 +319,7 @@
       onGetDataResponse: function (jsonapi) {
         this.$.combo.$.spinner.active = false;
         this.$.combo.setModelFromJsonApi(jsonapi);
-        //'<span class="right">NIF: [[tax_registration_number]]</span>[[description]]<span></span>');
         this._layoutComboList();
-        this.$.combo.showFab = true; // TODO this is hack bind this to open
         this.$.combo.$.dialog.fire('iron-overlay-opened');
       },
 

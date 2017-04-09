@@ -44,13 +44,14 @@ An auxiliary combo list for the casper-epaper editor
       }
 
       iron-dropdown {
-        margin: 0px;
+        margin:  0px;
         padding: 0px;
-        @apply(--shadow-elevation-4dp);
+        @apply(--shadow-elevation-8dp);
       }
 
       .dropdown-content {
         background-color: var(--primary-background-color);
+        @apply(--layout-vertical);
         font-size: 12px;
       }
 
@@ -81,7 +82,7 @@ An auxiliary combo list for the casper-epaper editor
       #scroller {
         overflow: auto;
         min-height: 70px;
-        max-height: var(--casper-combo-box-overlay-max-height, 65vh);
+        max-height: var(--casper-combo-box-overlay-max-height, 80vh);
 
         /* Fixes item background from getting on top of scrollbars on Safari */
         transform: translate3d(0,0,0);
@@ -103,7 +104,7 @@ An auxiliary combo list for the casper-epaper editor
       }
 
       .item:hover {
-        background-color: #f7f7f7;
+        background-color: #f0f0f0;
       }
 
       .item.selected {
@@ -149,8 +150,8 @@ An auxiliary combo list for the casper-epaper editor
           <input is="iron-input" id="input" class="header" bind-value="{{_query}}">
           <iron-icon id="clear" suffix on-tap="_clearQuery" icon="clear" alt="limpar" title="limpar"></iron-icon>
         </paper-input-container>
-        <div id="scroller" scroller="[[_getScroller()]]" on-tap="_stopPropagation">
-          <iron-list id="list" items="[[_filteredItems]]" as="item" selected-item="{{selectedItem}}" on-tap="_selectItem" scroll-target="[[_getScroller()]]">
+        <div id="scroller" on-tap="_stopPropagation">
+          <iron-list id="list" items="[[_filteredItems]]" as="item" selected-item="{{selectedItem}}" on-tap="_selectItem" scroll-target="scroller">
             <template>
               <casper-epaper-htmldiv tabindex$="[[tabIndex]]" class$="[[_getItemClass(selected)]]" inner-html="[[_renderRow(item)]]">
               </casper-epaper-htmldiv>
@@ -286,10 +287,6 @@ An auxiliary combo list for the casper-epaper editor
           type: Boolean,
           value: false
         }
-      },
-
-      _getScroller: function() {
-        return this.$.scroller;
       },
 
       ready: function () {
@@ -551,11 +548,11 @@ An auxiliary combo list for the casper-epaper editor
             if ( a_direction === 'up' && idx > 0 ) {
               idx -= 1;
               this.$.list.selectItem(idx);
-              this.$.list.scrollToIndex(idx);
+              this.$.list.scrollToIndex(idx-1);
             } else if ( a_direction === 'down' && idx < this._filteredItems.length - 1) {
               idx += 1;
               this.$.list.selectItem(idx);
-              this.$.list.scrollToIndex(idx);
+              this.$.list.scrollToIndex(idx - 1);
             } else if ( a_direction === 'keep' ) {
               this.$.list.selectItem(idx);
               this.$.list.scrollToIndex(idx);
@@ -565,9 +562,11 @@ An auxiliary combo list for the casper-epaper editor
       },
 
       _dialogOpened: function () {
-        this.$.list._render && this.$.list._render();
         this.$.dialog.notifyResize();
-        this.moveSelection('keep');
+        this.async(function () {
+          this.$.list.fire('iron-resize');
+          this.moveSelection('keep');
+        }.bind(this), 200);
         this.$.input.focus();
       },
 
@@ -690,6 +689,7 @@ An auxiliary combo list for the casper-epaper editor
             }
           }
         }
+        this.$.dialog.notifyResize();
       },
 
       _selectItem: function (a_event) {
