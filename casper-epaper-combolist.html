@@ -81,6 +81,7 @@ An auxiliary combo list for the casper-epaper editor
 
       #scroller {
         overflow: auto;
+        -ms-overflow-style: -ms-autohiding-scrollbar;
         min-height: 70px;
         max-height: var(--casper-combo-box-overlay-max-height, 80vh);
 
@@ -503,7 +504,7 @@ An auxiliary combo list for the casper-epaper editor
         this.displayFields = a_display_fields;
       },
 
-      setNotifyIdOnly (a_option) {
+      setNotifyIdOnly: function (a_option) {
         this._notifiyIdOnly = a_option;
       },
 
