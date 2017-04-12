@@ -282,11 +282,11 @@
         return false;
       },
 
-      jsonApiConfig: function (schema, prefix, shardedSchema, apiPrefix = 'https://localhost/') {
+      jsonApiConfig: function (schema, prefix, shardedSchema, apiPrefix) {
         this._defaultSchema = schema;
         this._defaultPrefix = prefix;
         this._defaultShardedSchema = shardedSchema;
-        this._defaultApiPrefix = apiPrefix;
+        this._defaultApiPrefix = apiPrefix || 'https://localhost/';
       },
 
       /**
