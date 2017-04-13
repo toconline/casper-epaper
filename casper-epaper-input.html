@@ -95,7 +95,7 @@
         this.$.date.inputBox = this.$.input.$.textarea;
         this._visible        = true;
         this.setVisible(false);
-        this.$.combo.setPositionTarget(this.$.input);
+        this.$.combo.setPositionTarget(this);
       },
 
       attached: function () {
@@ -268,15 +268,18 @@
         case 'l': // Ledger mode
           this.$.dropdown_btn.icon = 'arrow-drop-down';
           this.$.dropdown_btn.style.display = 'inline';
+          this.$.input.style.width = (width - btn_size) + 'px';
           break;
         case 'd': // Date
           this.$.dropdown_btn.icon = 'date-range'
           this.$.dropdown_btn.style.display = 'inline';
+          this.$.input.style.width = (width - btn_size) + 'px';
           break;
         case 'R': // Radio
         default:  // Normal mode the default
           this.$.dropdown_btn.style.display = 'none';
           this.$.edit_btn.style.display = 'none';
+          this.$.input.style.width = (width) + 'px';
           break;
         }
       },
@@ -333,7 +336,7 @@
 
       _toggleOverlay: function (event) {
         if ( this._overlay !== undefined ) {
-          if ( this._overlay.isVisible() ) {
+          if ( this.overlayVisible ) {
             this._overlay.setVisible(false);
           } else {
             if ( this._overlay === this.$.combo ) {
