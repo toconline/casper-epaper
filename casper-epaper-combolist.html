@@ -146,10 +146,10 @@ An auxiliary combo list for the casper-epaper editor
                    vertical-align="auto">
       <div class="dropdown-content">
         <paper-input-container no-label-float on-tap="_inputTap">
-          <iron-icon prefix icon="search"></iron-icon>
+          <iron-icon prefix icon="casper-icons:search"></iron-icon>
           <label class="header">pesquisar</label>
           <input is="iron-input" id="input" class="header" bind-value="{{_query}}">
-          <iron-icon id="clear" suffix on-tap="_clearQuery" icon="clear" alt="limpar" title="limpar"></iron-icon>
+          <iron-icon id="clear" suffix on-tap="_clearQuery" icon="casper-icons:clear" alt="limpar" title="limpar"></iron-icon>
         </paper-input-container>
         <div id="scroller" on-tap="_stopPropagation">
           <iron-list id="list" items="[[_filteredItems]]" as="item" selected-item="{{selectedItem}}" on-tap="_selectItem" scroll-target="scroller">

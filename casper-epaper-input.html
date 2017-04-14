@@ -253,19 +253,24 @@
           break;
         }
 
-        btn_size = 18; // #TODO grab the size from button don't hard code
+        btn_size = Math.floor(12 * this._epaper.zoom); 
         width    = parseInt(this.style.width);
         height   = parseInt(this.style.height);
 
-        this.$.dropdown_btn.style.top  = ((height - btn_size) / 2) + 'px';
-        this.$.dropdown_btn.style.left = (width - btn_size) + 'px';
-        this.$.edit_btn.style.top      = ((height - btn_size) / 2) + 'px';
-        this.$.edit_btn.style.left     = width + 'px';
+        this.$.dropdown_btn.style.padding = '0px';
+        this.$.dropdown_btn.style.height  = btn_size + 'px';
+        this.$.dropdown_btn.style.width   = btn_size + 'px';
+        this.$.dropdown_btn.style.top     = ((height - btn_size) / 2) + 'px';
+        this.$.dropdown_btn.style.left    = (width - btn_size) + 'px';
+
+        // TODO edit button layout
+        this.$.edit_btn.style.top        = ((height - btn_size) / 2) + 'px';
+        this.$.edit_btn.style.left       = width + 'px';
 
         switch ( this._mode ) {
         case 'c': // Client combo
         case 'l': // Ledger mode
-          this.$.dropdown_btn.icon = 'casper.icons:arrow-drop-down';
+          this.$.dropdown_btn.icon = 'casper-icons:arrow-drop-down';
           this.$.dropdown_btn.style.display = 'inline';
           this.$.input.style.width = (width - btn_size) + 'px';
           break;
