@@ -20,13 +20,11 @@
 
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../iron-icon/iron-icon.html">
-<!--link rel="import" href="../iron-icons/iron-icons.html"-->
 <link rel="import" href="../paper-card/paper-card.html">
-<link rel="import" href="../casper-epaper/casper-epaper-iconset.html">
 <link rel="import" href="../casper-epaper/casper-epaper-imports.html">
+<link rel="import" href="../casper-epaper/casper-epaper-iconset.html">
+<link rel="import" href="../casper-epaper/casper-epaper-tooltip.html">
 <link rel="import" href="../casper-epaper/casper-epaper-input.html">
-<link rel="import" href="../casper-epaper/casper-epaper-tooltip.html">
-<link rel="import" href="../casper-epaper/casper-epaper-tooltip.html">
 <link rel="import" href="../casper-epaper/casper-epaper-servertip-helper.html">
 <!--
   `<awesome-sauce>` injects a healthy dose of awesome into your page.
@@ -154,7 +152,6 @@
         this._canvas            = this.$.canvas;
         this._canvas_width      = this._canvas.width;
         this._canvas_height     = this._canvas.height;
-        this.$.input._epaper    = this;
         this._scrollContainer   = document.getElementById(this.scroller);
         this._ctx               = this._canvas.getContext('2d', {alpha: false});
         this._initial_pointer   = this._canvas.style.cursor;
@@ -168,7 +165,6 @@
         this._bands             = undefined;
         this._document_id       = undefined;
         this._images            = {};
-        this._widget_under_mice = undefined;
         this._focused_band_id   = undefined;
         this._redraw_timer_key  = '_epaper_redraw_timer_key';
         this._resetRenderState();
@@ -185,6 +181,13 @@
         this._saved_idx         = 0.0;
         this._saved_draw_string = '';
         this._inputBoxDrawString = undefined;
+
+        // ... connect widgets ...
+        this.$.tooltip.positionTarget = this.$.input;
+        this.$.tooltip.fitInto        = this.$.canvas;
+        this.$.servertip.epaper       = this;
+        this.$.servertip.input        = this.$.input;
+        this.$.input.epaper           = this;
 
         this._setupPixelRatio();
 
@@ -218,11 +221,6 @@
       },
 
       attached: function () {
-        this.$.tooltip.positionTarget = this.$.input;
-        this.$.tooltip.fitInto = this.$.canvas;
-        this.$.servertip.epaper = this;
-        this.$.servertip.input = this.$.input;
-
         this.listen(this.$.canvas, 'mousemove', '_moveHandler');
         this.listen(this.$.canvas, 'mousedown', '_mouseDownHandler');
         this.listen(this.$.canvas, 'mouseup'  , '_mouseUpHandler');

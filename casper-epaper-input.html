@@ -21,6 +21,7 @@
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../iron-autogrow-textarea/iron-autogrow-textarea.html">
 <link rel="import" href="../iron-icon/iron-icon.html">
+<link rel="import" href="../casper-epaper/casper-epaper-tooltip.html">
 <link rel="import" href="../casper-epaper/casper-epaper-datepicker.html">
 <link rel="import" href="../casper-epaper/casper-epaper-combolist.html">
 
@@ -71,9 +72,14 @@
       is: 'casper-epaper-input',
 
       properties: {
+        /** True when there is an open overlay */
         overlayVisible: {
           type: Boolean,
           value: false
+        },
+        /** Parent casper-epaper element that owns the this helper */
+        epaper: {
+          type: Object
         }
       },
 
@@ -164,7 +170,7 @@
       alignStyle: function (a_text_left, a_baseline) {
 
         // Make baseline and edge relative to input pox 
-        var ratio = this._epaper._ratio;
+        var ratio = this.epaper._ratio;
         var tl    = a_text_left / ratio - this._x;
         var bl    = a_baseline  / ratio - this._y;
         var top   = this._f_top / ratio;
@@ -176,9 +182,9 @@
         this._textArea.style.marginLeft  = Math.max(tl,1) + 'px';
         this._textArea.style.marginRight = Math.max(tl,1) + 'px';
         this._textArea.style.marginTop   = Math.max(bl + top, 1) + 'px';
-        this._textArea.style.fontFamily  = this._epaper._font_spec[this._epaper._FONT_NAME_INDEX];
-        this._textArea.style.fontSize    = this._epaper._font_spec[this._epaper._SIZE_INDEX] / ratio + 'px';
-        this._textArea.style.color       = this._epaper._text_color;
+        this._textArea.style.fontFamily  = this.epaper._font_spec[this.epaper._FONT_NAME_INDEX];
+        this._textArea.style.fontSize    = this.epaper._font_spec[this.epaper._SIZE_INDEX] / ratio + 'px';
+        this._textArea.style.color       = this.epaper._text_color;
       },
 
       hideOverlays: function () {
@@ -251,7 +257,7 @@
           break;
         }
 
-        btn_size = Math.floor(12 * this._epaper.zoom); 
+        btn_size = Math.floor(12 * this.epaper.zoom); 
         width    = parseInt(this.style.width);
         height   = parseInt(this.style.height);
 
@@ -347,7 +353,7 @@
             this.hideTooltip();
             this._overlay.setVisible(true, this._comboFilter);
             if ( this._comboListQuery !== undefined && this._overlay === this.$.combo ) {
-              this._epaper.send_command('get data "'+this._comboListQuery+'";');
+              this.epaper.send_command('get data "'+this._comboListQuery+'";');
             }
           }
           this.overlayVisible = this._overlay.isVisible();
@@ -361,17 +367,17 @@
        * Show the combo box list
        */
       _layoutComboList: function () {
-        var sc = this._epaper._ratio;
-        var page_margin = 40 * this._epaper._ratio;
+        var sc = this.epaper._ratio;
+        var page_margin = 40 * this.epaper._ratio;
         var max_width, max_height;
 
         var left  = parseInt(this.style.left);
         var width = parseInt(this.style.width);
 
-        if ( (left / this._epaper._sx) > this._epaper._page_width / 2 ) {
+        if ( (left / this.epaper._sx) > this.epaper._page_width / 2 ) {
           max_width = left + width /*+ this._open_combo_button._bb_w*/ - page_margin;
         } else {
-          max_width = this._epaper._page_width * this._epaper._sx - page_margin - left;
+          max_width = this.epaper._page_width * this.epaper._sx - page_margin - left;
         }
 
         this.$.combo.autoSize(width, max_width);
@@ -471,11 +477,11 @@
 
         if ( this._initialSelection === true ) {
           if ( ['down', 'up', 'left', 'right'].indexOf(vkey) > -1 ) {
-            this._epaper.send_command('set key "focus_'+vkey+'";');
+            this.epaper.send_command('set key "focus_'+vkey+'";');
             event.preventDefault();
             return;
           } else if ( ['tab', 'shift+tab'].indexOf(vkey) > -1 ) {
-            this._epaper.send_command('set key "'+vkey.replace(/\+/g, '"+"')+'";');
+            this.epaper.send_command('set key "'+vkey.replace(/\+/g, '"+"')+'";');
             event.preventDefault();
             return;
           } else if ( ['enter', 'F2'].indexOf(vkey) > -1 ) {
@@ -490,7 +496,7 @@
         }
 
         if ( ['enter', 'tab', 'shift+tab'].indexOf(vkey) > -1 ) {
-          this._epaper.send_command('set text "' + this._escapeForServer(this._textArea.value) + '" true; set key "'
+          this.epaper.send_command('set text "' + this._escapeForServer(this._textArea.value) + '" true; set key "'
                                       + vkey.replace(/\+/g, '"+"') + '";');
           event.preventDefault();
           return;
@@ -535,14 +541,14 @@
             if ( this._comboFilter.length !== 0 && ['down', 'up'].indexOf(vkey) > -1) {
               this.$.combo.moveSelection(vkey);
             } else {
-              this._epaper.send_command('set key "focus_'+vkey+'";');
+              this.epaper.send_command('set key "focus_'+vkey+'";');
             }
             event.preventDefault();
           } else if ( ['tab', 'shift+tab', 'enter'].indexOf(vkey) > -1 ) {
             if ( this.$.combo.getSelectedId() && this.$.combo.getSelectedId() !== this.$.combo.getInitialId() ) {
-              this._epaper.send_command('set list item "' + this.$.combo.getSelectedId()  + '";');
+              this.epaper.send_command('set list item "' + this.$.combo.getSelectedId()  + '";');
             }
-            this._epaper.send_command('set key "'+vkey.replace(/\+/g, '"+"')+'";');
+            this.epaper.send_command('set key "'+vkey.replace(/\+/g, '"+"')+'";');
             event.preventDefault();
           } else if ( vkey === 'alt' ) {
             this._toggleOverlay();
@@ -578,19 +584,19 @@
 
         key = event.detail.closingKey;
         if ( event.detail.selectedId !== undefined && event.detail.selectedId !== event.detail.previousId ) {
-          this._epaper.send_command('set list item "' + event.detail.selectedId  + '";');
+          this.epaper.send_command('set list item "' + event.detail.selectedId  + '";');
           if ( key === 'shift+tab' ) {
-            this._epaper.send_command('set key "shift"+"tab";');
+            this.epaper.send_command('set key "shift"+"tab";');
           } else if ( key === 'enter' || key === 'tab' ) {
-            this._epaper.send_command('set key "tab";');
+            this.epaper.send_command('set key "tab";');
           } else {
-            this._epaper.send_command('set key "save";');
+            this.epaper.send_command('set key "save";');
           }
         } else {
           if ( key === 'shift+tab' ) {
-            this._epaper.send_command('set key "focus_left";');
+            this.epaper.send_command('set key "focus_left";');
           } else if ( key === 'enter' || key === 'tab' ) {
-            this._epaper.send_command('set key "focus_right";');
+            this.epaper.send_command('set key "focus_right";');
           }
         }
         this._textArea.focus();
@@ -623,7 +629,7 @@
           cmd += 'set key "'+vkey.replace(/\+/g, '"+"')+'";';
         }
         if ( cmd.length ) {
-          this._epaper.send_command(cmd);
+          this.epaper.send_command(cmd);
         }
       },
 
@@ -639,7 +645,7 @@
 
       _onKeyDownR: function (event) {
         if ( event.keyCode === 32 ) {
-          this._epaper.send_command('set key "toggle";');
+          this.epaper.send_command('set key "toggle";');
         } else {
           this._onKeyDownN(event);
         }
@@ -744,7 +750,7 @@
       _onMouseDown: function (event) {
         if ( this._mode === 'R' ) {
           event.preventDefault();
-          this._epaper.send_command('set key "toggle";'); 
+          this.epaper.send_command('set key "toggle";'); 
         } else {
           this._initialSelection = false;
           this.grabFocus();
@@ -778,7 +784,7 @@
       serverTooltipUpdate: function (left, top, width, height, content) {
         var mid_x, mid_y, bbi, bbc;
 
-        bbc = this._epaper.$.canvas.getBoundingClientRect();
+        bbc = this.epaper.$.canvas.getBoundingClientRect();
         bbi = this.$.input.getBoundingClientRect();
         mid_x = bbc.left + left + width  / 2;
         mid_y = bbc.top  + top  + height / 2;
@@ -788,19 +794,21 @@
           return;
         }
         if ( content.length ) {
-          this._epaper.$.tooltip.show(content);
+          this.epaper.$.tooltip.show(content);
         } else {
           this.hideTooltip();
         }
       },
 
       showTooltip: function (content, positionTarget) {
-        this._epaper.$.tooltip.show(content, positionTarget);
+        this.epaper.$.tooltip.show(content, positionTarget);
       },
 
       hideTooltip: function () {
-        this._epaper.$.tooltip.hide();
-      },
+        if ( this.epaper.$.tooltip.hide !== undefined ) {
+          this.epaper.$.tooltip.hide();
+        }
+      }
 
     });
   </script>
