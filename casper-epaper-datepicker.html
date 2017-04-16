@@ -49,6 +49,7 @@
 
       ready: function () {
         this.$.picker._input = inputBridge.bind(this);
+        this.$.picker.$.dropdown.noOverlap = true;
       },
 
       attached: function () {
@@ -64,17 +65,6 @@
 
       open: function () {
         this.$.picker.open();
-      },
-
-      /**
-       * Defines the element that controls the dialog positioning
-       *
-       * The dialog will be placed along one the edges of the supplied element
-       *
-       * @param a_element The HTML element
-       */
-      setPositionTarget: function (a_element) {
-        this.$.picker.positionTarget = a_element;
       },
 
       /**

@@ -19,7 +19,8 @@
  -->
 
 <link rel="import" href="../polymer/polymer.html">
-<link rel="import" href="../iron-autogrow-textarea/iron-autogrow-textarea.html">
+<!--link rel="import" href="../iron-autogrow-textarea/iron-autogrow-textarea.html"-->
+<link rel="import" href="../iron-input/iron-input.html">
 <link rel="import" href="../iron-icon/iron-icon.html">
 <link rel="import" href="../casper-epaper/casper-epaper-tooltip.html">
 <link rel="import" href="../casper-epaper/casper-epaper-datepicker.html">
@@ -52,16 +53,41 @@
       fill: var(--primary-color);
     }
 
-    iron-autogrow-textarea {
+    ::-ms-clear {
+      display: none;
+    }
+
+    ::selection {
+      background: #d0ecf0; 
+    }
+
+    #textarea {
       border: none;
+      display: block;
+      position: absolute;
       padding: 0px;
       margin: 0px;
       outline: none;
+      background-color: rgba(0, 0, 0, 0); 
     }
+/*
+    #input {
+      -ms-overflow-style: -ms-autohiding-scrollbar;
+    }
+
+    #textarea {
+      resize: none;
+      background-color: rgba(0, 0, 0, 0); 
+      border-color: rgba(0, 0, 0, 0);
+      overflow: auto;
+    }*/
 
   </style>
   <template>
-    <iron-autogrow-textarea id="input" tabindex="0"></iron-autogrow-textarea>
+    <!--div id="input"-->
+    <input is="iron-input" id="textarea">
+    <!--/div-->
+    <!--iron-autogrow-textarea id="input" tabindex="0"></iron-autogrow-textarea-->
     <iron-icon id="dropdown_btn" rotate$="[[overlayVisible]]" on-tap="_toggleOverlay" icon="casper-icons:arrow-drop-down"></iron-icon>
     <iron-icon id="edit_btn" on-tap="_toggleSubEditor" icon="casper-icons:cancel"></iron-icon>
     <casper-epaper-combolist id="combo"></casper-epaper-combolist>
@@ -92,10 +118,10 @@
       },
 
       ready: function () {
-        this._input          = this.$.input;
+        //this._input          = this.$.input;
         this._binding        = undefined;
-        this._textArea       = this.$.input.$.textarea;
-        this.$.date.inputBox = this.$.input.$.textarea;
+        this._textArea       = this.$.textarea;//this.$.input.$.textarea;
+        this.$.date.inputBox = this.$.textarea;//this.$.input.$.textarea;
         this._visible        = true;
         this.setVisible(false);
         this.$.combo.setPositionTarget(this);
@@ -151,12 +177,12 @@
         this.style.top            = y + 'px';
         this.style.width          = w + 'px';
         this.style.height         = h + 'px';
-        this._input.style.left    = '0px';
-        this._input.style.top     = '0px';
-        this._input.style.width   = w + 'px';
-        this._input.style.height  = h + 'px';
-        this._input.scrollTop     = 0;
-        this._input.scrollLeft    = 0;
+        /*_input*/this._textArea.style.left    = '0px';
+        /*_input*/this._textArea.style.top     = '0px';
+        /*_input*/this._textArea.style.width   = w + 'px';
+        /*_input*/this._textArea.style.height  = h + 'px';
+        /*_input*/this._textArea.scrollTop     = 0;
+        /*_input*/this._textArea.scrollLeft    = 0;
         this._x                   = x;
         this._y                   = y;
       },
@@ -175,13 +201,14 @@
         var bl    = a_baseline  / ratio - this._y;
         var top   = this._f_top / ratio;
 
-        console.log(' ==> tl=' + tl + ' bl=' + bl + ' top=' + top);
+        /*console.log(' ==> tl=' + tl + ' bl=' + bl + ' top=' + top);*/
 
 
         //this._textArea.style.padding     = '0px'; 
+        //this._textArea.style.margin      = '0px'; 
         this._textArea.style.marginLeft  = Math.max(tl,1) + 'px';
         this._textArea.style.marginRight = Math.max(tl,1) + 'px';
-        this._textArea.style.marginTop   = Math.max(bl + top, 1) + 'px';
+        //this._textArea.style.marginTop   = Math.max(bl + top, 1) + 'px';
         this._textArea.style.fontFamily  = this.epaper._font_spec[this.epaper._FONT_NAME_INDEX];
         this._textArea.style.fontSize    = this.epaper._font_spec[this.epaper._SIZE_INDEX] / ratio + 'px';
         this._textArea.style.color       = this.epaper._text_color;
@@ -276,18 +303,18 @@
         case 'l': // Ledger mode
           this.$.dropdown_btn.icon = 'casper-icons:arrow-drop-down';
           this.$.dropdown_btn.style.display = 'inline';
-          this.$.input.style.width = (width - btn_size) + 'px';
+          this._textArea.style.width = (width - btn_size) + 'px';
           break;
         case 'd': // Date
           this.$.dropdown_btn.icon = 'casper-icons:date-range'
           this.$.dropdown_btn.style.display = 'inline';
-          this.$.input.style.width = (width - btn_size) + 'px';
+          this._textArea.style.width = (width - btn_size) + 'px';
           break;
         case 'R': // Radio
         default:  // Normal mode the default
           this.$.dropdown_btn.style.display = 'none';
           this.$.edit_btn.style.display = 'none';
-          this.$.input.style.width = (width) + 'px';
+          this._textArea.style.width = (width) + 'px';
           break;
         }
       },

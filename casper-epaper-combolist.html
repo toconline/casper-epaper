@@ -79,6 +79,10 @@ An auxiliary combo list for the casper-epaper editor
         font-size: 12px;
       }
 
+      ::-ms-clear {
+        display: none;
+      }
+
       #scroller {
         overflow: auto;
         -ms-overflow-style: -ms-autohiding-scrollbar;
@@ -90,7 +94,6 @@ An auxiliary combo list for the casper-epaper editor
 
         /* Enable momentum scrolling on iOS (iron-list v1.2+ no longer does it for us) */
         -webkit-overflow-scrolling: touch;
-
         -webkit-user-select: none;
         -moz-user-select: none;
         -ms-user-select: none;
