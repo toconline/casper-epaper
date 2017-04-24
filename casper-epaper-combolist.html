@@ -53,6 +53,7 @@ An auxiliary combo list for the casper-epaper editor
         background-color: var(--primary-background-color);
         @apply(--layout-vertical);
         font-size: 12px;
+        overflow: hidden;
       }
 
       paper-input-container {
@@ -482,17 +483,11 @@ An auxiliary combo list for the casper-epaper editor
         len      = ja_items.length;
         items    = [];
         for (var i = 0; i < len; ++i ) {
-          clone = {};
-          source = ja_items[i];
-          item   = { id: source.id };
-          source = source.attributes;
-          for (var attr in source) {
-            if (source.hasOwnProperty(attr)) {
-              item[attr] = source[attr];
-            }
-          }
-          items.push(item);
+          ja_items[i].attributes.id = ja_items[i].id;
+          items.push(ja_items[i].attributes);
         }
+        ja_items   = null;
+        this.items = null;
         this.items = items;
         this._selectedId = this._initialId;
         this._filterModel(this._query);
@@ -780,7 +775,7 @@ An auxiliary combo list for the casper-epaper editor
                 }
               }
 
-              // ... highligth the match with bold ...
+              // ... highligth the match ...
               ms   = stack.length;
               html = text.substring(0, stack[0].start);
               for ( m = 0; m < ms; m++ ) {
