@@ -3,7 +3,7 @@
   "description": "Casper ePaper document renderer",
   "main": "casper-epaper.html",
   "dependencies": {
-    "polymer": "Polymer/polymer#^1.8.0",
+    "polymer": "Polymer/polymer#^1.9.1",
     "promise-polyfill": "polymerlabs/promise-polyfill#^1.0.0",
     "paper-card": "PolymerElements/paper-card#^1.1.2",
     "iron-icon": "PolymerElements/iron-icon#^1.0.11",
@@ -12,7 +12,7 @@
     "paper-fab": "PolymerElements/paper-fab#^1.2.1",
     "paper-spinner": "PolymerElements/paper-spinner#^1.2.1",
     "vaadin-combo-box": "^1.3.3",
-    "vaadin-date-picker": "^1.2.2",
+    "vaadin-date-picker": "^1.2.3",
     "iron-iconset-svg": "^1.1.0"
   },
   "devDependencies": {
