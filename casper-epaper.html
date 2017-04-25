@@ -37,7 +37,8 @@
   prevent gethint while loading
   prevent most comands while loading
 
-  @TODO canvas shift 0.5 0.5 to improve quality
+  @TODO canvas shift 0.5 0.5 to improve quality 
+  http://www.mobtowers.com/html5-canvas-crisp-lines-every-time/
 
    Wham! It's all awesome now!
 -->
@@ -259,6 +260,56 @@
         }
       },
 
+      gotoParamOrField: function (report, fieldName, rowIndex) {
+        var chapterIndex = undefined;
+        var highlight_after_load = function(a_resolve, a_reject) {
+            var cmd;
+
+            if ( rowIndex ) {
+              cmd = 'document highlight field "' + fieldName + '",'+ rowIndex + ';';
+            } else {
+              cmd = 'document highlight parameter "' + fieldName + '";';
+            }
+            this.send_command(cmd);
+          }.bind(this);
+
+        if ( this._jrxml !== undefined ) {
+          var reportName = this._jrxml;
+          var j;
+
+          j = reportName.lastIndexOf('/');
+          reportName = reportName.substring(j === -1 ? 0 : j +1, reportName.length);
+          if ( report === reportName ) {
+            chapterIndex = this._chapterIndex;
+          }
+        }
+
+        if ( this.chapterIndex === undefined ) {
+          if ( this._document && this._document.chapters ) {
+            for ( var i = 0; i < this._document.chapters.length; i++ ) {
+              reportName = this._document.chapters[i].jrxml;
+              j = reportName.lastIndexOf('/');
+              reportName = reportName.substring(j === -1 ? 0 : j +1, reportName.length);
+              if ( reportName === report ) {
+                chapterIndex = i;
+                break;
+              }
+            }
+          }
+        }
+
+        if ( chapterIndex !== undefined ) {
+          if ( chapterIndex !== this._chapterIndex ) {
+            this._chapterIndex = chapterIndex;
+            this._chapter      = this._document.chapters[chapterIndex];
+            this._openChapter(1, highlight_after_load);
+
+          } else {
+            highlight_after_load();
+          }
+        } 
+      },
+
       previousChapter: function () {
         if ( this._document && this._document.chapters && this._document.chapters.length >= 1 ) {
           if (this._chapterIndex >= 1 ) {
@@ -298,11 +349,13 @@
         var w; // Canvas width in px
         var h; // Canvas height in px
 
+
         if ( this.zoom !== zoom || forced ) {
           this.zoom = zoom;
           w = Math.round((this._page_width  || this.width ) * this.zoom);
           h = Math.round((this._page_height || this.height) * this.zoom);
           this._setSize(w, h);
+          console.log(' set zoom to '+zoom+' w='+w+' h='+h);
         }
       },
 
@@ -360,8 +413,8 @@
        * Re-opens the last document that was open
        */
       reOpen: function () {
-        if ( this._chapter !== undefined ) {
-          var cloned_command = JSON.parse(JSON.stringify(this._chapter));
+        if ( this._document !== undefined ) {
+          var cloned_command = JSON.parse(JSON.stringify(this._document));
           this._clear();
           this.open(cloned_command);
         } else {
@@ -465,7 +518,7 @@
        *
        * @param {number} pageNumber page starts at 1
        */
-      _openChapter: function (pageNumber) {
+      _openChapter: function (pageNumber, postOpenFunction) {
         // Promise to open the report layout in case it not loaded yet
         var open_document = function () {
           return new Promise(function (a_resolve, a_reject) {
@@ -566,6 +619,16 @@
           }.bind(this));
         }.bind(this);
 
+        // Optional promise to execute after the document is loaded
+        if ( postOpenFunction === undefined ) {
+          postOpenFunction = function(a_resolve, a_reject) {
+            a_resolve(this);
+          }.bind(this);
+        }
+        var post_open = function() {
+          return new Promise(postOpenFunction);
+        }.bind(this);
+
         this._inputBoxDrawString = undefined;
         this.$.servertip.enabled = false;
         this.$.input.setVisible(false);
@@ -579,6 +642,7 @@
         open_document()
           .then(configure_api)
           .then(load_document)
+          .then(post_open)
           .catch(function(a_error) {
             alert("Paper error " + a_error);
           });
@@ -1068,7 +1132,7 @@
 
                 this._ctx.beginPath();
 
-                /*if ( x === x2 && this._ratio == 1 ) {
+                if ( x === x2 && this._ratio == 1 ) {
 
                   w = Math.round(this._ctx.lineWidth) & 0x1 ? -0.5 : 0;
                   this._ctx.moveTo(x  + w, y  + w);
@@ -1080,12 +1144,12 @@
                   this._ctx.moveTo(x  + w, y  + w)
                   this._ctx.lineTo(x2 + w, y2 + w);
 
-                } else {*/
+                } else {
 
                   this._ctx.moveTo(x , y);
                   this._ctx.lineTo(x2, y2);
 
-                //}
+                }
 
                 this._ctx.stroke();
 
@@ -1797,7 +1861,7 @@
                   this._ctx.rotate(this._getDouble());
                   break;
                 case 'c':
-                  this._ctx.setTransform(1, 0, 0, 1, 0.5, 0.5);
+                  this._ctx.setTransform(1, 0, 0, 1, 0, 0);
                   this._r_idx++;
                   break;
               }
