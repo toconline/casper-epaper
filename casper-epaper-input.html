@@ -553,10 +553,22 @@
       },
 
       _onKeypressC: function (event) {
+        /*if ( this.overlayVisible === false ) {
+          if ( this._comboListQuery !== undefined && this._overlay === this.$.combo ) {
+            if ( !this.$.combo.items || !!this.$.combo.items.length ) {
+              this.epaper.send_command('get data "'+this._comboListQuery+'";');
+            }
+          }
+          //this._toggleOverlay();
+          // TODO load list adn filter in line
+          //if ( this.overlayVisible === false ) {
+          this._comboFilter += event.key;
+          //this.$.combo.setQuery(this._comboFilter);
+          event.preventDefault();
+        }*/
         if ( this.overlayVisible === false ) {
           this._comboFilter += event.key;
-          this.$.combo.setQuery(this._comboFilter);
-          event.preventDefault();
+          this._toggleOverlay(event);
         }
       },
 
@@ -574,17 +586,19 @@
             event.preventDefault();
           } else if ( ['tab', 'shift+tab', 'enter'].indexOf(vkey) > -1 ) {
             if ( this.$.combo.getSelectedId() && this.$.combo.getSelectedId() !== this.$.combo.getInitialId() ) {
-              this.epaper.send_command('set list item "' + this.$.combo.getSelectedId()  + '";');
+            //  this.epaper.send_command('set list item "' + this.$.combo.getSelectedId()  + '";');
             }
             this.epaper.send_command('set key "'+vkey.replace(/\+/g, '"+"')+'";');
             event.preventDefault();
-          } else if ( vkey === 'alt' ) {
+          } else { //else if ( vkey === 'alt' ) {
+            this._comboFilter = event.key;
             this._toggleOverlay();
-          } else if ( ['delete', 'backspace'].indexOf(vkey) > -1 ) {
-            this._comboFilter = this._comboFilter.slice(0, -1);
-            this.$.combo.setQuery(this._comboFilter, false);
-            event.preventDefault();
-          }
+            //event.preventDefault();
+          } //else if ( ['delete', 'backspace'].indexOf(vkey) > -1 ) {
+            //this._comboFilter = this._comboFilter.slice(0, -1);
+            //this.$.combo.setQuery(this._comboFilter, false);
+            //event.preventDefault();
+          //}
         } else {
           if ( vkey === 'esc' ) {
             this.$.combo.setVisible(false);
