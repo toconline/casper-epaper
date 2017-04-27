@@ -228,6 +228,7 @@
             case 'dropDownTree':
               this.setMode('c');
               break;
+            case 'checkbox':
             case 'radioButton':
               this.setMode('R');
               break;
@@ -671,11 +672,22 @@
       },
 
       _onKeyDownR: function (event) {
-        if ( event.keyCode === 32 ) {
-          this.epaper.send_command('set key "toggle";');
+        if ( event.keyCode === 32 || (event.keyCode === 88 && this._textArea.value.length === 0) ) {
+          this.debounce('casper-toggle', function () {
+            this.epaper.send_command('set key "toggle";');
+          }.bind(this), 300);
         } else {
-          this._onKeyDownN(event);
+          var vkey = this._keycodeToVkey(event);
+
+          if ( ['down', 'up', 'left', 'right'].indexOf(vkey) > -1 ) {
+            this.epaper.send_command('set key "focus_'+vkey+'";');
+          } else if ( vkey === 'shift+tab' ) {
+            this.epaper.send_command('set key "focus_left";');
+          } else if ( vkey === 'enter' || vkey === 'tab' ) {
+            this.epaper.send_command('set key "focus_right";');
+          }
         }
+        event.preventDefault();
       },
 
       /*****************************************************************************************/

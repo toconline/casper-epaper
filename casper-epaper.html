@@ -351,11 +351,11 @@
 
 
         if ( this.zoom !== zoom || forced ) {
+          this._hideWidgets();
           this.zoom = zoom;
           w = Math.round((this._page_width  || this.width ) * this.zoom);
           h = Math.round((this._page_height || this.height) * this.zoom);
           this._setSize(w, h);
-          console.log(' set zoom to '+zoom+' w='+w+' h='+h);
         }
       },
 
