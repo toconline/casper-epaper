@@ -37,7 +37,7 @@
   prevent gethint while loading
   prevent most comands while loading
 
-  @TODO canvas shift 0.5 0.5 to improve quality 
+  @TODO canvas shift 0.5 0.5 to improve quality
   http://www.mobtowers.com/html5-canvas-crisp-lines-every-time/
 
    Wham! It's all awesome now!
@@ -307,7 +307,7 @@
           } else {
             highlight_after_load();
           }
-        } 
+        }
       },
 
       previousChapter: function () {
@@ -1999,7 +1999,7 @@
             rightDelta = 0;
           } else {
             rightDelta = Math.max(inputCr.right  - rightEdge   , 0);
-          } 
+          }
           leftDelta   = Math.min(inputCr.left   - leftEdge    , 0);
           topDelta    = Math.min(inputCr.top    - topEdge     , 0);
           bottomDelta = Math.max(inputCr.bottom - bottomEdge  , 0);
@@ -2296,12 +2296,14 @@
             //  this._listener.on_error_received(t, m);
             //}
             var errorDetail = undefined;
-            if ( m.indexOf('S:failure:load:') == 0 ) {
+            if ( m.indexOf('S:failure:load:') === 0 ) {
               error = JSON.parse(m.replace('S:failure:load:',''));
               errorDetail = error.errors.first();
-            } else if ( m.indexOf('S:failure:pdf:') == 0 ) {
+            } else if ( m.indexOf('S:failure:pdf:') === 0 ) {
               error = JSON.parse(m.replace('S:failure:pdf:',''));
               errorDetail = error.errors.first();
+            } else if ( m !== undefined && m.length !== 0 ) {
+              errorDetail = m;
             }
 
             if ( errorDetail !== undefined ) {
