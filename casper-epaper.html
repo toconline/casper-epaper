@@ -276,6 +276,7 @@
        */
       openAndGotoParamOrField: function (documentModel, chapterReport, fieldName, rowIndex) {
         this._prepareOpenCommand(documentModel);
+        this._chapterIndex = undefined;
         this.gotoParamOrField(chapterReport, fieldName, rowIndex);
       },
 
