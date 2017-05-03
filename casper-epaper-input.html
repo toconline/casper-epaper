@@ -590,8 +590,8 @@
             }
             this.epaper.send_command('set key "'+vkey.replace(/\+/g, '"+"')+'";');
             event.preventDefault();
-          } else { //else if ( vkey === 'alt' ) {
-            this._comboFilter = event.key;
+          } else if ( vkey === 'alt' || vkey === 'shift+down' ) {
+            //this._comboFilter = event.key;
             this._toggleOverlay();
             //event.preventDefault();
           } //else if ( ['delete', 'backspace'].indexOf(vkey) > -1 ) {

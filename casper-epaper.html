@@ -243,7 +243,7 @@
       /**
        * Open server document
        *
-       * @param documentModel an object that specifies the layout and data of the document
+       * @param {object} documentModel an object that specifies the layout and data of the document
        */
       open: function (documentModel) {
         this._prepareOpenCommand(documentModel);
@@ -263,11 +263,13 @@
       /**
        * Open document and highlight field or parameter on the specified chapter
        *
-       * @param documentModel an object that specifies the layout and data of the document
+       * @param {Object} documentModel an object that specifies the layout and data of the document
+       * @param {String} chaperReport name of the chapter's JRXML report 
+       * @param {String} fieldName of the chapter's JRXML report 
        */
-      openAndGotoParamOrField: function (documentModel, report, fieldName, rowIndex) {
+      openAndGotoParamOrField: function (documentModel, chapterReport, fieldName, rowIndex) {
         this._prepareOpenCommand(documentModel);
-        this.gotoParamOrField(report, fieldName, rowIndex);
+        this.gotoParamOrField(chapterReport, fieldName, rowIndex);
       },
 
       gotoParamOrField: function (report, fieldName, rowIndex) {
@@ -289,7 +291,7 @@
 
           j = reportName.lastIndexOf('/');
           reportName = reportName.substring(j === -1 ? 0 : j +1, reportName.length);
-          if ( report === reportName ) {
+          if ( reportName === chapterReport ) {
             chapterIndex = this._chapterIndex;
           }
         }
@@ -300,7 +302,7 @@
               reportName = this._document.chapters[i].jrxml;
               j = reportName.lastIndexOf('/');
               reportName = reportName.substring(j === -1 ? 0 : j +1, reportName.length);
-              if ( reportName === report ) {
+              if ( reportName === chapterReport ) {
                 chapterIndex = i;
                 break;
               }
