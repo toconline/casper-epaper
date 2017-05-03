@@ -203,7 +203,6 @@
 
         /*console.log(' ==> tl=' + tl + ' bl=' + bl + ' top=' + top);*/
 
-
         //this._textArea.style.padding     = '0px'; 
         //this._textArea.style.margin      = '0px'; 
         this._textArea.style.marginLeft  = Math.max(tl,1) + 'px';
@@ -214,10 +213,14 @@
         this._textArea.style.color       = this.epaper._text_color;
       },
 
-      hideOverlays: function () {
+      hideOverlays: function (hideButtons) {
         this.hideTooltip();
         this.$.combo.setVisible(false);
         this.$.date.setVisible(false);
+        if ( hideButtons ) {
+          this.$.dropdown_btn.style.display = 'none';
+          this.$.edit_btn.style.display = 'none';
+        }
       },
 
       setCasperBinding: function (binding) {

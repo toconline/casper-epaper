@@ -253,8 +253,8 @@
       /**
        * Open specified chapter, page can also be specified
        *
-       * @param {Number} chapterIndex zero page index of the chapter in the document model
-       * @param {Number} pageNumber page to open, 1 for 1st page 
+       * @param {number} chapterIndex zero page index of the chapter in the document model
+       * @param {number} pageNumber page to open, 1 for 1st page 
        */
       gotoChapter: function (chapterIndex, pageNumber) {
         if ( this._document && this._document.chapters && this._document.chapters.length >= 1 ) {
@@ -269,10 +269,10 @@
       /**
        * Open document and highlight field or parameter on the specified chapter
        *
-       * @param {Object} documentModel an object that specifies the layout and data of the document
-       * @param {String} chaperReport name of the chapter's JRXML report 
-       * @param {String} fieldName name field or parameter to highlight
-       * @param {String} rowIndex undefined to highlight a parameter or the rowIndex to highligth a field
+       * @param {object} documentModel an object that specifies the layout and data of the document
+       * @param {string} chaperReport name of the chapter's JRXML report 
+       * @param {string} fieldName name field or parameter to highlight
+       * @param {string} rowIndex undefined to highlight a parameter or the rowIndex to highligth a field
        */
       openAndGotoParamOrField: function (documentModel, chapterReport, fieldName, rowIndex) {
         this._prepareOpenCommand(documentModel);
@@ -282,9 +282,9 @@
       /**
        * Highlight field or parameter on the specified chapter
        *
-       * @param {String} chaperReport name of the chapter's JRXML report 
-       * @param {String} fieldName name field or parameter to highlight
-       * @param {String} rowIndex undefined to highlight a parameter or the rowIndex to highligth a field
+       * @param {string} chaperReport name of the chapter's JRXML report 
+       * @param {string} fieldName name field or parameter to highlight
+       * @param {string} rowIndex undefined to highlight a parameter or the rowIndex to highligth a field
        */
       gotoParamOrField: function (chapterReport, fieldName, rowIndex) {
         var chapterIndex = undefined;
@@ -375,7 +375,6 @@
         var w; // Canvas width in px
         var h; // Canvas height in px
 
-
         if ( this.zoom !== zoom || forced ) {
           this._hideWidgets();
           this.zoom = zoom;
@@ -450,6 +449,7 @@
 
       closeDocument: function (a_success_handler) {
         this._clear();
+        this._hideWidgets(true);
         this._resetCommandData();
         this._fireEvent('casper-epaper-notification', { message: 'update:variable,PAGE_COUNT,1;' });
         this._fireEvent('casper-epaper-notification', { message: 'update:variable,PAGE_NUMBER,1;' });
@@ -658,7 +658,7 @@
         this._inputBoxDrawString = undefined;
         this.$.servertip.enabled = false;
         this.$.input.setVisible(false);
-        this._hideWidgets();
+        this._hideWidgets(true);
         this._resetScroll();
         this._nextPage  = pageNumber || 1;
         this._openFocus = this._nextPage > 0 ? 'start' : 'end';
@@ -677,9 +677,9 @@
       /**
        * Hides all canvas overlays
        */
-      _hideWidgets: function () {
+      _hideWidgets: function (hideInputButtons) {
         this._deactivateLineContextMenu();
-        this.$.input.hideOverlays();
+        this.$.input.hideOverlays(hideInputButtons);
       },
 
       _callRpc: function (a_invoke_id, a_command, a_success_handler, a_failure_handler) {
@@ -1337,7 +1337,7 @@
                   this._r_idx += 1; // 't'
                   break;
 
-                case 'd': // ... [,<length>,<pattern>] ...
+                case 'd': // ... Date [,<length>,<pattern>] ...
 
                   if ( ',' === this._message[this._r_idx] ) {
                     this._r_idx++;
@@ -2257,7 +2257,7 @@
 
       },
 
-      on_socket_message: function (a_message) {
+      _onSocketMessage: function (a_message) {
         switch (a_message.data[0]) {
           case 'S':
             if ( a_message.data.indexOf('S:ok:data:') === 0 ) {
@@ -2348,17 +2348,17 @@
         }
       },
 
-      on_socket_open: function (a_message) {
+      _onSocketOpen: function (a_message) {
         this._is_socket_open = true;
         this._fireEvent('casper-socket-open', { casperEpaper: this});
       },
 
-      on_socket_close: function (a_message) {
+      _onSocketClose: function (a_message) {
         this._is_socket_open = false;
         this._fireEvent('casper-socket-close', { casperEpaper: this});
       },
 
-      is_socket_open: function() {
+      _isSocketOpen: function() {
         return this._is_socket_open;
       },
 

@@ -38,15 +38,15 @@ function EPaperSocket_Initialize (a_root) {
           this._socket = new WebSocket(this._ws_uri, "skunk-epaper");
         }
         this._socket.onmessage = function (a_message) {
-          this._epaper.on_socket_message(a_message);
+          this._epaper._onSocketMessage(a_message);
         }.bind(this);
 
         this._socket.onopen = function (a_message) {
-          this._epaper.on_socket_open(a_message);
+          this._epaper._onSocketOpen(a_message);
         }.bind(this);
 
         this._socket.onclose = function (a_message) {
-          this._epaper.on_socket_close(a_message);
+          this._epaper._onSocketClose(a_message);
         }.bind(this);
       },
 
