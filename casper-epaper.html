@@ -243,13 +243,19 @@
       /**
        * Open server document
        *
-       * @param {object} documentModel an object that specifies the layout and data of the document
+       * @param {Object} documentModel an object that specifies the layout and data of the document
        */
       open: function (documentModel) {
         this._prepareOpenCommand(documentModel);
         this._openChapter();
       },
 
+      /**
+       * Open specified chapter, page can also be specified
+       *
+       * @param {Number} chapterIndex zero page index of the chapter in the document model
+       * @param {Number} pageNumber page to open, 1 for 1st page 
+       */
       gotoChapter: function (chapterIndex, pageNumber) {
         if ( this._document && this._document.chapters && this._document.chapters.length >= 1 ) {
           this._chapterIndex = chapterIndex;
@@ -265,14 +271,22 @@
        *
        * @param {Object} documentModel an object that specifies the layout and data of the document
        * @param {String} chaperReport name of the chapter's JRXML report 
-       * @param {String} fieldName of the chapter's JRXML report 
+       * @param {String} fieldName name field or parameter to highlight
+       * @param {String} rowIndex undefined to highlight a parameter or the rowIndex to highligth a field
        */
       openAndGotoParamOrField: function (documentModel, chapterReport, fieldName, rowIndex) {
         this._prepareOpenCommand(documentModel);
         this.gotoParamOrField(chapterReport, fieldName, rowIndex);
       },
 
-      gotoParamOrField: function (report, fieldName, rowIndex) {
+      /**
+       * Highlight field or parameter on the specified chapter
+       *
+       * @param {String} chaperReport name of the chapter's JRXML report 
+       * @param {String} fieldName name field or parameter to highlight
+       * @param {String} rowIndex undefined to highlight a parameter or the rowIndex to highligth a field
+       */
+      gotoParamOrField: function (chapterReport, fieldName, rowIndex) {
         var chapterIndex = undefined;
         var highlight_after_load = function() {
             var cmd;
