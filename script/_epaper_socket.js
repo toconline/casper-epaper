@@ -23,7 +23,8 @@ function EPaperSocket_Initialize (a_root) {
 
     a_root.EPaperSocket = function (a_epaper, a_host, a_port, a_uri) {
       this._epaper = a_epaper;
-      this._ws_uri = a_host + (a_port != undefined ? ':' + a_port : '') + '/' + a_uri;
+      this._ws_uri = a_host + ((a_port != undefined && a_port !== '') ? ':' + a_port : '') + '/' + a_uri;
+      this._socket = undefined;
       this.connect();
     }
 
@@ -36,27 +37,17 @@ function EPaperSocket_Initialize (a_root) {
         } else {
           this._socket = new WebSocket(this._ws_uri, "skunk-epaper");
         }
-        this._socket.onmessage = this.create_onmessage_handler(this._epaper);
-        this._socket.onopen    = this.create_onopen_handler(this._epaper);
-        this._socket.onclose   = this.create_onclose_handler(this._epaper);
-      },
+        this._socket.onmessage = function (a_message) {
+          this._epaper.on_socket_message(a_message);
+        }.bind(this);
 
-      create_onmessage_handler: function (a_epaper) {
-        return function (a_message) {
-          a_epaper.on_socket_message(a_message);
-        };
-      },
+        this._socket.onopen = function (a_message) {
+          this._epaper.on_socket_open(a_message);
+        }.bind(this);
 
-      create_onopen_handler: function (a_epaper) {
-        return function (a_message) {
-          a_epaper.on_socket_open(a_message);
-        };
-      },
-
-      create_onclose_handler: function (a_epaper) {
-        return function (a_message) {
-          a_epaper.on_socket_close(a_message);
-        };
+        this._socket.onclose = function (a_message) {
+          this._epaper.on_socket_close(a_message);
+        }.bind(this);
       },
 
       disconnect: function () {

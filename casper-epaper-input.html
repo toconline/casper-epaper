@@ -503,7 +503,7 @@
       _onKeyDownN: function (event) {
         var vkey = this._keycodeToVkey(event);
 
-        if ( this._initialSelection === true ) {
+        if ( this._initialSelection === true || this._textArea.value.length === 0 ) {
           if ( ['down', 'up', 'left', 'right'].indexOf(vkey) > -1 ) {
             this.epaper.send_command('set key "focus_'+vkey+'";');
             event.preventDefault();

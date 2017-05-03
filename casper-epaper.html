@@ -243,10 +243,10 @@
       /**
        * Open server document
        *
-       * @param a_document an object that specifies the layout and data of the document
+       * @param documentModel an object that specifies the layout and data of the document
        */
-      open: function (a_document) {
-        this._prepareOpenCommand(a_document);
+      open: function (documentModel) {
+        this._prepareOpenCommand(documentModel);
         this._openChapter();
       },
 
@@ -260,9 +260,19 @@
         }
       },
 
+      /**
+       * Open document and highlight field or parameter on the specified chapter
+       *
+       * @param documentModel an object that specifies the layout and data of the document
+       */
+      openAndGotoParamOrField: function (documentModel, report, fieldName, rowIndex) {
+        this._prepareOpenCommand(documentModel);
+        this.gotoParamOrField(report, fieldName, rowIndex);
+      },
+
       gotoParamOrField: function (report, fieldName, rowIndex) {
         var chapterIndex = undefined;
-        var highlight_after_load = function(a_resolve, a_reject) {
+        var highlight_after_load = function() {
             var cmd;
 
             if ( rowIndex ) {
@@ -492,10 +502,10 @@
       /**
        * Sanitizes the document object model, auto selects the first chapter
        *
-       * @param {Object} document the document model
+       * @param {Object} documentModel the document model
        */
-      _prepareOpenCommand: function (document) {
-        this._document       = JSON.parse(JSON.stringify(document));
+      _prepareOpenCommand: function (documentModel) {
+        this._document       = JSON.parse(JSON.stringify(documentModel));
         this._chapterCount   = this._document.chapters.length;
         this._totalPageCount = 0;
         for ( var idx = 0; idx < this._chapterCount; idx++ ) {
