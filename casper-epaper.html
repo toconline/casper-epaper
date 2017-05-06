@@ -202,7 +202,9 @@
           this._right_margin = this._master_doc_right_margin;
         }
 
+
         // ... clear the page before we start ...
+        this.setZoom(this.zoom, true);
         this._setupScale();
 
         // ... FOUT Mitigation @TODO proper FOUT mitigation ...
@@ -297,7 +299,7 @@
             } else {
               cmd = 'document highlight parameter "' + fieldName + '";';
             }
-            this.send_command(cmd);
+            this._sendCommand(cmd);
           }.bind(this);
 
         if ( this._jrxml !== undefined ) {
@@ -386,9 +388,7 @@
       },
 
       /**
-       * Goto to the specified page
-       *
-       * Requests page change or if needed loads the required chapter
+       * Goto to the specified page. Requests page change or if needed loads the required chapter
        *
        * @param {number} pageNumber the page to render
        */
@@ -406,7 +406,7 @@
               if ( i === this._chapterIndex ) {
                 if ( this._chapterPageNumber !== newPageNumber ) {
                   this._resetScroll();
-                  this.send_command('document set page ' + newPageNumber + ';');
+                  this._sendCommand('document set page ' + newPageNumber + ';');
                 }
               } else {
                 this.gotoChapter(i, newPageNumber);
@@ -526,13 +526,14 @@
         this._chapterCount   = this._document.chapters.length;
         this._totalPageCount = 0;
         for ( var idx = 0; idx < this._chapterCount; idx++ ) {
-          this._document.chapters[idx].prefix       = this._document.chapters[idx].prefix       || this._defaultApiPrefix;
-          this._document.chapters[idx].locale       = this._document.chapters[idx].locale       || 'pt_PT';
-          this._document.chapters[idx].schema       = this._document.chapters[idx].schema       || this._defaultSchema;
-          this._document.chapters[idx].table_prefix = this._document.chapters[idx].table_prefix || this._defaultPrefix;
-          this._document.chapters[idx].edit         = this._document.chapters[idx].edit         || false;
-          this._document.chapters[idx].subdocument  = this._document.chapters[idx].subdocument  || false;
-          this._document.chapters[idx].pageCount    = this._document.pageCount                  || 1;
+          this._document.chapters[idx].prefix        = this._document.chapters[idx].prefix       || this._defaultApiPrefix;
+          this._document.chapters[idx].locale        = this._document.chapters[idx].locale       || 'pt_PT';
+          this._document.chapters[idx].schema        = this._document.chapters[idx].schema       || this._defaultSchema;
+          this._document.chapters[idx].shardedSchema = this._document.chapters[idx].schema       || this._defaultShardedSchema;
+          this._document.chapters[idx].table_prefix  = this._document.chapters[idx].table_prefix || this._defaultPrefix;
+          this._document.chapters[idx].edit          = this._document.chapters[idx].edit         || false;
+          this._document.chapters[idx].subdocument   = this._document.chapters[idx].subdocument  || false;
+          this._document.chapters[idx].pageCount     = this._document.pageCount                  || 1;
           this._totalPageCount += this._document.chapters[idx].pageCount;
         }
         this._chapterIndex = 0;
@@ -552,7 +553,7 @@
             if ( this._jrxml === this._chapter.jrxml && this._locale === this._chapter.locale && this._subdocument === this._chapter.subdocument ) {
               return a_resolve(this);
             }
-            this.send_command('document open "' + this._chapter.jrxml + '","' + this._chapter.locale + '",' + this._chapter.subdocument + ',false;', function (a_response) {
+            this._sendCommand('document open "' + this._chapter.jrxml + '","' + this._chapter.locale + '",' + this._chapter.subdocument + ',false;', function (a_response) {
               var response = this._validate_response('open', a_response);
               if ( response instanceof Error ) {
                 a_reject(response);
@@ -577,17 +578,17 @@
           }.bind(this));
         }.bind(this);
 
-        // Promise to configure the JSON API in case it's config has changed
+        // Promise to configure the JSON API
         var configure_api = function () {
           return new Promise(function (a_resolve, a_reject) {
+            var config_msg;
 
-            // @TODO this will go the session and we won't need to reconfigure anymore, or ... we'll decide to keep the odds open
-
-            //if ( this._prefix === this._chapter.prefix && this._schema === this._chapter.schema && this._table_prefix === this._chapter.table_prefix ) {
-            //  return a_resolve(this);
-            //}
-
-            this.send_command('document config json_api "' + this._chapter.prefix + '","' + this._chapter.schema + '","' + this._chapter.table_prefix + '";', function (a_response) {
+            config_msg = 'document config json_api "' + this._chapter.prefix + '","' + this._chapter.schema + '","' + this._chapter.table_prefix + '"';
+            if ( this._chapter.sharded_schema !== undefined  ) {
+              config_msg += ',"' + this._chapter.sharded_schema + '"';
+            }
+            config_msg += ';'
+            this._sendCommand(config_msg, function (a_response) {
               var response = this._validate_response('json_api', a_response);
 
               if ( response instanceof Error ) {
@@ -615,7 +616,7 @@
               focus:       this._openFocus,
               page:        this._nextPage
             };
-            this.send_command('document load "' + JSON.stringify(args).replace(/"/g,'""') + '";', function (a_response) {
+            this._sendCommand('document load "' + JSON.stringify(args).replace(/"/g,'""') + '";', function (a_response) {
               var response = this._validate_response('load', a_response);
 
               if ( response instanceof Error ) {
@@ -672,7 +673,8 @@
           .then(post_open)
           .catch(function(a_error) {
             alert("Paper error " + a_error);
-          });
+            this._clear();
+          }.bind(this));
       },
 
       /**
@@ -681,28 +683,6 @@
       _hideWidgets: function (hideInputButtons) {
         this._deactivateLineContextMenu();
         this.$.input.hideOverlays(hideInputButtons);
-      },
-
-      _callRpc: function (a_invoke_id, a_command, a_success_handler, a_failure_handler) {
-
-        a_failure_handler = a_failure_handler || function (a_epaper, a_message) {
-          if ( a_epaper._listener !== undefined ) {
-            a_epaper._listener.on_error(a_message);
-          } else {
-            alert(a_message);
-          }
-        }
-
-        this.send_command(a_command, function (a_message) {
-          if ( a_message.indexOf('S:error:') === 0 || a_message.indexOf('S:exception:') === 0 ) {
-            a_failure_handler(this, a_message);
-            return;
-          }
-          if ( a_message.indexOf('S:ok:' + a_invoke_id) === 0 ) {
-            a_success_handler(this, a_message);
-          }
-
-        });
       },
 
       /**
@@ -725,7 +705,7 @@
       //***************************************************************************************//
 
       /**
-       * @brief Assing defaults to undefined component attributes
+       * @brief Assign defaults to undefined component attributes
        */
       _calculateAttributeDefaults: function () {
         if ( this.url === undefined ) {
@@ -758,7 +738,7 @@
           this._canvas_height = height;
           this._setupScale();
           if ( this._document_id !== undefined && this._documentScale !== this._sx ) {
-            this.send_command('document set scale ' + this._sx + ' ' + this._sx + ';');
+            this._sendCommand('document set scale ' + this._sx + ' ' + this._sx + ';');
             this._documentScale = this._sx;
           }
         }
@@ -849,7 +829,7 @@
       },
 
       _mouseUpHandler: function (a_event) {
-        this.send_command("set click " + (event.offsetX * this._scalePxToServer).toFixed(2) + ', ' + (event.offsetY * this._scalePxToServer).toFixed(2) + ';');
+        this._sendCommand("set click " + (event.offsetX * this._scalePxToServer).toFixed(2) + ', ' + (event.offsetY * this._scalePxToServer).toFixed(2) + ';');
         if ( this._edition ) {
           this.$.input.grabFocus();
         }
@@ -2043,7 +2023,7 @@
 
       _addDocumentLine: function (a_src_widget) {
         if ( this._context_menu_idx !== - 1) {
-          this.send_command('document add band "' + this._bands[this._context_menu_idx]._type +
+          this._sendCommand('document add band "' + this._bands[this._context_menu_idx]._type +
                                     '" ' + this._bands[this._context_menu_idx]._id + ';',
                             function (a_msg) {
                               if ( a_msg === 'S:ok:parser' ) {
@@ -2060,7 +2040,7 @@
 
       _removeDocumentLine: function (a_src_widget) {
         if ( this._context_menu_idx !== - 1) {
-          this.send_command('document remove band "' + this._bands[this._context_menu_idx]._type +
+          this._sendCommand('document remove band "' + this._bands[this._context_menu_idx]._type +
                                     '" ' + this._bands[this._context_menu_idx]._id + ';',
                             function (a_msg) {
                               if ( a_msg === 'S:ok:parser' ) {
@@ -2244,9 +2224,39 @@
       //                                                                                       //
       //***************************************************************************************//
 
-      send_command: function (a_message, a_callback) {
+      _sendCommand: function (a_message, a_callback) {
         this._request_callback = a_callback || this.default_ws_handler;
-        this._socket.send_command(a_message, this._request_callback);
+        this._socket.sendCommand(a_message, this._request_callback);
+      },
+
+
+      _getData: function (route, callback) {
+        if ( this._getDataCallback === undefined ) {
+          this._getDataCallback = callback;
+          this._socket.sendCommand('get data "'+route+'";', this._request_callback);
+        }
+      },
+
+      _callRpc: function (a_invoke_id, a_command, a_success_handler, a_failure_handler) {
+
+        a_failure_handler = a_failure_handler || function (a_epaper, a_message) {
+          if ( a_epaper._listener !== undefined ) {
+            a_epaper._listener.on_error(a_message);
+          } else {
+            alert(a_message);
+          }
+        }
+
+        this._sendCommand(a_command, function (a_message) {
+          if ( a_message.indexOf('S:error:') === 0 || a_message.indexOf('S:exception:') === 0 ) {
+            a_failure_handler(this, a_message);
+            return;
+          }
+          if ( a_message.indexOf('S:ok:' + a_invoke_id) === 0 ) {
+            a_success_handler(this, a_message);
+          }
+
+        });
       },
 
       disconnect: function () {
@@ -2262,8 +2272,9 @@
         switch (a_message.data[0]) {
           case 'S':
             if ( a_message.data.indexOf('S:ok:data:') === 0 ) {
-              if ( this.$.input !== undefined ) {
-                this.$.input.onGetDataResponse(a_message.data.substring('S:ok:data:'.length));
+              if ( this._getDataCallback !== undefined ) {
+                this._getDataCallback(a_message.data.substring('S:ok:data:'.length));
+                this._getDataCallback = undefined;
               }
             } else {
               this._request_callback(a_message.data);

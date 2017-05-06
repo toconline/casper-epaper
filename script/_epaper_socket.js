@@ -54,7 +54,7 @@ function EPaperSocket_Initialize (a_root) {
         this._socket.close();
       },
 
-      send_command: function (a_message) {
+      sendCommand: function (a_message) {
         this._socket.send(a_message);
       }
 

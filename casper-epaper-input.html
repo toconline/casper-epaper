@@ -384,7 +384,10 @@
             this.hideTooltip();
             this._overlay.setVisible(true, this._comboFilter);
             if ( this._comboListQuery !== undefined && this._overlay === this.$.combo ) {
-              this.epaper.send_command('get data "'+this._comboListQuery+'";');
+              this.epaper._getData(this._comboListQuery, function(response) {
+                this.onGetDataResponse(response);
+              }.bind(this));
+              //this.epaper._sendCommand('get data "'+this._comboListQuery+'";');
             }
           }
           this.overlayVisible = this._overlay.isVisible();
@@ -508,11 +511,11 @@
 
         if ( this._initialSelection === true || this._textArea.value.length === 0 ) {
           if ( ['down', 'up', 'left', 'right'].indexOf(vkey) > -1 ) {
-            this.epaper.send_command('set key "focus_'+vkey+'";');
+            this.epaper._sendCommand('set key "focus_'+vkey+'";');
             event.preventDefault();
             return;
           } else if ( ['tab', 'shift+tab'].indexOf(vkey) > -1 ) {
-            this.epaper.send_command('set key "'+vkey.replace(/\+/g, '"+"')+'";');
+            this.epaper._sendCommand('set key "'+vkey.replace(/\+/g, '"+"')+'";');
             event.preventDefault();
             return;
           } else if ( ['enter', 'F2'].indexOf(vkey) > -1 ) {
@@ -527,7 +530,7 @@
         }
 
         if ( ['enter', 'tab', 'shift+tab'].indexOf(vkey) > -1 ) {
-          this.epaper.send_command('set text "' + this._escapeForServer(this._textArea.value) + '" true; set key "'
+          this.epaper._sendCommand('set text "' + this._escapeForServer(this._textArea.value) + '" true; set key "'
                                       + vkey.replace(/\+/g, '"+"') + '";');
           event.preventDefault();
           return;
@@ -559,7 +562,7 @@
         /*if ( this.overlayVisible === false ) {
           if ( this._comboListQuery !== undefined && this._overlay === this.$.combo ) {
             if ( !this.$.combo.items || !!this.$.combo.items.length ) {
-              this.epaper.send_command('get data "'+this._comboListQuery+'";');
+              this.epaper._sendCommand('get data "'+this._comboListQuery+'";');
             }
           }
           //this._toggleOverlay();
@@ -584,14 +587,14 @@
             if ( this._comboFilter.length !== 0 && ['down', 'up'].indexOf(vkey) > -1) {
               this.$.combo.moveSelection(vkey);
             } else {
-              this.epaper.send_command('set key "focus_'+vkey+'";');
+              this.epaper._sendCommand('set key "focus_'+vkey+'";');
             }
             event.preventDefault();
           } else if ( ['tab', 'shift+tab', 'enter'].indexOf(vkey) > -1 ) {
             if ( this.$.combo.getSelectedId() && this.$.combo.getSelectedId() !== this.$.combo.getInitialId() ) {
-            //  this.epaper.send_command('set list item "' + this.$.combo.getSelectedId()  + '";');
+            //  this.epaper._sendCommand('set list item "' + this.$.combo.getSelectedId()  + '";');
             }
-            this.epaper.send_command('set key "'+vkey.replace(/\+/g, '"+"')+'";');
+            this.epaper._sendCommand('set key "'+vkey.replace(/\+/g, '"+"')+'";');
             event.preventDefault();
           } else if ( vkey === 'alt' || vkey === 'shift+down' ) {
             //this._comboFilter = event.key;
@@ -629,19 +632,19 @@
 
         key = event.detail.closingKey;
         if ( event.detail.selectedId !== undefined && event.detail.selectedId !== event.detail.previousId ) {
-          this.epaper.send_command('set list item "' + event.detail.selectedId  + '";');
+          this.epaper._sendCommand('set list item "' + event.detail.selectedId  + '";');
           if ( key === 'shift+tab' ) {
-            this.epaper.send_command('set key "shift"+"tab";');
+            this.epaper._sendCommand('set key "shift"+"tab";');
           } else if ( key === 'enter' || key === 'tab' ) {
-            this.epaper.send_command('set key "tab";');
+            this.epaper._sendCommand('set key "tab";');
           } else {
-            this.epaper.send_command('set key "save";');
+            this.epaper._sendCommand('set key "save";');
           }
         } else {
           if ( key === 'shift+tab' ) {
-            this.epaper.send_command('set key "focus_left";');
+            this.epaper._sendCommand('set key "focus_left";');
           } else if ( key === 'enter' || key === 'tab' ) {
-            this.epaper.send_command('set key "focus_right";');
+            this.epaper._sendCommand('set key "focus_right";');
           }
         }
         this._textArea.focus();
@@ -674,7 +677,7 @@
           cmd += 'set key "'+vkey.replace(/\+/g, '"+"')+'";';
         }
         if ( cmd.length ) {
-          this.epaper.send_command(cmd);
+          this.epaper._sendCommand(cmd);
         }
       },
 
@@ -691,17 +694,17 @@
       _onKeyDownR: function (event) {
         if ( event.keyCode === 32 || (event.keyCode === 88 && this._textArea.value.length === 0) ) {
           this.debounce('casper-toggle', function () {
-            this.epaper.send_command('set key "toggle";');
+            this.epaper._sendCommand('set key "toggle";');
           }.bind(this), 300);
         } else {
           var vkey = this._keycodeToVkey(event);
 
           if ( ['down', 'up', 'left', 'right'].indexOf(vkey) > -1 ) {
-            this.epaper.send_command('set key "focus_'+vkey+'";');
+            this.epaper._sendCommand('set key "focus_'+vkey+'";');
           } else if ( vkey === 'shift+tab' ) {
-            this.epaper.send_command('set key "focus_left";');
+            this.epaper._sendCommand('set key "focus_left";');
           } else if ( vkey === 'enter' || vkey === 'tab' ) {
-            this.epaper.send_command('set key "focus_right";');
+            this.epaper._sendCommand('set key "focus_right";');
           }
         }
         event.preventDefault();
@@ -806,7 +809,7 @@
       _onMouseDown: function (event) {
         if ( this._mode === 'R' ) {
           event.preventDefault();
-          this.epaper.send_command('set key "toggle";'); 
+          this.epaper._sendCommand('set key "toggle";'); 
         } else {
           this._initialSelection = false;
           this.grabFocus();
