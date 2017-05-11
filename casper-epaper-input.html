@@ -521,7 +521,7 @@
           } else if ( ['enter', 'F2'].indexOf(vkey) > -1 ) {
             this._textArea.selectionStart = this._textArea.value.length;
             this._textArea.selectionEnd = this._textArea.value.length;
-            if ( this._initialSelection === true ) {
+            if ( this._initialSelection === true || vkey === 'F2' ) {
               this._initialSelection = false;
               event.preventDefault();
               return;
