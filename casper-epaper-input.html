@@ -521,9 +521,11 @@
           } else if ( ['enter', 'F2'].indexOf(vkey) > -1 ) {
             this._textArea.selectionStart = this._textArea.value.length;
             this._textArea.selectionEnd = this._textArea.value.length;
-            this._initialSelection = false;
-            event.preventDefault();
-            return;
+            if ( this._initialSelection === true ) {
+              this._initialSelection = false;
+              event.preventDefault();
+              return;
+            }
           } else {
             this._initialSelection = false;
           }
