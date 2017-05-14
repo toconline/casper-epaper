@@ -88,7 +88,7 @@
     <input is="iron-input" id="textarea">
     <!--/div-->
     <!--iron-autogrow-textarea id="input" tabindex="0"></iron-autogrow-textarea-->
-    <iron-icon id="dropdown_btn" rotate$="[[overlayVisible]]" on-tap="_toggleOverlay" icon="casper-icons:arrow-drop-down"></iron-icon>
+    <iron-icon id="dropdown_btn" rotate$="[[overlayVisible]]" on-tap="_toggleOverlay" icon="casper-icons:clear-combo"></iron-icon>
     <iron-icon id="edit_btn" on-tap="_toggleSubEditor" icon="casper-icons:cancel"></iron-icon>
     <casper-epaper-combolist id="combo"></casper-epaper-combolist>
     <casper-epaper-datepicker id="date"></casper-epaper-datepicker>
@@ -305,7 +305,7 @@
         switch ( this._mode ) {
         case 'c': // Client combo
         case 'l': // Ledger mode
-          this.$.dropdown_btn.icon = 'casper-icons:arrow-drop-down';
+          this.$.dropdown_btn.icon = 'casper-icons:clear-combo'; //'casper-icons:arrow-drop-down';
           this.$.dropdown_btn.style.display = 'inline';
           this._textArea.style.width = (width - btn_size) + 'px';
           break;
