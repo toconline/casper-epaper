@@ -1,7 +1,1 @@
-<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-  <title>clear-combo</title>
-  <g fill="none" fill-rule="evenodd">
-    <path d="M12 19a7 7 0 1 0 0-14 7 7 0 0 0 0 14z" stroke="#D0011B" stroke-width="1.5" fill-opacity=".55" fill="#EE9392"/>
-    <path d="M13.6 12L16 9.6 14.4 8 12 10.4 9.6 8 8 9.6l2.4 2.4L8 14.4 9.6 16l2.4-2.4 2.4 2.4 1.6-1.6-2.4-2.4z" fill="#FFF"/>
-  </g>
-</svg>
+<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title>clear-combo</title><g fill="none" fill-rule="evenodd"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z" stroke="#D0011B" stroke-width="1.5" fill-opacity=".55" fill="#EE9392"/><path d="M14 12l3-3-2-2-3 3-3-3-2 2 3 3-3 3 2 2 3-3 3 3 2-2-3-3z" fill="#FFF"/></g></svg>
