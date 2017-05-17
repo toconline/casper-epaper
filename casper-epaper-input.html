@@ -70,8 +70,24 @@
       outline: none;
       background-color: rgba(0, 0, 0, 0); 
     }
-/*
-    #input {
+
+    #clear_btn {
+      stroke: #D0011B;
+      fill: #EE9392;
+      fill-opacity: 0.55; 
+    }
+
+    #clear_btn:hover {
+      fill-opacity: 0.9; 
+    }
+
+    #clear_btn:active {
+      stroke: #555;
+      fill: #B94F4F;
+      fill-opacity: 1; 
+    }
+
+/*  #input {
       -ms-overflow-style: -ms-autohiding-scrollbar;
     }
 
@@ -88,8 +104,9 @@
     <input is="iron-input" id="textarea">
     <!--/div-->
     <!--iron-autogrow-textarea id="input" tabindex="0"></iron-autogrow-textarea-->
-    <iron-icon id="dropdown_btn" rotate$="[[overlayVisible]]" on-tap="_toggleOverlay" icon="casper-icons:clear-combo"></iron-icon>
-    <iron-icon id="edit_btn" on-tap="_toggleSubEditor" icon="casper-icons:cancel"></iron-icon>
+    <iron-icon id="dropdown_btn" on-tap="_toggleOverlay"   icon="casper-icons:arrow-drop-down" rotate$="[[overlayVisible]]" ></iron-icon>
+    <iron-icon id="clear_btn"    on-tap="_clearField"      icon="casper-icons:clear-combo"></iron-icon>
+    <iron-icon id="edit_btn"     on-tap="_toggleSubEditor" icon="casper-icons:cancel"></iron-icon>
     <casper-epaper-combolist id="combo"></casper-epaper-combolist>
     <casper-epaper-datepicker id="date"></casper-epaper-datepicker>
   </template>
@@ -305,7 +322,7 @@
         switch ( this._mode ) {
         case 'c': // Client combo
         case 'l': // Ledger mode
-          this.$.dropdown_btn.icon = 'casper-icons:clear-combo'; //'casper-icons:arrow-drop-down';
+          this.$.dropdown_btn.icon = 'casper-icons:arrow-drop-down';
           this.$.dropdown_btn.style.display = 'inline';
           this._textArea.style.width = (width - btn_size) + 'px';
           break;
