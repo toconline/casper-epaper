@@ -73,18 +73,30 @@
 
     #clear_btn {
       stroke: #D0011B;
+      stroke-width: 1.5;
       fill: #EE9392;
       fill-opacity: 0.55; 
     }
 
     #clear_btn:hover {
+      stroke: #555;
+      stroke-width: 2.5;
       fill-opacity: 0.9; 
     }
 
     #clear_btn:active {
       stroke: #555;
+      stroke-width: 2.5;
       fill: #B94F4F;
       fill-opacity: 1; 
+    }
+
+    #edit_btn {
+      fill: var(--dark-primary-color);
+    }
+
+    #edit_btn:hover {
+      fill: var(--primary-color);
     }
 
 /*  #input {
@@ -106,7 +118,7 @@
     <!--iron-autogrow-textarea id="input" tabindex="0"></iron-autogrow-textarea-->
     <iron-icon id="dropdown_btn" on-tap="_toggleOverlay"   icon="casper-icons:arrow-drop-down" rotate$="[[overlayVisible]]" ></iron-icon>
     <iron-icon id="clear_btn"    on-tap="_clearField"      icon="casper-icons:clear-combo"></iron-icon>
-    <iron-icon id="edit_btn"     on-tap="_toggleSubEditor" icon="casper-icons:cancel"></iron-icon>
+    <iron-icon id="edit_btn"     on-tap="_toggleSubEditor" icon="casper-icons:edit-doc"></iron-icon>
     <casper-epaper-combolist id="combo"></casper-epaper-combolist>
     <casper-epaper-datepicker id="date"></casper-epaper-datepicker>
   </template>
@@ -237,6 +249,7 @@
         if ( hideButtons ) {
           this.$.dropdown_btn.style.display = 'none';
           this.$.edit_btn.style.display = 'none';
+          this.$.clear_btn.style.display = 'nome';
         }
       },
 
@@ -276,7 +289,7 @@
        * @param a_nullable_list The combo box list can be nulled
        */
       setMode: function (a_mode, a_nullable_list) {
-        var top, left, width, height, btn_size;
+        var top, left, width, height, btn_size, edit_btn_size;
 
         this.hideOverlays();
         this._comboFilter = '';
@@ -309,15 +322,27 @@
         width    = parseInt(this.style.width);
         height   = parseInt(this.style.height);
 
+        this.$.dropdown_btn.style.display = 'none';
         this.$.dropdown_btn.style.padding = '0px';
         this.$.dropdown_btn.style.height  = btn_size + 'px';
         this.$.dropdown_btn.style.width   = btn_size + 'px';
         this.$.dropdown_btn.style.top     = ((height - btn_size) / 2) + 'px';
         this.$.dropdown_btn.style.left    = (width - btn_size) + 'px';
 
-        // TODO edit button layout
-        this.$.edit_btn.style.top        = ((height - btn_size) / 2) + 'px';
-        this.$.edit_btn.style.left       = width + 'px';
+        this.$.clear_btn.style.display = 'inline'; // 'none'
+        this.$.clear_btn.style.padding = '0px';
+        this.$.clear_btn.style.height  = btn_size + 'px';
+        this.$.clear_btn.style.width   = btn_size + 'px';
+        this.$.clear_btn.style.top     = ((height - btn_size) / 2) + 'px';
+        this.$.clear_btn.style.left    = (0) + 'px';
+
+        edit_btn_size = Math.floor(18 * this.epaper.zoom); 
+        this.$.edit_btn.style.display = 'inline'; // 'none'
+        this.$.edit_btn.style.padding = '0px';
+        this.$.edit_btn.style.height  = edit_btn_size + 'px';
+        this.$.edit_btn.style.width   = edit_btn_size + 'px';
+        this.$.edit_btn.style.top     = ((height - edit_btn_size) / 2) + 'px';
+        this.$.edit_btn.style.left    = (-edit_btn_size) + 'px';
 
         switch ( this._mode ) {
         case 'c': // Client combo
@@ -863,6 +888,9 @@
         var mid_x, mid_y, bbi, bbc;
 
         bbc = this.epaper.$.canvas.getBoundingClientRect();
+        if ( this.$.input === undefined ) {
+          return; // TODO 
+        }
         bbi = this.$.input.getBoundingClientRect();
         mid_x = bbc.left + left + width  / 2;
         mid_y = bbc.top  + top  + height / 2;
