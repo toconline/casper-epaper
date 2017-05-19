@@ -329,15 +329,15 @@
         this.$.dropdown_btn.style.top     = ((height - btn_size) / 2) + 'px';
         this.$.dropdown_btn.style.left    = (width - btn_size) + 'px';
 
-        this.$.clear_btn.style.display = 'inline'; // 'none'
+        this.$.clear_btn.style.display = 'none';
         this.$.clear_btn.style.padding = '0px';
         this.$.clear_btn.style.height  = btn_size + 'px';
         this.$.clear_btn.style.width   = btn_size + 'px';
         this.$.clear_btn.style.top     = ((height - btn_size) / 2) + 'px';
-        this.$.clear_btn.style.left    = (0) + 'px';
+        this.$.clear_btn.style.left    = (width - btn_size) + 'px';
 
         edit_btn_size = Math.floor(18 * this.epaper.zoom); 
-        this.$.edit_btn.style.display = 'inline'; // 'none'
+        this.$.edit_btn.style.display = 'none'; // 'inline';
         this.$.edit_btn.style.padding = '0px';
         this.$.edit_btn.style.height  = edit_btn_size + 'px';
         this.$.edit_btn.style.width   = edit_btn_size + 'px';
@@ -348,7 +348,7 @@
         case 'c': // Client combo
         case 'l': // Ledger mode
           this.$.dropdown_btn.icon = 'casper-icons:arrow-drop-down';
-          this.$.dropdown_btn.style.display = 'inline';
+          //this.$.dropdown_btn.style.display = 'none';
           this._textArea.style.width = (width - btn_size) + 'px';
           break;
         case 'd': // Date
@@ -434,6 +434,19 @@
           }
           this.overlayVisible = this._overlay.isVisible();
         }
+        if ( event !== undefined ) {
+          event.stopPropagation();
+        }
+      },
+
+      /**
+       * Event handler that clears the combo list item
+       *
+       * @param {Object} event the click event
+       */
+      _clearField: function (event) {
+        this.epaper._sendCommand('set list item "";');
+        this.epaper._sendCommand('set key "save";');
         if ( event !== undefined ) {
           event.stopPropagation();
         }
@@ -557,9 +570,12 @@
             event.preventDefault();
             return;
           } else if ( ['tab', 'shift+tab'].indexOf(vkey) > -1 ) {
-            this.epaper._sendCommand('set key "'+vkey.replace(/\+/g, '"+"')+'";');
-            event.preventDefault();
-            return;
+            if ( this._initialSelection === true ) {
+              this._initialSelection = false;
+              this.epaper._sendCommand('set key "'+vkey.replace(/\+/g, '"+"')+'";');
+              event.preventDefault();
+              return;
+            }
           } else if ( ['enter', 'F2'].indexOf(vkey) > -1 ) {
             this._textArea.selectionStart = this._textArea.value.length;
             this._textArea.selectionEnd = this._textArea.value.length;
@@ -599,6 +615,13 @@
         this._textArea.selectionEnd = undefined;
         if (this._comboListQuery !== undefined && displayValue !== undefined) {
           this._textArea.value = displayValue;
+        }
+        // aqui
+        if ( displayValue.length !== 0 && this._binding !== undefined && this._binding.attachment !== undefined &&
+             this._binding.attachment.clearButton === true ) {
+          this.$.clear_btn.style.display = 'inline';
+        } else {
+          this.$.dropdown_btn.style.display = 'inline';
         }
       },
 
