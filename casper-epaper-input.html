@@ -286,9 +286,8 @@
        * Configure the editor mode
        *
        * @param a_mode The editor mode
-       * @param a_nullable_list The combo box list can be nulled
        */
-      setMode: function (a_mode, a_nullable_list) {
+      setMode: function (a_mode) {
         var top, left, width, height, btn_size, edit_btn_size;
 
         this.hideOverlays();
@@ -618,7 +617,7 @@
         }
         // aqui
         if ( displayValue.length !== 0 && this._binding !== undefined && this._binding.attachment !== undefined &&
-             this._binding.attachment.clearButton === true ) {
+             this._binding.attachment.allowClear === true ) {
           this.$.clear_btn.style.display = 'inline';
         } else {
           this.$.dropdown_btn.style.display = 'inline';
