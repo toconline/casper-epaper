@@ -129,6 +129,11 @@
         scroller: {
           type: String,
           value: undefined
+        },
+        /** server session */
+        session: {
+          type: String,
+          value: undefined
         }
       },
 
@@ -583,14 +588,23 @@
           return new Promise(function (a_resolve, a_reject) {
             var config_msg;
 
-            config_msg = 'document config json_api "' + this._chapter.prefix + '","' + this._chapter.schema + '","' + this._chapter.tablePrefix + '"';
-            if ( this._chapter.shardedSchema !== undefined  ) {
-              config_msg += ',"' + this._chapter.shardedSchema + '"';
+            if ( this.session ) {
+              config_msg = 'document set session "' + this.session + '";';
+            } else {
+              config_msg = 'document config json_api "' + this._chapter.prefix + '","' + this._chapter.schema + '","' + this._chapter.tablePrefix + '"';
+              if ( this._chapter.shardedSchema !== undefined  ) {
+                config_msg += ',"' + this._chapter.shardedSchema + '"';
+              }
+              config_msg += ';'
             }
-            config_msg += ';'
             this._sendCommand(config_msg, function (a_response) {
-              var response = this._validate_response('json_api', a_response);
+              var response;
 
+              if ( this.session ) {
+                response = this._validate_response('json_api', a_response);
+              } else {
+                response = this._validate_response('session', a_response);
+              }
               if ( response instanceof Error ) {
                 a_reject(response);
               } else {
@@ -598,6 +612,8 @@
                   this._prefix       = this._chapter.prefix;
                   this._schema       = this._chapter.schema;
                   this._table_prefix = this._chapter.table_prefix;
+                  a_resolve(self);
+                } else if ( a_response.startsWith('S:ok:session') ) {
                   a_resolve(self);
                 }
               }
