@@ -366,11 +366,13 @@
         return false;
       },
 
-      jsonApiConfig: function (schema, prefix, shardedSchema, apiPrefix) {
-        this._defaultSchema = schema;
-        this._defaultPrefix = prefix;
-        this._defaultShardedSchema = shardedSchema;
-        this._defaultApiPrefix = apiPrefix || 'https://localhost/';
+      // NOTE @TODO will be delete when we move 
+      jsonApiConfig: function (configuration) {
+        this._jsonApiConfig = configuration;
+        //this._defaultSchema = schema;
+        //this._defaultPrefix = prefix;
+        //this._defaultShardedSchema = shardedSchema;
+        //this._defaultApiPrefix = apiPrefix || 'https://localhost/';
       },
 
       /**
@@ -531,11 +533,11 @@
         this._chapterCount   = this._document.chapters.length;
         this._totalPageCount = 0;
         for ( var idx = 0; idx < this._chapterCount; idx++ ) {
-          this._document.chapters[idx].prefix        = this._document.chapters[idx].prefix        || this._defaultApiPrefix;
+          //this._document.chapters[idx].prefix        = this._document.chapters[idx].prefix        || this._defaultApiPrefix;
           this._document.chapters[idx].locale        = this._document.chapters[idx].locale        || 'pt_PT';
-          this._document.chapters[idx].schema        = this._document.chapters[idx].schema        || this._defaultSchema;
-          this._document.chapters[idx].shardedSchema = this._document.chapters[idx].shardedSchema || this._defaultShardedSchema;
-          this._document.chapters[idx].tablePrefix   = this._document.chapters[idx].tablePrefix   || this._defaultPrefix;
+          //this._document.chapters[idx].schema        = this._document.chapters[idx].schema        || this._defaultSchema;
+          //this._document.chapters[idx].shardedSchema = this._document.chapters[idx].shardedSchema || this._defaultShardedSchema;
+          //this._document.chapters[idx].tablePrefix   = this._document.chapters[idx].tablePrefix   || this._defaultPrefix;
           this._document.chapters[idx].edit          = this._document.chapters[idx].edit          || false;
           this._document.chapters[idx].subdocument   = this._document.chapters[idx].subdocument   || false;
           this._document.chapters[idx].pageCount     = this._document.pageCount                   || 1;
@@ -591,11 +593,7 @@
             if ( this.session ) {
               config_msg = 'document set session "' + this.session + '";';
             } else {
-              config_msg = 'document config json_api "' + this._chapter.prefix + '","' + this._chapter.schema + '","' + this._chapter.tablePrefix + '"';
-              if ( this._chapter.shardedSchema !== undefined  ) {
-                config_msg += ',"' + this._chapter.shardedSchema + '"';
-              }
-              config_msg += ';'
+              config_msg = 'document config json_api "' + this._jsonApiConfig.replace(/"/g, '""') + '";';
             }
             this._sendCommand(config_msg, function (a_response) {
               var response;
@@ -609,9 +607,9 @@
                 a_reject(response);
               } else {
                 if ( a_response.startsWith('S:ok:json_api') ) {
-                  this._prefix       = this._chapter.prefix;
-                  this._schema       = this._chapter.schema;
-                  this._table_prefix = this._chapter.table_prefix;
+                  //this._prefix       = this._chapter.prefix;
+                  //this._schema       = this._chapter.schema;
+                  //this._table_prefix = this._chapter.table_prefix;
                   a_resolve(self);
                 } else if ( a_response.startsWith('S:ok:session') ) {
                   a_resolve(self);
@@ -803,9 +801,9 @@
         this._path         = undefined;
         this._params       = undefined;
         this._jrxml        = undefined;
-        this._prefix       = undefined;
+        //this._prefix       = undefined;
         this._locale       = undefined;
-        this._table_prefix = undefined;
+        //this._table_prefix = undefined;
         this._edit         = false;
         this._subdocument  = false;
         this._loading      = false;
@@ -2163,11 +2161,11 @@
 
       on_edit_subdocument: function (a_src_widget) {
 
-        this.open_document(this._sub_document_jrxml,
+        this.open_document(this._sub_document_jrxml,  // #TODO sub documents again
                            this._locale,
-                           this._prefix,
-                           this._schema,
-                           this._table_prefix,
+                           //this._prefix,
+                           //this._schema,
+                           //this._table_prefix,
                            true,
                            true,
                            function (a_epaper, a_page_width, a_page_height) {
