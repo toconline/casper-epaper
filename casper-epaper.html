@@ -366,13 +366,9 @@
         return false;
       },
 
-      // NOTE @TODO will be delete when we move 
+      // NOTE @TODO will be delete when we move to session based man grade authentication
       jsonApiConfig: function (configuration) {
         this._jsonApiConfig = configuration;
-        //this._defaultSchema = schema;
-        //this._defaultPrefix = prefix;
-        //this._defaultShardedSchema = shardedSchema;
-        //this._defaultApiPrefix = apiPrefix || 'https://localhost/';
       },
 
       /**
@@ -477,6 +473,45 @@
           }
         );
       },
+
+      getPrintJob: function (name, print) {
+        if ( this._document_id === undefined || this._document === undefined 
+             || this._document.chapters === undefined || this._document.loading ) {
+          return undefined;
+        } else {
+          var ja_cfg = JSON.parse(this._jsonApiConfig);
+          var job = {
+            tube: 'casper-print-queue',
+            name: name,
+            validity: 3600,
+            locale: this._locale,
+            continous_pages: true,
+            auto_printable: print == true,
+            documents: [],
+            public_link: {
+              path: print ? 'print' : 'download'
+            },
+          }
+          for (var i = 0; i < this._document.chapters.length; i++) {
+            var chapter = {
+              name: name,
+              jrxml: this._document.chapters[i].jrxml + '.jrxml',  // Make this optional on CPQ???
+              jsonapi: {
+                urn: this._document.chapters[i].path + '?include=lines', // Make this optional on CPQ???
+                prefix: ja_cfg.prefix,                         // TODO SET ALL OF THese values TO NULL when session auth is in place
+                user_id: ja_cfg.user_id,     // TODO SET ALL OF THese values TO NULL when session auth is in place
+                company_id: ja_cfg.company_id, // TODO SET ALL OF THese values TO NULL when session auth is in place
+                company_schema: ja_cfg.company_schema, // TODO SET ALL OF THese values TO NULL when session auth is in place
+                sharded_schema: ja_cfg.sharded_schema, // TODO SET ALL OF THese values TO NULL when session auth is in place
+                accounting_schema: ja_cfg.accounting_schema, // TODO SET ALL OF THese values TO NULL when session auth is in place
+                accounting_prefix: ja_cfg.accounting_prefix // TODO SET ALL OF THese values TO NULL when session auth is in place
+              }
+            }
+            job.documents.push(chapter);
+          }
+          return job;
+        }
+      },     
 
       // This more a Refresh??
       reload_document: function (a_success_handler) {
