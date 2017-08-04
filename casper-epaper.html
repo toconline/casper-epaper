@@ -475,7 +475,18 @@
       },
 
       getPrintJob: function (name, print) {
-        if ( this._document_id === undefined || this._document === undefined 
+
+        switch (typeof(name)) {
+          case 'object':
+            var title = name.title
+            var name  = name.name
+            break;
+          case 'string':
+            var title = name
+            break;
+        }
+
+        if ( this._document_id === undefined || this._document === undefined
              || this._document.chapters === undefined || this._document.loading ) {
           return undefined;
         } else {
@@ -495,6 +506,7 @@
           for (var i = 0; i < this._document.chapters.length; i++) {
             var chapter = {
               name: name,
+              title: title,
               jrxml: this._document.chapters[i].jrxml + '.jrxml',  // Make this optional on CPQ???
               jsonapi: {
                 urn: this._document.chapters[i].path + '?include=lines', // Make this optional on CPQ???
