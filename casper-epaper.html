@@ -568,11 +568,7 @@
         this._chapterCount   = this._document.chapters.length;
         this._totalPageCount = 0;
         for ( var idx = 0; idx < this._chapterCount; idx++ ) {
-          //this._document.chapters[idx].prefix        = this._document.chapters[idx].prefix        || this._defaultApiPrefix;
           this._document.chapters[idx].locale        = this._document.chapters[idx].locale        || 'pt_PT';
-          //this._document.chapters[idx].schema        = this._document.chapters[idx].schema        || this._defaultSchema;
-          //this._document.chapters[idx].shardedSchema = this._document.chapters[idx].shardedSchema || this._defaultShardedSchema;
-          //this._document.chapters[idx].tablePrefix   = this._document.chapters[idx].tablePrefix   || this._defaultPrefix;
           this._document.chapters[idx].edit          = this._document.chapters[idx].edit          || false;
           this._document.chapters[idx].subdocument   = this._document.chapters[idx].subdocument   || false;
           this._document.chapters[idx].pageCount     = this._document.pageCount                   || 1;
