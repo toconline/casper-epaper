@@ -261,7 +261,7 @@
        * Open specified chapter, page can also be specified
        *
        * @param {number} chapterIndex zero page index of the chapter in the document model
-       * @param {number} pageNumber page to open, 1 for 1st page 
+       * @param {number} pageNumber page to open, 1 for 1st page
        */
       gotoChapter: function (chapterIndex, pageNumber) {
         if ( this._document && this._document.chapters && this._document.chapters.length >= 1 ) {
@@ -277,7 +277,7 @@
        * Open document and highlight field or parameter on the specified chapter
        *
        * @param {object} documentModel an object that specifies the layout and data of the document
-       * @param {string} chaperReport name of the chapter's JRXML report 
+       * @param {string} chaperReport name of the chapter's JRXML report
        * @param {string} fieldName name field or parameter to highlight
        * @param {string} rowIndex undefined to highlight a parameter or the rowIndex to highligth a field
        */
@@ -290,7 +290,7 @@
       /**
        * Highlight field or parameter on the specified chapter
        *
-       * @param {string} chaperReport name of the chapter's JRXML report 
+       * @param {string} chaperReport name of the chapter's JRXML report
        * @param {string} fieldName name field or parameter to highlight
        * @param {string} rowIndex undefined to highlight a parameter or the rowIndex to highligth a field
        */
@@ -475,7 +475,18 @@
       },
 
       getPrintJob: function (name, print) {
-        if ( this._document_id === undefined || this._document === undefined 
+
+        switch (typeof(name)) {
+          case 'object':
+            var title = name.title
+            var name  = name.name
+            break;
+          case 'string':
+            var title = name
+            break;
+        }
+
+        if ( this._document_id === undefined || this._document === undefined
              || this._document.chapters === undefined || this._document.loading ) {
           return undefined;
         } else {
@@ -495,6 +506,7 @@
           for (var i = 0; i < this._document.chapters.length; i++) {
             var chapter = {
               name: name,
+              title: title,
               jrxml: this._document.chapters[i].jrxml + '.jrxml',  // Make this optional on CPQ???
               jsonapi: {
                 urn: this._document.chapters[i].path + '?include=lines', // Make this optional on CPQ???
@@ -511,7 +523,7 @@
           }
           return job;
         }
-      },     
+      },
 
       // This more a Refresh??
       reload_document: function (a_success_handler) {
@@ -577,6 +589,7 @@
         this._chapterIndex = 0;
         this._chapter      = this._document.chapters[0];
         this._edition      = false;
+        this._resource_key = 'model_22'
       },
 
       /**
