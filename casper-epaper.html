@@ -26,6 +26,8 @@
 <link rel="import" href="../casper-epaper/casper-epaper-tooltip.html">
 <link rel="import" href="../casper-epaper/casper-epaper-input.html">
 <link rel="import" href="../casper-epaper/casper-epaper-servertip-helper.html">
+<link rel="import" href="../casper-common-ui/casper-i18n-behavior.html">
+
 <!--
   `<awesome-sauce>` injects a healthy dose of awesome into your page.
 
@@ -136,6 +138,10 @@
           value: undefined
         }
       },
+
+      behaviors: [
+        Polymer.CasperI18nBehavior
+      ],
 
       /*
        * Constants
@@ -474,18 +480,9 @@
         );
       },
 
-      getPrintJob: function (name, print) {
-
-        switch (typeof(name)) {
-          case 'object':
-            var title = name.title
-            var name  = name.name
-            break;
-          case 'string':
-            var title = name
-            break;
-        }
-
+      getPrintJob: function (print) {
+        name = this.i18n.apply(this, this._document.filename_template);
+        title = name
         if ( this._document_id === undefined || this._document === undefined
              || this._document.chapters === undefined || this._document.loading ) {
           return undefined;
@@ -580,11 +577,7 @@
         this._chapterCount   = this._document.chapters.length;
         this._totalPageCount = 0;
         for ( var idx = 0; idx < this._chapterCount; idx++ ) {
-          //this._document.chapters[idx].prefix        = this._document.chapters[idx].prefix        || this._defaultApiPrefix;
           this._document.chapters[idx].locale        = this._document.chapters[idx].locale        || 'pt_PT';
-          //this._document.chapters[idx].schema        = this._document.chapters[idx].schema        || this._defaultSchema;
-          //this._document.chapters[idx].shardedSchema = this._document.chapters[idx].shardedSchema || this._defaultShardedSchema;
-          //this._document.chapters[idx].tablePrefix   = this._document.chapters[idx].tablePrefix   || this._defaultPrefix;
           this._document.chapters[idx].edit          = this._document.chapters[idx].edit          || false;
           this._document.chapters[idx].subdocument   = this._document.chapters[idx].subdocument   || false;
           this._document.chapters[idx].pageCount     = this._document.pageCount                   || 1;
@@ -593,7 +586,6 @@
         this._chapterIndex = 0;
         this._chapter      = this._document.chapters[0];
         this._edition      = false;
-        this._resource_key = 'model_22'
       },
 
       /**
