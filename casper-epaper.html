@@ -247,6 +247,10 @@
         this.unlisten(this.$.canvas, 'mouseup'  , '_mouseUpHandler');
       },
 
+      isPrintableDocument: function () {
+        return this._document_id === undefined || this._document === undefined || this._document.chapters === undefined || this._document.loading
+      },
+
       //***************************************************************************************//
       //                                                                                       //
       //                                  ~~~ Public API ~~~                                   //
@@ -483,30 +487,89 @@
       getPrintJob: function (print) {
         name = this.i18n.apply(this, this._document.filename_template);
         title = name
-        if ( this._document_id === undefined || this._document === undefined
-             || this._document.chapters === undefined || this._document.loading ) {
+
+        if ( this.isPrintableDocument() ) {
           return undefined;
-        } else {
-          var ja_cfg = JSON.parse(this._jsonApiConfig);
-          var job = {
-            tube: 'casper-print-queue',
+        }
+
+        var ja_cfg = JSON.parse(this._jsonApiConfig);
+        var job = {
+          tube: 'casper-print-queue',
+          name: name,
+          validity: 3600,
+          locale: this._locale,
+          continous_pages: true,
+          auto_printable: print == true,
+          documents: [],
+          public_link: {
+            path: print ? 'print' : 'download'
+          },
+        }
+        for (var i = 0; i < this._document.chapters.length; i++) {
+          var chapter = {
             name: name,
-            validity: 3600,
-            locale: this._locale,
-            continous_pages: true,
-            auto_printable: print == true,
-            documents: [],
-            public_link: {
-              path: print ? 'print' : 'download'
-            },
+            title: title,
+            jrxml: this._document.chapters[i].jrxml + '.jrxml',  // Make this optional on CPQ???
+            jsonapi: {
+              urn: this._document.chapters[i].path + '?include=lines', // Make this optional on CPQ???
+              prefix: ja_cfg.prefix,                         // TODO SET ALL OF THese values TO NULL when session auth is in place
+              user_id: ja_cfg.user_id,     // TODO SET ALL OF THese values TO NULL when session auth is in place
+              company_id: ja_cfg.company_id, // TODO SET ALL OF THese values TO NULL when session auth is in place
+              company_schema: ja_cfg.company_schema, // TODO SET ALL OF THese values TO NULL when session auth is in place
+              sharded_schema: ja_cfg.sharded_schema, // TODO SET ALL OF THese values TO NULL when session auth is in place
+              accounting_schema: ja_cfg.accounting_schema, // TODO SET ALL OF THese values TO NULL when session auth is in place
+              accounting_prefix: ja_cfg.accounting_prefix // TODO SET ALL OF THese values TO NULL when session auth is in place
+            }
           }
-          for (var i = 0; i < this._document.chapters.length; i++) {
-            var chapter = {
-              name: name,
-              title: title,
-              jrxml: this._document.chapters[i].jrxml + '.jrxml',  // Make this optional on CPQ???
+          job.documents.push(chapter);
+        }
+        return job;
+      },
+
+      getBatchPrintJob: function (print, documents) {
+        documents = documents || []
+
+        first_document = documents[0]
+
+        if (first_document !== undefined) {
+          name = first_document.name || this.i18n.apply(this, first_document.filename_template)
+          title = first_document.title || name
+        }
+
+        name = name || this.i18n.apply(this, this._document.filename_template);
+        title = title || name
+
+        if ( this.isPrintableDocument() ) {
+          return undefined;
+        }
+
+        var ja_cfg = JSON.parse(this._jsonApiConfig);
+        var job = {
+          tube: 'casper-print-queue',
+          name: name,
+          validity: 3600,
+          locale: this._locale,
+          continous_pages: true,
+          auto_printable: print == true,
+          documents: [],
+          public_link: {
+            path: print ? 'print' : 'download'
+          },
+        }
+
+        for (var i = 0; i < documents.length; i++) {
+          _document = documents[i]
+          _document_name = this.i18n.apply(this, _document.filename_template)
+
+          for (var j = 0; j < _document.chapters.length; j++) {
+            _chapter = _document.chapters[j]
+
+            _print_document = {
+              name: _document.name || _document_name || name,
+              title: _document.title || _document_name || title,
+              jrxml: _chapter.jrxml + '.jrxml',
               jsonapi: {
-                urn: this._document.chapters[i].path + '?include=lines', // Make this optional on CPQ???
+                urn: _chapter.path + '?include=lines', // Make this optional on CPQ???
                 prefix: ja_cfg.prefix,                         // TODO SET ALL OF THese values TO NULL when session auth is in place
                 user_id: ja_cfg.user_id,     // TODO SET ALL OF THese values TO NULL when session auth is in place
                 company_id: ja_cfg.company_id, // TODO SET ALL OF THese values TO NULL when session auth is in place
@@ -516,10 +579,12 @@
                 accounting_prefix: ja_cfg.accounting_prefix // TODO SET ALL OF THese values TO NULL when session auth is in place
               }
             }
-            job.documents.push(chapter);
+
+            job.documents.push(_print_document);
           }
-          return job;
         }
+
+        return job;
       },
 
       // This more a Refresh??
