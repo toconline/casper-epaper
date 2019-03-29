@@ -317,7 +317,7 @@ class casperEpaperCombolist extends PolymerElement {
 
   setFitInto (element) {
     this.$.dialog.fitInto = element;
-  },
+  }
 
   setCasperBinding (binding) {
     this._binding = binding;
@@ -387,12 +387,12 @@ class casperEpaperCombolist extends PolymerElement {
    *
    * @returns the request field or empty string if there's none
    */
-  getSelectedField: function (a_index) {
+  getSelectedField (a_index) {
     if ( this.items === undefined || this.selectedItem === undefined ) {
       return undefined;
     }
     return this.selectedItem[this.displayFields[a_index]];
-  },
+  }
 
   /**
    * Automatically resize the list taking into account the specified constraints
@@ -437,7 +437,7 @@ class casperEpaperCombolist extends PolymerElement {
     this.$.dialog.style.width = width + 'px';
     this.$.list.style.width = width + 'px';
     console.log('~~~~ auto sized '+width);
-  },
+  }
 
   /**
    * Sets the basic the combo item list
@@ -466,7 +466,7 @@ class casperEpaperCombolist extends PolymerElement {
         this.items = JSON.parse(json);
       }
     }
-  },
+  }
 
   setModelFromJsonApi (jsonApi) {
     var len, ja_items, items;
@@ -483,7 +483,7 @@ class casperEpaperCombolist extends PolymerElement {
     this.items = items;
     this._selectedId = this._initialId;
     this._filterModel(this._query);
-  },
+  }
 
   /**
    * Sets the name of the data model field that contains the item description
@@ -492,11 +492,11 @@ class casperEpaperCombolist extends PolymerElement {
    */
   setDisplayFields (a_display_fields) {
     this.displayFields = a_display_fields;
-  },
+  }
 
   setNotifyIdOnly (a_option) {
     this._notifiyIdOnly = a_option;
-  },
+  }
 
   /**
    * Find the model index with specified id and makes it the current selection
@@ -517,7 +517,7 @@ class casperEpaperCombolist extends PolymerElement {
       this.selectedItem = this.items[idx];
       this._selectedId = this.items[idx]['_id'];
     }
-  },
+  }
 
   /**
    * Throw away the data and display models
@@ -530,7 +530,7 @@ class casperEpaperCombolist extends PolymerElement {
     this._notifiyIdOnly = false;
     this._selectedId    = undefined;
     this._initialId     = undefined;
-  },
+  }
 
   moveSelection (a_direction) {
     if ( this._selectedId ) {
@@ -550,7 +550,7 @@ class casperEpaperCombolist extends PolymerElement {
         }
       }
     }
-  },
+  }
 
   _dialogOpened () {
     //this._query = '';
@@ -560,7 +560,7 @@ class casperEpaperCombolist extends PolymerElement {
       this.moveSelection('keep');
     }.bind(this), 200);
     this.$.input.focus();
-  },
+  }
 
   _onSelectionChanged () {
     if ( this.selectedItem ) {
@@ -598,7 +598,7 @@ class casperEpaperCombolist extends PolymerElement {
         matchEnd:     matchEnd
       });
     }
-  },
+  }
 
   _dialogClosed (a_event) {
     this.fire('on-combo-list-closed', {
@@ -607,11 +607,11 @@ class casperEpaperCombolist extends PolymerElement {
         previousId:   this._initialId,
         closingKey:   this._closingKey
       });
-  },
+  }
 
   _inputTap (a_event) {
     a_event.stopPropagation();
-  },
+  }
 
   _keyDownHandler (a_event) {
     switch (a_event.keyCode) {
@@ -640,7 +640,7 @@ class casperEpaperCombolist extends PolymerElement {
         a_event.stopPropagation();
         return;
     }
-  },
+  }
 
   _clearQuery () {
     this._query = undefined;
@@ -648,7 +648,7 @@ class casperEpaperCombolist extends PolymerElement {
     this.$.clear.style.opacity = this._query && this._query.length ? 1 : 0.0;
     this.moveSelection('keep');
     this.$.input.focus();
-  },
+  }
 
   /**
    * Listens to changes in the filter query to apply/update the model filtering
@@ -682,7 +682,7 @@ class casperEpaperCombolist extends PolymerElement {
       }
     }
     this.$.dialog.notifyResize();
-  },
+  }
 
   _selectItem (a_event) {
     var model = this.$.list.modelForElement(a_event.target);
@@ -691,7 +691,7 @@ class casperEpaperCombolist extends PolymerElement {
     }
     this.$.dialog.close();
     a_event.stopPropagation();
-  },
+  }
 
   /**
    * Apply filter string to the list model
@@ -791,7 +791,7 @@ class casperEpaperCombolist extends PolymerElement {
     if ( visible_rows.length ) {
       this._filteredItems = visible_rows;
     }
-  },
+  }
 
   /**
    * Find the model index with specified id
@@ -813,7 +813,7 @@ class casperEpaperCombolist extends PolymerElement {
       }
     }
     return index;
-  },
+  }
 
   _findFilteredIndexById (a_id) {
     var index = undefined;
@@ -829,7 +829,7 @@ class casperEpaperCombolist extends PolymerElement {
       }
     }
     return index;
-  },
+  }
 
   _getDisplayValue (a_item) {
     var fields_len = this.displayFields.length;
@@ -839,7 +839,7 @@ class casperEpaperCombolist extends PolymerElement {
       it.push(a_item[this.displayFields[f]]);
     }
     return it.join(' - ');
-  },
+  }
 
   _renderRow (a_item) {
     var fields_len = this.displayFields.length;
@@ -860,7 +860,7 @@ class casperEpaperCombolist extends PolymerElement {
       }
       return it.join(' - ');
     }
-  },
+  }
 
   /**
    * Returns the CSS class to apply to the list rows
@@ -870,7 +870,7 @@ class casperEpaperCombolist extends PolymerElement {
    */
   _getItemClass (selected) {
     return selected ? 'item selected' : 'item';
-  },
+  }
 
   _stopPropagation (event) {
     event.stopPropagation();

@@ -642,7 +642,7 @@ class CasperEpaperInput extends PolymerElement {
       this._comboFilter += event.key;
       this._toggleOverlay(event);
     }
-  },
+  }
 
   _onKeyDownC (event) {
     var vkey;
@@ -785,7 +785,7 @@ class CasperEpaperInput extends PolymerElement {
   /**
    * Escapes double quotes for the server protocol
    */
-  _escapeForServer:  function (text) {
+  _escapeForServer (text) {
     return text.split('"').join('""');
   }
 

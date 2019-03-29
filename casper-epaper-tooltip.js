@@ -72,32 +72,34 @@ class CasperEpaperTooltip extends PolymerElement {
   }
 
   static get properties () {
-    radius: {
-      type: Number,
-      value: 5
-    },
-    tipHeight: {
-      type: Number,
-      value: 5
-    },
-    tipBase: {
-      type: Number,
-      value: 10
-    },
-    tipLocation: {
-      type: Number,
-      value: 0.5
-    },
-    positionTarget: {
-      type: Element
-    },
-    fitInto: {
-      type: Element
-    },
-    _showing: {
-      type: Boolean,
-      value: false
-    }
+    return {
+      radius: {
+        type: Number,
+        value: 5
+      },
+      tipHeight: {
+        type: Number,
+        value: 5
+      },
+      tipBase: {
+        type: Number,
+        value: 10
+      },
+      tipLocation: {
+        type: Number,
+        value: 0.5
+      },
+      positionTarget: {
+        type: Element
+      },
+      fitInto: {
+        type: Element
+      },
+      _showing: {
+        type: Boolean,
+        value: false
+      }
+    };
   }
 
   ready () {

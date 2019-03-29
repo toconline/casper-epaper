@@ -18,7 +18,7 @@
   -
  */
 
-import { PolymerElement, html } from '@polymer/polymer/poylmer-element.js';
+import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
 
 class CasperEpaperHtmldiv extends PolymerElement {
   static get template () {

@@ -35,17 +35,16 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
    * Constants
    */
   // Size is in pixels not pt
-  _BTN_SIZE:        24,
-
-  _KAPPA:           .5522848,
-  _BOLD_MASK:       0x01,
-  _ITALIC_MASK:     0x02,
-  _UNDERLINE_MASK:  0x04,
-  _STRIKEOUT_MASK:  0x08,
-  _BOLD_INDEX:      0,
-  _ITALIC_INDEX:    1,
-  _SIZE_INDEX:      2,
-  _FONT_NAME_INDEX: 4,
+  static get _BTN_SIZE ()       { return 24; }
+  static get KAPPA ()           { return .5522848; }
+  static get BOLD_MASK ()       { return 0x01; }
+  static get ITALIC_MASK ()     { return 0x02; }
+  static get UNDERLINE_MASK ()  { return 0x04; }
+  static get STRIKEOUT_MASK ()  { return 0x08; }
+  static get BOLD_INDEX ()      { return 0; }
+  static get ITALIC_INDEX ()    { return 1; }
+  static get SIZE_INDEX ()      { return 2; }
+  static get FONT_NAME_INDEX () { return 4; }
 
   static get template() {
     return html`
