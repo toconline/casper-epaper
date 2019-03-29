@@ -18,7 +18,7 @@
   -
  */
 
-function EPaperSocket_Initialize(a_root) {
+export function EPaperSocket_Initialize(a_root) {
 
   a_root.EPaperSocket = function (a_epaper, a_host, a_port, a_uri) {
     this._epaper = a_epaper;

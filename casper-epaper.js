@@ -19,12 +19,12 @@
  */
 
 import './casper-epaper-input.js';
-import './casper-epaper-imports.js';
 import './casper-epaper-iconset.js';
 import './casper-epaper-tooltip.js';
 import './casper-epaper-servertip-helper.js';
 import '@polymer/iron-icon/iron-icon.js';
 import '@polymer/paper-input/paper-input.js';
+import { EPaperSocket_Initialize } from './casper-epaper-imports.js';
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
 
 EPaperSocket_Initialize(window);
