@@ -1,7 +1,7 @@
 {
   "description": "Casper ePaper document renderer",
   "name": "@casper2020/casper-epaper",
-  "version": "1.0.0-rc.2",
+  "version": "1.0.0-rc.3",
   "resolutions": {
     "inherits": "2.0.3",
     "samsam": "1.1.3",
