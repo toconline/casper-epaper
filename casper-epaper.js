@@ -19,7 +19,6 @@
  */
 
 import './casper-epaper-input.js';
-import './casper-epaper-iconset.js';
 import './casper-epaper-tooltip.js';
 import './casper-epaper-servertip-helper.js';
 import '@polymer/iron-icon/iron-icon.js';

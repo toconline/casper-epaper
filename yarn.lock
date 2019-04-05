@@ -2,6 +2,14 @@
 # yarn lockfile v1
 
 
+"@casper2020/casper-icons@^1.0.0-rc.1":
+  version "1.0.0-rc.1"
+  resolved "https://registry.yarnpkg.com/@casper2020/casper-icons/-/casper-icons-1.0.0-rc.1.tgz#f047e0a0680ac29155bdc61e7b309e255ae17a7e"
+  integrity sha512-A2+zeXmIMLNfO6T6L6I6T3ipVaxtvTUureNgTn5M/mGEPWx0n5YGHRifmCqkaMcnthqtztVG985hc1faBu6GRw==
+  dependencies:
+    "@polymer/iron-icons" "^3.0.0"
+    "@polymer/polymer" "^3.0.0"
+
 "@polymer/app-layout@^3.0.0-pre.26":
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/@polymer/app-layout/-/app-layout-3.0.2.tgz#8a6f3c87b405635fd3547db82db8dbb6c51b6bf9"
@@ -143,7 +151,7 @@
     "@polymer/iron-meta" "^3.0.0-pre.26"
     "@polymer/polymer" "^3.0.0"
 
-"@polymer/iron-icons@^3.0.0-pre.26":
+"@polymer/iron-icons@^3.0.0", "@polymer/iron-icons@^3.0.0-pre.26":
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/@polymer/iron-icons/-/iron-icons-3.0.1.tgz#c1bd31d8483afbdb5422cdc384081e19c9267cfe"
   integrity sha512-xtEI8erH2GIBiF3QxEMyW81XuVjguu6Le5WjEEpX67qd9z7jjmc4T/ke3zRUlnDydex9p8ytcwVpMIKcyvjYAQ==

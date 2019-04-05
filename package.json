@@ -1,7 +1,7 @@
 {
   "description": "Casper ePaper document renderer",
   "name": "@casper2020/casper-epaper",
-  "version": "1.0.0-rc.4",
+  "version": "1.0.0-rc.5",
   "resolutions": {
     "inherits": "2.0.3",
     "samsam": "1.1.3",
@@ -10,6 +10,7 @@
   },
   "main": "casper-epaper.js",
   "dependencies": {
+    "@casper2020/casper-icons": "^1.0.0-rc.1",
     "@polymer/iron-component-page": "^4.0.0",
     "@polymer/iron-dropdown": "^3.0.1",
     "@polymer/iron-icon": "^3.0.0",
