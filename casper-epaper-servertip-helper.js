@@ -1,5 +1,5 @@
 /*
-  - Copyright (c) 2016 Neto Ranito & Seabra LDA. All rights reserved.
+  - Copyright (c) 2016 Cloudware S.A. All rights reserved.
   -
   - This file is part of casper-combolist.
   -
@@ -17,17 +17,23 @@
   - along with casper-combolist.  If not, see <http://www.gnu.org/licenses/>.
   -
  */
-
-import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
-
-class CasperEpaperServertipHelper extends PolymerElement {
+/*link rel="import" href="../polymer/polymer-element.html"*/
+/*
+ `casper-epaper-servertip-helper` Helper to request server tooltip when the mouse hovers over a point
+*/
+/*
+  FIXME(polymer-modulizer): the above comments were extracted
+  from HTML and may be out of place here. Review them and
+  then delete this comment!
+*/
+class CasperEpaperServertipHelper extends HTMLElement {
 
   static get is () {
     return 'casper-epaper-servertip-helper';
   }
 
   static get properties () {
-    return {
+    return  {
       /** Mouse move threshold, movement bellow this treshold is ignored */
       threshold: {
         type: Number,
@@ -54,7 +60,7 @@ class CasperEpaperServertipHelper extends PolymerElement {
     };
   }
 
-  ready () {
+  connectedCallback () {
     this._last_x          = undefined;
     this._last_y          = undefined;
     this._center_x        = undefined;
@@ -66,7 +72,7 @@ class CasperEpaperServertipHelper extends PolymerElement {
     this._timer           = undefined;
   }
 
-  detached () {
+  disconnectedCallback () {
     this._resetTimer();
   }
 
@@ -105,38 +111,18 @@ class CasperEpaperServertipHelper extends PolymerElement {
     this._last_y = y;
   }
 
-  /**
-   * Requests the server side hint for the current hovering point
-   *
-   * @param {number} x coordinate where the mouse is overing
-   * @param {number} y coordinate where the mouse is overing
-   */
-  _getHint (x, y) {
-    var hintCallback = function (a_epaper, a_message) {
-        var x, y, w, h, l, t;
-
-        a_epaper._message = a_message;
-        a_epaper._r_idx   = 'S:ok:hint:'.length;
-        x = a_epaper._getDouble() / this._scalePxToServer;
-        y = a_epaper._getDouble() / this._scalePxToServer;
-        w = a_epaper._getDouble() / this._scalePxToServer;
-        h = a_epaper._getDouble() / this._scalePxToServer;
-        l = a_epaper._getDouble();
-        if ( l ) {
-          t = a_message.substring(a_epaper._r_idx, a_epaper._r_idx + l);
-
-          // Update the bounding box
-          this._left   = x;
-          this._top    = y;
-          this._width  = w;
-          this._height = h;
-
-          this.input.showTooltip(t.toUpperCase(), { left: x, top: y, width: w, height: h });
-        }
-    };
-
-    this.epaper._callRpc('hint', 'get hint ' + (this._scalePxToServer * x).toFixed(2) + ',' + (this._scalePxToServer * y).toFixed(2) + ';',
-                          hintCallback.bind(this));
+   /**
+    * Get hint response handler, receives the bbounding box and message that applies to that area
+    * if there is no hint the bbox is all 0's and there is no message
+    */
+  _getHintResponse (response) {
+    if ( response.success === true && response.hint.length > 0 ) {
+      this._left   = response.bbox.x / this._scalePxToServer;
+      this._top    = response.bbox.y / this._scalePxToServer;
+      this._width  = response.bbox.w / this._scalePxToServer;
+      this._height = response.bbox.h / this._scalePxToServer;
+      this.input.showTooltip(response.hint.toUpperCase(), { left: this._left, top: this._top, width: this._width, height: this._height});
+    }
   }
 
   /**
@@ -150,9 +136,9 @@ class CasperEpaperServertipHelper extends PolymerElement {
     this._center_y = y;
 
     if ( this._timer !== undefined ) {
-      this.cancelAsync(this._timer);
+      clearTimeout(this._timer);
     }
-    this._timer = this.async(this._onOverHandler.bind(this), this.hoveringTime);
+    this._timer = setTimeout(() => this._onOverHandler(), this.hoveringTime);
   }
 
   /**
@@ -160,7 +146,7 @@ class CasperEpaperServertipHelper extends PolymerElement {
    */
   _resetTimer () {
     if ( this._timer !== undefined ) {
-      this.cancelAsync(this._timer);
+      clearTimeout(this._timer);
       this._timer = undefined;
     }
   }
@@ -173,7 +159,10 @@ class CasperEpaperServertipHelper extends PolymerElement {
   _onOverHandler () {
     if ( Math.abs(this._center_x - this._last_x) <= this.threshold &&
          Math.abs(this._center_y - this._last_y) <= this.threshold ) {
-      this._getHint(this._center_x, this._center_y);
+      this.epaper._socket.getHint(this.epaper._documentId,
+                                  this._scalePxToServer * this._center_x,
+                                  this._scalePxToServer * this._center_y,
+                                  this._getHintResponse.bind(this));
       this._resetTimer();
     } else {
       this._updateCenter(this._last_x, this._last_y);

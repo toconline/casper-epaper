@@ -1,125 +1,126 @@
 /*
-  - Copyright (c) 2016 Neto Ranito & Seabra LDA. All rights reserved.
+  - Copyright (c) 2016 Cloudware S.A. All rights reserved.
   -
-  - This file is part of casper-combolist.
+  - This file is part of casper-epaper.
   -
-  - casper-combolist is free software: you can redistribute it and/or modify
+  - casper-epaper is free software: you can redistribute it and/or modify
   - it under the terms of the GNU Affero General Public License as published by
   - the Free Software Foundation, either version 3 of the License, or
   - (at your option) any later version.
   -
-  - casper-combolist  is distributed in the hope that it will be useful,
+  - casper-epaper  is distributed in the hope that it will be useful,
   - but WITHOUT ANY WARRANTY; without even the implied warranty of
   - MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   - GNU General Public License for more details.
   -
   - You should have received a copy of the GNU Affero General Public License
-  - along with casper-combolist.  If not, see <http://www.gnu.org/licenses/>.
+  - along with casper-epaper.  If not, see <http://www.gnu.org/licenses/>.
   -
  */
 
-import './casper-epaper-tooltip.js';
-import './casper-epaper-combolist.js';
-import './casper-epaper-datepicker.js';
+import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
+import '@polymer/iron-input/iron-input.js';
 import '@polymer/iron-icon/iron-icon.js';
-import { PolymerElement } from '@polymer/polymer/polymer-element.js';
+import '@casper2020/casper-icons/casper-icons.js';
 
 class CasperEpaperInput extends PolymerElement {
-  static get template () {
+  static get template() {
     return html`
-      <style>
-        :host {
-          display: none;
-          position: absolute;
-        }
+    <style>
+      :host {
+        display: none;
+        position: absolute;
+      }
 
-        iron-icon {
-          position: absolute;
-          cursor: pointer;
-          padding: 1px;
-          margin: 0px;
-          transition: transform 300ms;
-          fill: var(--dark-theme-background-color);
-        }
+      iron-icon {
+        position: absolute;
+        cursor: pointer;
+        padding: 1px;
+        margin: 0px;
+        transition: transform 300ms;
+        fill: var(--dark-theme-background-color);
+      }
 
-        iron-icon[rotate] {
-          transform: rotate(180deg);
-        }
+      iron-icon[rotate] {
+        transform: rotate(180deg);
+      }
 
-        iron-icon:hover {
-          fill: var(--primary-color);
-        }
+      iron-icon:hover {
+        fill: var(--primary-color);
+      }
 
-        ::-ms-clear {
-          display: none;
-        }
+      ::-ms-clear {
+        display: none;
+      }
 
-        ::selection {
-          background: #d0ecf0;
-        }
+      ::selection {
+        background: #d0ecf0;
+      }
 
-        #textarea {
-          border: none;
-          display: block;
-          position: absolute;
-          padding: 0px;
-          margin: 0px;
-          outline: none;
-          background-color: rgba(0, 0, 0, 0);
-        }
+      #textarea {
+        border: none;
+        display: block;
+        position: absolute;
+        padding: 0px;
+        margin: 0px;
+        outline: none;
+        background-color: rgba(0, 0, 0, 0);
+      }
 
-        #clear_btn {
-          stroke: #D0011B;
-          stroke-width: 1.5;
-          fill: #EE9392;
-          fill-opacity: 0.55;
-        }
+      #clear_btn {
+        stroke: #D0011B;
+        stroke-width: 1.5;
+        fill: #EE9392;
+        fill-opacity: 0.55;
+      }
 
-        #clear_btn:hover {
-          stroke: #555;
-          stroke-width: 2.5;
-          fill-opacity: 0.9;
-        }
+      #clear_btn:hover {
+        stroke: #555;
+        stroke-width: 2.5;
+        fill-opacity: 0.9;
+      }
 
-        #clear_btn:active {
-          stroke: #555;
-          stroke-width: 2.5;
-          fill: #B94F4F;
-          fill-opacity: 1;
-        }
+      #clear_btn:active {
+        stroke: #555;
+        stroke-width: 2.5;
+        fill: #B94F4F;
+        fill-opacity: 1;
+      }
 
-        #edit_btn {
-          fill: var(--dark-primary-color);
-        }
+      #edit_btn {
+        fill: var(--dark-primary-color);
+      }
 
-        #edit_btn:hover {
-          fill: var(--primary-color);
-        }
+      #edit_btn:hover {
+        fill: var(--primary-color);
+      }
 
-    /*  #input {
-          -ms-overflow-style: -ms-autohiding-scrollbar;
-        }
+/*    #input {
+        -ms-overflow-style: -ms-autohiding-scrollbar;
+      }
 
-        #textarea {
-          resize: none;
-          background-color: rgba(0, 0, 0, 0);
-          border-color: rgba(0, 0, 0, 0);
-          overflow: auto;
-        }*/
+      #textarea {
+        resize: none;
+        background-color: rgba(0, 0, 0, 0);
+        border-color: rgba(0, 0, 0, 0);
+        overflow: auto;
+      }*/
 
-      </style>
-      <template>
-        <!--div id="input"-->
-        <input is="iron-input" id="textarea">
-        <!--/div-->
-        <!--iron-autogrow-textarea id="input" tabindex="0"></iron-autogrow-textarea-->
-        <iron-icon id="dropdown_btn" on-tap="_toggleOverlay" icon="casper-icons:arrow-drop-down" rotate\$="[[overlayVisible]]"></iron-icon>
-        <iron-icon id="clear_btn" on-tap="_clearField" icon="casper-icons:clear-combo"></iron-icon>
-        <iron-icon id="edit_btn" on-tap="_toggleSubEditor" icon="casper-icons:edit-doc"></iron-icon>
-        <casper-epaper-combolist id="combo"></casper-epaper-combolist>
-        <casper-epaper-datepicker id="date"></casper-epaper-datepicker>
-      </template>
-    `;
+    </style>
+    <!--div id="input"-->
+    <input is="iron-input" id="textarea" tabindex="1">
+    <!--/div-->
+    <!--iron-autogrow-textarea id="input" tabindex="0"></iron-autogrow-textarea-->
+    <iron-icon id="dropdown_btn" on-tap="_toggleOverlay" icon="casper-icons:arrow-drop-down" rotate\$="[[overlayVisible]]"></iron-icon>
+    <iron-icon id="clear_btn" on-tap="_clearField" icon="casper-icons:clear-combo"></iron-icon>
+    <iron-icon id="edit_btn" on-tap="_toggleSubEditor" icon="casper-icons:edit-doc"></iron-icon>
+    <casper-epaper-datepicker id="date"></casper-epaper-datepicker>
+    <casper-select id="select" disable-smart-filter="" search-combo="" items="[[test]]"></casper-select>
+`;
+  }
+
+  static get is () {
+    return 'casper-epaper-input';
   }
 
   static get properties () {
@@ -129,50 +130,47 @@ class CasperEpaperInput extends PolymerElement {
         type: Boolean,
         value: false
       },
-      /** Parent casper-epaper element that owns the this helper */
+      /** Parent casper-epaper element that owns this helper */
       epaper: {
         type: Object
       }
     };
   }
 
-  static get listeners () {
-    return {
-      'keypress': '_onKeypress',
-      'keydown': '_onKeyDown',
-      'mousedown': '_onMouseDown',
-      'mouseup': '_onMouseUp',
-      'tap': '_onTap'
-    };
-  }
-
   ready () {
+    super.ready();
+
+    this.test = [];
+
     //this._input          = this.$.input;
     this._binding        = undefined;
     this._textArea       = this.$.textarea;//this.$.input.$.textarea;
-    this.$.date.inputBox = this.$.textarea;//this.$.input.$.textarea;
+    //this.$.date.inputBox = this.$.textarea;//this.$.input.$.textarea;
     this._visible        = true;
     this.setVisible(false);
-    this.$.combo.setPositionTarget(this);
+    this._select = this.$.select;
+    // TODO this.$.combo.setPositionTarget(this);
+
+    this.addEventListener('keypress' , e => this._onKeypress(e));
+    this.addEventListener('keydown'  , e => this._onKeyDown(e));
+    //this.addEventListener('mousedown', e => this._onMouseDown(e));
+    //this.addEventListener('mouseup'  , e => this._onMouseUp(e));
+    this.addEventListener('tap'      , e => this._onTap(e));
   }
 
-  attached () {
+  connectedCallback () {
+    super.connectedCallback();
     this._initialSelection = false;
     this._mode             = 'n';
     this._comboFilter      = '';
     this.overlayVisible    = false;
     this._overlay          = undefined;
     this._comboListQuery   = undefined;
-    this.listen(this.$.combo, 'on-combo-list-closed'      , '_onComboListClosed');
-    this.listen(this.$.combo, 'on-combo-selection-changed', '_onComboSelectionChanged');
-    this.listen(this.$.date , 'date-overlay-closed'       , '_onDateOverlayClosed');
   }
 
-  detached () {
+  disconnectedCallback () {
+    super.disconnectedCallback();
     this._clearModel();
-    this.unlisten(this.$.combo, 'on-combo-list-closed'      , '_onComboListClosed');
-    this.unlisten(this.$.combo, 'on-combo-selection-changed', '_onComboSelectionChanged');
-    this.unlisten(this.$.date , 'date-overlay-closed'       , '_onDateOverlayClosed');
   }
 
   /**
@@ -228,7 +226,7 @@ class CasperEpaperInput extends PolymerElement {
     var ratio = this.epaper._ratio;
     var tl    = a_text_left / ratio - this._x;
     var bl    = a_baseline  / ratio - this._y;
-    var top   = this._f_top / ratio;
+      var top   = this._f_top / ratio;
 
     /*console.log(' ==> tl=' + tl + ' bl=' + bl + ' top=' + top);*/
 
@@ -237,15 +235,15 @@ class CasperEpaperInput extends PolymerElement {
     this._textArea.style.marginLeft  = Math.max(tl,1) + 'px';
     this._textArea.style.marginRight = Math.max(tl,1) + 'px';
     //this._textArea.style.marginTop   = Math.max(bl + top, 1) + 'px';
-    this._textArea.style.fontFamily  = this.epaper._font_spec[this.epaper._FONT_NAME_INDEX];
-    this._textArea.style.fontSize    = this.epaper._font_spec[this.epaper._SIZE_INDEX] / ratio + 'px';
+    this._textArea.style.fontFamily  = this.epaper._font_spec[CasperEpaper.FONT_NAME_INDEX];
+    this._textArea.style.fontSize    = this.epaper._font_spec[CasperEpaper.SIZE_INDEX] / ratio + 'px';
     this._textArea.style.color       = this.epaper._text_color;
   }
 
   hideOverlays (hideButtons) {
     this.hideTooltip();
-    this.$.combo.setVisible(false);
-    this.$.date.setVisible(false);
+    // TODO this.$.combo.setVisible(false);
+    //this.$.date.setVisible(false);
     if ( hideButtons ) {
       this.$.dropdown_btn.style.display = 'none';
       this.$.edit_btn.style.display = 'none';
@@ -254,6 +252,7 @@ class CasperEpaperInput extends PolymerElement {
   }
 
   setCasperBinding (binding) {
+    console.log(binding);
     this._binding = binding;
     if ( binding !== undefined ) {
       switch(binding.attachment.type) {
@@ -269,7 +268,7 @@ class CasperEpaperInput extends PolymerElement {
           this.setMode('n');
           break;
       }
-      this.$.combo.setCasperBinding(binding);
+      // TODO this.$.combo.setCasperBinding(binding);
       this.setCombolistQuery(binding.attachment.route);
       if ( binding.hint && binding.hint.expression && binding.hint.expression.length ) {
         this.showTooltip(binding.hint.expression);
@@ -277,7 +276,7 @@ class CasperEpaperInput extends PolymerElement {
         this.hideTooltip();
       }
     } else {
-      this.$.combo.setCasperBinding(undefined);
+      // TODO this.$.combo.setCasperBinding(undefined);
       this.setCombolistQuery(undefined);
     }
   }
@@ -296,15 +295,15 @@ class CasperEpaperInput extends PolymerElement {
     switch ( a_mode ) {
     case 'c': // Client combo
       this._textArea.style.cursor = 'pointer';
-      this._setOverlay(this.$.combo);
+      // TODO this._setOverlay(this.$.combo);
       break;
     case 'l': // Ledger mode
       this._textArea.style.cursor = 'text';
-      this._setOverlay(this.$.combo);
+      // TODO this._setOverlay(this.$.combo);
       break;
     case 'd': // Date
       this._textArea.style.cursor = 'text';
-      this._setOverlay(this.$.date);
+      //this._setOverlay(this.$.date);
       break;
     case 'R': // Radio
       this._textArea.style.cursor = 'pointer';
@@ -370,7 +369,7 @@ class CasperEpaperInput extends PolymerElement {
    * @param a_display_fields array of fields names
    */
   setDisplayFields (a_fields) {
-    this.$.combo.setDisplayFields(a_fields);
+    // TODO this.$.combo.setDisplayFields(a_fields);
   }
 
   /**
@@ -385,9 +384,10 @@ class CasperEpaperInput extends PolymerElement {
    */
   setModelFromJson (combo_id, json) {
     this._comboListQuery = undefined;
-    this.$.combo.$.spinner.active = false;
-    this.$.combo.showFab = false;
-    return this.$.combo.setModelFromJson(combo_id, json);
+    console.log(`setModelFromJson = ${combo_id} json`, json);
+    // TODO this.$.combo.$.spinner.active = false;
+    // TODO this.$.combo.showFab = false;
+    // TODO return this.$.combo.setModelFromJson(combo_id, json);
   }
 
   setCombolistQuery (query) {
@@ -395,15 +395,19 @@ class CasperEpaperInput extends PolymerElement {
     this._textArea.value = '';
     this._textArea.selectionStart = undefined;
     this._textArea.selectionEnd = undefined;
-    this.$.combo.clearModel();
-    this.$.combo.$.spinner.active = true;
+
+    this._select.items = ['123', '12334', 'abc'];
+
+    console.log(`setCombolistQuery = ${query}`);
+    // TODO this.$.combo.clearModel();
+    // TODO this.$.combo.$.spinner.active = true;
   }
 
   onGetDataResponse (jsonapi) {
-    this.$.combo.$.spinner.active = false;
-    this.$.combo.setModelFromJsonApi(jsonapi);
+    // TODO this.$.combo.$.spinner.active = false;
+    // TODO this.$.combo.setModelFromJsonApi(jsonapi);
     this._layoutComboList();
-    this.$.combo.$.dialog.fire('iron-overlay-opened');
+    // TODO this.$.combo.$.dialog.fire('iron-overlay-opened');
   }
 
   _setOverlay (overlay) {
@@ -415,24 +419,30 @@ class CasperEpaperInput extends PolymerElement {
   }
 
   _toggleOverlay (event) {
-    if ( this._overlay !== undefined ) {
-      if ( this.overlayVisible ) {
-        this._overlay.setVisible(false);
-      } else {
-        if ( this._overlay === this.$.combo ) {
-          this._layoutComboList();
-        }
-        this.hideTooltip();
-        this._overlay.setVisible(true, this._comboFilter);
-        if ( this._comboListQuery !== undefined && this._overlay === this.$.combo ) {
-          this.epaper._getData(this._comboListQuery, function(response) {
-            this.onGetDataResponse(response);
-          }.bind(this));
-          //this.epaper._sendCommand('get data "'+this._comboListQuery+'";');
-        }
-      }
-      this.overlayVisible = this._overlay.isVisible();
+    if ( this._select.opened ) {
+      this._select.opened = false;
+    } else {
+      this._select.attachTo(this._textArea);
+      this._select.opened = true;
     }
+    //if ( this._overlay !== undefined ) {
+    //  if ( this.overlayVisible ) {
+    //    this._overlay.setVisible(false);
+    //  } else {
+    //    if ( this._overlay === this.$.combo ) {
+    //      this._layoutComboList();
+    //    }
+    //    this.hideTooltip();
+    //    this._overlay.setVisible(true, this._comboFilter);
+    //    if ( this._comboListQuery !== undefined && this._overlay === this.$.combo ) {
+    //      this.epaper._getData(this._comboListQuery, function(response) {
+    //        this.onGetDataResponse(response);
+    //      }.bind(this));
+    //      //this.epaper._sendCommand('get data "'+this._comboListQuery+'";');
+    //    }
+    //  }
+    //  this.overlayVisible = this._overlay.isVisible();
+    //}
     if ( event !== undefined ) {
       event.stopPropagation();
     }
@@ -468,10 +478,11 @@ class CasperEpaperInput extends PolymerElement {
       max_width = this.epaper._page_width * this.epaper._sx - page_margin - left;
     }
 
+    /* TODO
     this.$.combo.autoSize(width, max_width);
     if ( ! this.$.combo.isVisible() && this._overlay === this.$.combo ) {
       this.$.combo.setVisible(true, this._comboFilter);
-    }
+    } */
   }
 
   setValue (value, displayValue) {
@@ -505,6 +516,7 @@ class CasperEpaperInput extends PolymerElement {
     switch ( this._mode) {
       case 'c':
         this._toggleOverlay();
+        event.stopPropagation();
         event.preventDefault();
         break;
       default:
@@ -565,13 +577,17 @@ class CasperEpaperInput extends PolymerElement {
 
     if ( this._initialSelection === true || this._textArea.value.length === 0 ) {
       if ( ['down', 'up', 'left', 'right'].indexOf(vkey) > -1 ) {
-        this.epaper._sendCommand('set key "focus_'+vkey+'";');
+        this.epaper._socket.moveCursor(this.epaper._documentId, vkey);
         event.preventDefault();
         return;
       } else if ( ['tab', 'shift+tab'].indexOf(vkey) > -1 ) {
         if ( this._initialSelection === true ) {
           this._initialSelection = false;
-          this.epaper._sendCommand('set key "'+vkey.replace(/\+/g, '"+"')+'";');
+          if ( vkey === 'shift+tab') {
+            this.epaper._socket.sendKey(this.epaper._documentId, vkey, 'shift');
+          } else {
+            this.epaper._socket.sendKey(this.epaper._documentId, vkey);
+          }
           event.preventDefault();
           return;
         }
@@ -589,11 +605,17 @@ class CasperEpaperInput extends PolymerElement {
     }
 
     if ( ['enter', 'tab', 'shift+tab'].indexOf(vkey) > -1 ) {
-      this.epaper._sendCommand('set text "' + this._escapeForServer(this._textArea.value) + '" true; set key "'
-                                  + vkey.replace(/\+/g, '"+"') + '";');
+      this.epaper._socket.setText(this.epaper._documentId,
+                                  this._textArea.value,
+                                  vkey === 'shift+tab' ? 'left' : 'right',
+                                  this._setTextResponse.bind(this));
       event.preventDefault();
       return;
     }
+  }
+
+  _setTextResponse (response) {
+    console.log('value set on server yeeehhhhh');
   }
 
   /*****************************************************************************************/
@@ -603,12 +625,13 @@ class CasperEpaperInput extends PolymerElement {
   /*****************************************************************************************/
 
   _setValueC (id, displayValue) {
+    /*  TODO
     this.$.combo.setVisible(false);
     if ( id !== undefined && id.length > 0 ) {
       this.$.combo.selectById(id);
     } else {
       this._textArea.value = '';
-    }
+    }*/
     this.overlayVisible = false;
     this._textArea.selectionStart = undefined;
     this._textArea.selectionEnd = undefined;
@@ -645,22 +668,27 @@ class CasperEpaperInput extends PolymerElement {
   }
 
   _onKeyDownC (event) {
-    var vkey;
+    let vkey;
 
     vkey = this._keycodeToVkey(event);
     if ( this.overlayVisible === false ) {
       if ( ['down', 'up', 'left', 'right'].indexOf(vkey) > -1 ) {
         if ( this._comboFilter.length !== 0 && ['down', 'up'].indexOf(vkey) > -1) {
-          this.$.combo.moveSelection(vkey);
+          /* TODO this.$.combo.moveSelection(vkey); */
         } else {
-          this.epaper._sendCommand('set key "focus_'+vkey+'";');
+          this.epaper._socket.moveCursor(this.epaper._documentId, vkey);
         }
         event.preventDefault();
       } else if ( ['tab', 'shift+tab', 'enter'].indexOf(vkey) > -1 ) {
+        /*
+        TODO
         if ( this.$.combo.getSelectedId() && this.$.combo.getSelectedId() !== this.$.combo.getInitialId() ) {
         //  this.epaper._sendCommand('set list item "' + this.$.combo.getSelectedId()  + '";');
-        }
-        this.epaper._sendCommand('set key "'+vkey.replace(/\+/g, '"+"')+'";');
+        }*/
+        //this.epaper._socket.setText();
+        this.epaper._socket.setTextT(this.epaper._document_id, this.$.combo.getSelectedId(), 'right', true);
+
+        //this.epaper._sendCommand('set key "'+vkey.replace(/\+/g, '"+"')+'";');
         event.preventDefault();
       } else if ( vkey === 'alt' || vkey === 'shift+down' ) {
         //this._comboFilter = event.key;
@@ -673,7 +701,7 @@ class CasperEpaperInput extends PolymerElement {
       //}
     } else {
       if ( vkey === 'esc' ) {
-        this.$.combo.setVisible(false);
+        // TODO this.$.combo.setVisible(false);
         this.overlayVisible = false;
         event.preventDefault();
       }
@@ -723,9 +751,9 @@ class CasperEpaperInput extends PolymerElement {
   /*****************************************************************************************/
 
   _setValueD (date) {
-    this.$.date.setLocale('pt');     // TODO from server
+    //this.$.date.setLocale('pt');     // TODO from server
     this._dateFormat = 'DD/MM/YYYY'; // TODO from server
-    this.$.date.setValue(moment(date, this._dateFormat).format('YYYY-MM-DD'));
+    //this.$.date.setValue(moment(date, this._dateFormat).format('YYYY-MM-DD'));
   }
 
   _onDateOverlayClosed (event) {
@@ -759,18 +787,18 @@ class CasperEpaperInput extends PolymerElement {
 
   _onKeyDownR (event) {
     if ( event.keyCode === 32 || (event.keyCode === 88 && this._textArea.value.length === 0) ) {
-      this.debounce('casper-toggle', function () {
-        this.epaper._sendCommand('set key "toggle";');
-      }.bind(this), 300);
+      // TODO debouncer this.debounce('casper-toggle', function () {
+        this.epaper._socket.sendKey(this.epaper._documentId, 'toggle');
+      //}.bind(this), 300);
     } else {
       var vkey = this._keycodeToVkey(event);
 
       if ( ['down', 'up', 'left', 'right'].indexOf(vkey) > -1 ) {
-        this.epaper._sendCommand('set key "focus_'+vkey+'";');
+        this.epaper._socket.moveCursor(this.epaper._documentId, vkey);
       } else if ( vkey === 'shift+tab' ) {
-        this.epaper._sendCommand('set key "focus_left";');
+        this.epaper._socket.moveCursor(this.epaper._documentId, 'left');
       } else if ( vkey === 'enter' || vkey === 'tab' ) {
-        this.epaper._sendCommand('set key "focus_right";');
+        this.epaper._socket.moveCursor(this.epaper._documentId, 'right');
       }
     }
     event.preventDefault();
@@ -781,13 +809,6 @@ class CasperEpaperInput extends PolymerElement {
   /*                             ~~~ Input helper functions ~~~                            */
   /*                                                                                       */
   /*****************************************************************************************/
-
-  /**
-   * Escapes double quotes for the server protocol
-   */
-  _escapeForServer (text) {
-    return text.split('"').join('""');
-  }
 
   /**
    * Convert keycode to virtual key code that is understood by the server
@@ -875,7 +896,11 @@ class CasperEpaperInput extends PolymerElement {
   _onMouseDown (event) {
     if ( this._mode === 'R' ) {
       event.preventDefault();
-      this.epaper._sendCommand('set key "toggle";');
+      this.epaper._socket.sendKey(this.epaper._documentId, 'toggle');
+    } else if ( this._mode === 'c' ) {
+      if ( this._select.opened ) {
+        event.stopPropagation();
+      }
     } else {
       this._initialSelection = false;
       this.grabFocus();
@@ -922,19 +947,22 @@ class CasperEpaperInput extends PolymerElement {
       return;
     }
     if ( content.length ) {
-      this.epaper.$.tooltip.show(content);
+      console.log('Show tooltip:', content); // TODO port to casper-app
+      //this.epaper.$.tooltip.show(content); // TODO port to casper-app
     } else {
       this.hideTooltip();
     }
   }
 
   showTooltip (content, positionTarget) {
-    this.epaper.$.tooltip.show(content, positionTarget);
+    console.log('Show tooltip:', content); // TODO port to casper-app
+    //this.epaper.$.tooltip.show(content, positionTarget);
   }
 
   hideTooltip () {
     if ( this.epaper.$.tooltip.hide !== undefined ) {
-      this.epaper.$.tooltip.hide();
+      console.log('Hide tooltip:'); // TODO port to casper-app
+      //this.epaper.$.tooltip.hide();
     }
   }
 }

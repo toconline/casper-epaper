@@ -1,5 +1,5 @@
 /*
-  - Copyright (c) 2014-2016 Neto Ranito & Seabra LDA. All rights reserved.
+  - Copyright (c) 2014-2016 Cloudware S.A. All rights reserved.
   -
   - This file is part of casper-epaper.
   -
@@ -18,73 +18,125 @@
   -
  */
 
-import './casper-epaper-input.js';
-import './casper-epaper-tooltip.js';
-import './casper-epaper-servertip-helper.js';
-import '@polymer/iron-icon/iron-icon.js';
-import '@polymer/paper-input/paper-input.js';
-import { EPaperSocket_Initialize } from './casper-epaper-imports.js';
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
 
-EPaperSocket_Initialize(window);
+import '@polymer/iron-icon/iron-icon.js';
+import '@casper2020/casper-icons/casper-icons.js';
+import './casper-epaper-input.js';
+import './casper-epaper-servertip-helper.js';
 
-class CasperEpaper extends Casper.I18n(PolymerElement) {
-
-  /*
-   * Constants
-   */
-  // Size is in pixels not pt
-  static get _BTN_SIZE ()       { return 24; }
-  static get KAPPA ()           { return .5522848; }
-  static get BOLD_MASK ()       { return 0x01; }
-  static get ITALIC_MASK ()     { return 0x02; }
-  static get UNDERLINE_MASK ()  { return 0x04; }
-  static get STRIKEOUT_MASK ()  { return 0x08; }
-  static get BOLD_INDEX ()      { return 0; }
-  static get ITALIC_INDEX ()    { return 1; }
-  static get SIZE_INDEX ()      { return 2; }
-  static get FONT_NAME_INDEX () { return 4; }
-
+class CasperEpaper extends PolymerElement {
   static get template() {
     return html`
-      <style>
-        :host {
-          display: block;
-        }
+    <style>
+      :host {
+        display: block;
+        background-color: #ddd;
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
 
-        #canvas {
-          outline: none;
-        }
+      iron-icon {
+        position: absolute;
+        display: inline-block;
+        cursor: pointer;
+        padding: 1px;
+        margin: 0px;
+        width: 24px;
+        height: 24px;
+        fill: var(--dark-primary-color);
+      }
 
-        iron-icon {
-          position: absolute;
-          display: inline-block;
-          cursor: pointer;
-          padding: 1px;
-          margin: 0px;
-          width: 24px;
-          height: 24px;
-          fill: var(--dark-primary-color);
-        }
+      #line_add_button:hover {
+        fill: var(--primary-color);
+      }
 
-        #line_add_button:hover {
-          fill: var(--primary-color);
-        }
+      #line_del_button:hover {
+        fill: #B94F4F;
+      }
 
-        #line_del_button:hover {
-          fill: #B94F4F;
-        }
+      .desktop {
+        top: 0px;
+        left: 0px;
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        overflow: auto;
+        display: flex;
+      }
 
-      </style>
-      <paper-card width="[[width]]" height="[[height]]">
-        <canvas id="canvas" width="[[width]]" height="[[height]]"></canvas>
-        <casper-epaper-input id="input"></casper-epaper-input>
-        <casper-epaper-tooltip id="tooltip"></casper-epaper-tooltip>
-        <casper-epaper-servertip-helper id="servertip"></casper-epaper-servertip-helper>
-        <iron-icon id="line_add_button" on-tap="_addDocumentLine" icon="casper-icons:add-circle"></iron-icon>
-        <iron-icon id="line_del_button" on-tap="_removeDocumentLine" icon="casper-icons:remove-circle"></iron-icon>
-      </paper-card>
-    `;
+      .shadow {
+        top: 0px;
+        left: 0px;
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        -moz-box-shadow:    inset 0 0 10px #00000080;
+        -webkit-box-shadow: inset 0 0 10px #00000080;
+        box-shadow:         inset 0 0 10px #00000080;
+        pointer-events:     none;
+      }
+
+      canvas {
+        outline: none;
+        box-shadow: rgba(0, 0, 0, 0.24) 0px 5px 12px 0px, rgba(0, 0, 0, 0.12) 0px 0px 12px 0px;
+        margin-top: 60px;
+        margin-bottom: 60px;
+      }
+
+      .toolbar {
+        top: 6px;
+        right: 32px;
+        position: absolute;
+        z-index: 1;
+      }
+
+      .toolbar-button {
+        margin: 6px 2px;
+        border-radius: 50%;
+        background-color: var(--primary-color);
+        padding: 0px;
+        max-width: 32px;
+        max-height: 32px;
+        --iron-icon-fill-color: white;
+        --iron-icon-width: 100%;
+        --iron-icon-height: 100%;
+        -webkit-box-shadow: 0px 2px 12px -1px rgba(0,0,0,0.61);
+        -moz-box-shadow: 0px 2px 12px -1px rgba(0,0,0,0.61);
+        box-shadow: 0px 2px 12px -1px rgba(0,0,0,0.61);
+      }
+
+      .toolbar-white {
+        --iron-icon-fill-color: var(--primary-color);
+        background-color: white;
+      }
+
+      .spacer {
+        flex-grow: 1.0;
+      }
+
+    </style>
+    <div class="toolbar">
+      <paper-icon-button class="toolbar-button toolbar-white" on-click="_zoomOut" tooltip="Reduzir" icon="casper-icons:minus"></paper-icon-button>
+      <paper-icon-button class="toolbar-button toolbar-white" on-click="_zoomIn" tooltip="Ampliar" icon="casper-icons:plus"></paper-icon-button>
+      <paper-icon-button class="toolbar-button" on-click="_gotoPreviousPage" tooltip="Página anterior" icon="casper-icons:arrow-left"></paper-icon-button>
+      <paper-icon-button class="toolbar-button" on-click="_gotoNextPage" tooltip="Página seguinte" icon="casper-icons:arrow-right"></paper-icon-button>
+      <paper-icon-button class="toolbar-button" on-click="_print" tooltip="Imprimir" icon="casper-icons:print"></paper-icon-button>
+      <paper-icon-button class="toolbar-button" on-click="_download" tooltip="Descarregar PDF" icon="casper-icons:download-pdf"></paper-icon-button>
+    </div>
+    <div id="desktop" class="desktop">
+      <div class="spacer"></div>
+      <canvas id="canvas" width="[[width]]" height="[[height]]"></canvas>
+      <div class="spacer"></div>
+      <casper-epaper-input id="input"></casper-epaper-input>
+      <casper-epaper-tooltip id="tooltip"></casper-epaper-tooltip>
+      <casper-epaper-servertip-helper id="servertip"></casper-epaper-servertip-helper>
+      <iron-icon id="line_add_button" on-tap="_addDocumentLine" icon="casper-icons:add-circle"></iron-icon>
+      <iron-icon id="line_del_button" on-tap="_removeDocumentLine" icon="casper-icons:remove-circle"></iron-icon>
+    </div>
+    <div class="shadow"></div>
+`;
   }
 
   static get is () {
@@ -93,6 +145,8 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
 
   static get properties () {
     return {
+      /** The casper application  */
+      app: Object,
       /** component width in px */
       width: {
         type: Number,
@@ -111,40 +165,33 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
       /** object that specifies the document being displayed/edited */
       document: {
         type: Object,
-        observer: '_document_changed'
-      },
-      /** websocket URL */
-      url: {
-        type: String,
-        value: undefined
-      },
-      /** websocket port number, defaults to current page port */
-      port: {
-        type: String,
-        value: undefined
-      },
-      /** set when the component is inside an iframe */
-      iframe: {
-        type: Boolean,
-        value: false
+        observer: '_documentChanged'
       },
       /** id of the containing element that can be scrolled */
       scroller: {
-        type: String,
-        value: undefined
-      },
-      /** server session */
-      session: {
         type: String,
         value: undefined
       }
     };
   }
 
-  ready () {
-    this._calculateAttributeDefaults();
+  /*
+   * Constants
+   */
+  static get BTN_SIZE ()        { return 24;       }
+  static get KAPPA ()           { return .5522848; }
+  static get BOLD_MASK ()       { return 0x01;     }
+  static get ITALIC_MASK ()     { return 0x02;     }
+  static get UNDERLINE_MASK ()  { return 0x04;     }
+  static get STRIKEOUT_MASK ()  { return 0x08;     }
+  static get BOLD_INDEX ()      { return 0;        }
+  static get ITALIC_INDEX ()    { return 1;        }
+  static get SIZE_INDEX ()      { return 2;        }
+  static get FONT_NAME_INDEX () { return 4;        }
 
-    this._socket            = new EPaperSocket(this, this.url, this.port, this.uri);
+  ready () {
+    super.ready ();
+    this._socket            = this.app.socket;
     this._canvas            = this.$.canvas;
     this._canvas_width      = this._canvas.width;
     this._canvas_height     = this._canvas.height;
@@ -154,15 +201,17 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
     this._ctx.globalCompositeOperation = 'copy';
     this._chapterPageCount  = 0;
     this._chapterPageNumber = 1;
+    this._currentPage       = 1;
     this._pageNumber        = 1;
     this._totalPageCount    = 0;
     this._message           = '';
     this._r_idx             = 0.0;
     this._bands             = undefined;
-    this._document_id       = undefined;
+    this._documentId        = undefined;
     this._images            = {};
     this._focused_band_id   = undefined;
     this._redraw_timer_key  = '_epaper_redraw_timer_key';
+    this._uploaded_assets_url = '';
     this._resetRenderState();
     this._resetCommandData();
 
@@ -197,42 +246,39 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
       this._right_margin = this._master_doc_right_margin;
     }
 
-
     // ... clear the page before we start ...
     this.setZoom(this.zoom, true);
     this._setupScale();
 
     // ... FOUT Mitigation @TODO proper FOUT mitigation ...
-    var styles    = ['', 'bold ', 'italic ', 'italic bold '];
-    var y = 175;
+    let styles    = ['', 'bold ', 'italic ', 'italic bold '];
+    let y = 175;
     this._ctx.save();
     this._ctx.fillStyle = "#F0F0F0"
     this._ctx.textAlign="center";
-    this._font_spec[this._SIZE_INDEX] = 20;
-    for ( var i = 0; i < styles.length; i++ ) {
-      this._font_spec[this._BOLD_INDEX] = styles[i];
+    this._font_spec[CasperEpaper.SIZE_INDEX] = 20;
+    for ( let i = 0; i < styles.length; i++ ) {
+      this._font_spec[CasperEpaper.BOLD_INDEX] = styles[i];
       this._ctx.font = this._font_spec.join('');
       this._ctx.fillText("Powered by CASPER ePaper", this._canvas.width / 2, y);
       y += 35;
     }
     this._ctx.restore();
+
+    this.$.canvas.addEventListener('mousemove', e => this._moveHandler(e));
+    this.$.canvas.addEventListener('mousedown', e => this._mouseDownHandler(e));
+    this.$.canvas.addEventListener('mouseup'  , e => this._mouseUpHandler(e));
+
+    this._socket.addEventListener('casper-signed-in', (e) => this.reOpen(e));
   }
 
-  attached () {
-    this.listen(this.$.canvas, 'mousemove', '_moveHandler');
-    this.listen(this.$.canvas, 'mousedown', '_mouseDownHandler');
-    this.listen(this.$.canvas, 'mouseup'  , '_mouseUpHandler');
+  connectedCallback () {
+    super.connectedCallback();
     this._deactivateLineContextMenu();
   }
 
-  detached () {
-    this.unlisten(this.$.canvas, 'mousemove', '_moveHandler');
-    this.unlisten(this.$.canvas, 'mousedown', '_mouseDownHandler');
-    this.unlisten(this.$.canvas, 'mouseup'  , '_mouseUpHandler');
-  }
-
   isPrintableDocument () {
-    return this._document_id === undefined || this._document === undefined || this._document.chapters === undefined || this._document.loading
+    return this._documentId === undefined || this._document === undefined || this._document.chapters === undefined || this._document.loading;
   }
 
   //***************************************************************************************//
@@ -247,6 +293,7 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
    * @param {Object} documentModel an object that specifies the layout and data of the document
    */
   open (documentModel) {
+    this._currentPage = 1; // # TODO goto page on open /
     this._prepareOpenCommand(documentModel);
     this._openChapter();
   }
@@ -289,9 +336,9 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
    * @param {string} rowIndex undefined to highlight a parameter or the rowIndex to highligth a field
    */
   gotoParamOrField (chapterReport, fieldName, rowIndex) {
-    var chapterIndex = undefined;
-    var highlight_after_load = function() {
-        var cmd;
+    let chapterIndex = undefined;
+    let highlight_after_load = function() {
+        let cmd;
 
         if ( rowIndex ) {
           cmd = 'document highlight field "' + fieldName + '",'+ rowIndex + ';';
@@ -302,8 +349,8 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
       }.bind(this);
 
     if ( this._jrxml !== undefined ) {
-      var reportName = this._jrxml;
-      var j;
+      let reportName = this._jrxml;
+      let j;
 
       j = reportName.lastIndexOf('/');
       reportName = reportName.substring(j === -1 ? 0 : j +1, reportName.length);
@@ -314,7 +361,7 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
 
     if ( this.chapterIndex === undefined ) {
       if ( this._document && this._document.chapters ) {
-        for ( var i = 0; i < this._document.chapters.length; i++ ) {
+        for ( let i = 0; i < this._document.chapters.length; i++ ) {
           reportName = this._document.chapters[i].jrxml;
           j = reportName.lastIndexOf('/');
           reportName = reportName.substring(j === -1 ? 0 : j +1, reportName.length);
@@ -360,9 +407,16 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
     return false;
   }
 
-  // NOTE @TODO will be delete when we move to session based man grade authentication
-  jsonApiConfig (configuration) {
-    this._jsonApiConfig = configuration;
+  _zoomOut () {
+    if ( this.zoom > 0.5 ) {
+      this.setZoom(this.zoom * 0.8);
+    }
+  }
+
+  _zoomIn () {
+    if ( this.zoom < 2 ) {
+      this.setZoom(this.zoom * 1.2);
+    }
   }
 
   /**
@@ -372,8 +426,8 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
    * @param {boolean} forced truish to force the zoom update
    */
   setZoom (zoom, forced) {
-    var w; // Canvas width in px
-    var h; // Canvas height in px
+    let w; // Canvas width in px
+    let h; // Canvas height in px
 
     if ( this.zoom !== zoom || forced ) {
       this._hideWidgets();
@@ -384,6 +438,14 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
     }
   }
 
+  _gotoPreviousPage () {
+    this._currentPage = this.gotoPage(this._currentPage - 1);
+  }
+
+  _gotoNextPage () {
+    this._currentPage = this.gotoPage(this._currentPage + 1);
+  }
+
   /**
    * Goto to the specified page. Requests page change or if needed loads the required chapter
    *
@@ -392,27 +454,30 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
   gotoPage (pageNumber) {
 
     if ( this._document && this._document.chapters && this._document.chapters.length >= 1 ) {
-      var currentPage = 1;
+      let currentPage = 1;
 
       pageNumber = parseInt(pageNumber);
-      for ( var i = 0;  i < this._document.chapters.length; i++ ) {
+      for ( let i = 0;  i < this._document.chapters.length; i++ ) {
         if ( pageNumber >= currentPage && pageNumber < (currentPage + this._document.chapters[i].pageCount) ) {
-          var newPageNumber;
+          let newPageNumber;
 
           newPageNumber = 1 + pageNumber - currentPage;
           if ( i === this._chapterIndex ) {
             if ( this._chapterPageNumber !== newPageNumber ) {
               this._resetScroll();
-              this._sendCommand('document set page ' + newPageNumber + ';');
+              this._socket.gotoPage(this._documentId, newPageNumber);
+              return pageNumber;
             }
           } else {
             this.gotoChapter(i, newPageNumber);
+            return pageNumber;
           }
           this._chapterPageNumber = newPageNumber;
         }
         currentPage += this._document.chapters[i].pageCount;
       }
     }
+    return this._currentPage;
   }
 
   /**
@@ -425,19 +490,11 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
   }
 
   /**
-   * Clears the page and re-starts the connection to the server
-   */
-  reconnect () {
-    this._clear(true);
-    this._socket.connect();
-  }
-
-  /**
    * Re-opens the last document that was open
    */
   reOpen () {
     if ( this._document !== undefined ) {
-      var cloned_command = JSON.parse(JSON.stringify(this._document));
+      let cloned_command = JSON.parse(JSON.stringify(this._document));
       this._clear();
       this.open(cloned_command);
     } else {
@@ -452,13 +509,13 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
     this._fireEvent('casper-epaper-notification', { message: 'update:variable,PAGE_COUNT,1;' });
     this._fireEvent('casper-epaper-notification', { message: 'update:variable,PAGE_NUMBER,1;' });
     this._document = undefined;
-    this._callRpc('close', 'document close "' + this._document_id + '";', function(a_epaper, a_message) {
-        var expected_response = 'S:ok:close:' + a_epaper._document_id;
+    this._callRpc('close', 'document close "' + this._documentId  + '";', function(a_epaper, a_message) {
+        let expected_response = 'S:ok:close:' + a_epaper._documentId;
         if ( a_message.indexOf(expected_response) === 0 ) {
           if ( a_message.length > expected_response.length ) {
-            a_epaper._document_id = a_message.substring(expected_response.length + 1).replace('\n', '');
+            a_epaper._documentId  = a_message.substring(expected_response.length + 1).replace('\n', '');
           } else {
-            a_epaper._document_id = undefined;
+            a_epaper._documentId  = undefined;
           }
         }
         if ( undefined !== a_success_handler ) {
@@ -468,48 +525,50 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
     );
   }
 
-  getPrintJob (name, print) {
-    console.log("***  getPrintJob ", name, print);
-    name = this.i18n.apply(this, this._document.filename_template);
-    title = name
+  _print () {
+    this.app.showPrintDialog(this.getPrintJob(true));
+  }
 
-    if ( this.isPrintableDocument() ) {
+  _download () {
+    this.app.showPrintDialog(this.getPrintJob(false));
+  }
+
+  getPrintJob (print) {
+    let name  = 'TESTE'; ///*this.i18n.apply(this, */this._document.filename_template;
+    let title = name
+
+    if ( this.isPrintableDocument() ) { // ??? reverted logic WTF?
       return undefined;
     }
 
-    var ja_cfg = JSON.parse(this._jsonApiConfig);
-    var job = {
+    let job = {
       tube: 'casper-print-queue',
       name: name,
       validity: 3600,
       locale: this._locale,
       continous_pages: true,
+      auto_printable: print == true,
       documents: [],
       public_link: {
         path: print ? 'print' : 'download'
-      }
+      },
+      action: print ? 'epaper-print' : 'epaper-download'
     }
-    for (var i = 0; i < this._document.chapters.length; i++) {
-      var chapter = {
+    for ( let i = 0; i < this._document.chapters.length; i++) {
+      let chapter = {
         name: name,
         title: title,
-        jrxml: this._document.chapters[i].jrxml + '.jrxml',  // Make this optional on CPQ???
+        jrxml: this._document.chapters[i].jrxml,
         jsonapi: {
-          urn: this._document.chapters[i].path + '?include=lines', // Make this optional on CPQ???
-          prefix: ja_cfg.prefix,                         // TODO SET ALL OF THese values TO NULL when session auth is in place
-          user_id: ja_cfg.user_id,     // TODO SET ALL OF THese values TO NULL when session auth is in place
-          company_id: ja_cfg.company_id, // TODO SET ALL OF THese values TO NULL when session auth is in place
-          company_schema: ja_cfg.company_schema, // TODO SET ALL OF THese values TO NULL when session auth is in place
-          sharded_schema: ja_cfg.sharded_schema, // TODO SET ALL OF THese values TO NULL when session auth is in place
-          accounting_schema: ja_cfg.accounting_schema, // TODO SET ALL OF THese values TO NULL when session auth is in place
-          accounting_prefix: ja_cfg.accounting_prefix // TODO SET ALL OF THese values TO NULL when session auth is in place
-          // urn:  ja_cfg.prefix + this._document.chapters[i].path + '?include=lines', // Make this optional on CPQ???
-          // user_id: null,
-          // entity_id: null,
-          // entity_schema: null,
-          // sharded_schema: null,
-          // subentity_schema: null,
-          // subentity_prefix: null
+          // TODO extract list of relationships from the report!!!! // TODO NO TOCONLINE
+          urn: 'https://app.toconline.pt/' + this._document.chapters[i].path + '?' + ((undefined !== this._document.chapters[i].params && '' !== this._document.chapters[i].params) ? this._document.chapters[i].params : 'include=lines'),
+          prefix: null,
+          user_id: null,
+          entity_id: null,
+          entity_schema: null,
+          sharded_schema: null,
+          accounting_schema: null,
+          accounting_prefix: null
         }
       }
       job.documents.push(chapter);
@@ -518,13 +577,11 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
   }
 
   getBatchPrintJob (print, documents) {
-    console.log("***  getBatchPrintJob ", print, documents);
-
     documents = documents || []
 
     first_document = documents[0]
 
-    if (first_document !== undefined) {
+    if ( first_document !== undefined ) {
       name = first_document.name || this.i18n.apply(this, first_document.filename_template)
       title = first_document.title || name
     }
@@ -536,8 +593,7 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
       return undefined;
     }
 
-    var ja_cfg = JSON.parse(this._jsonApiConfig);
-    var job = {
+    let job = {
       tube: 'casper-print-queue',
       name: name,
       validity: 3600,
@@ -547,14 +603,14 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
       documents: [],
       public_link: {
         path: print ? 'print' : 'download'
-      }
+      },
     }
 
-    for (var i = 0; i < documents.length; i++) {
+    for (let i = 0; i < documents.length; i++) {
       _document = documents[i]
       _document_name = this.i18n.apply(this, _document.filename_template)
 
-      for (var j = 0; j < _document.chapters.length; j++) {
+      for (let j = 0; j < _document.chapters.length; j++) {
         _chapter = _document.chapters[j]
 
         _print_document = {
@@ -562,19 +618,14 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
           title: _document.title || _document_name || title,
           jrxml: _chapter.jrxml + '.jrxml',
           jsonapi: {
-            urn: ja_cfg.prefix + _chapter.path + '?include=lines', // Make this optional on CPQ???
-            user_id: ja_cfg.user_id,     // TODO SET ALL OF THese values TO NULL when session auth is in place
-            company_id: ja_cfg.company_id, // TODO SET ALL OF THese values TO NULL when session auth is in place
-            company_schema: ja_cfg.company_schema, // TODO SET ALL OF THese values TO NULL when session auth is in place
-            sharded_schema: ja_cfg.sharded_schema, // TODO SET ALL OF THese values TO NULL when session auth is in place
-            accounting_schema: ja_cfg.accounting_schema, // TODO SET ALL OF THese values TO NULL when session auth is in place
-            accounting_prefix: ja_cfg.accounting_prefix // TODO SET ALL OF THese values TO NULL when session auth is in place
-            // user_id: null,
-            // company_id: null,
-            // company_schema: null,
-            // sharded_schema: null,
-            // accounting_schema: null,
-            // accounting_prefix: null
+            urn: _chapter.path + '?include=lines', // Make this optional on CPQ???
+            prefix: null,
+            user_id: null,
+            company_id: null,
+            company_schema: null,
+            sharded_schema: null,
+            accounting_schema: null,
+            accounting_prefix: null
           }
         }
 
@@ -586,28 +637,28 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
   }
 
   // This more a Refresh??
-  reload_document (a_success_handler) {
-    this._callRpc('reload', 'document reload;', function(a_epaper, a_message) {
-        if ( undefined !== a_success_handler ) {
-          a_success_handler(a_message.substring('S:ok:reload:'.length));
-        }
-      }
-    );
-  }
+  //reload_document (a_success_handler) {
+  //  this._callRpc('reload', 'document reload;', function(a_epaper, a_message) {
+  //      if ( undefined !== a_success_handler ) {
+  //        a_success_handler(a_message.substring('S:ok:reload:'.length));
+  //      }
+  //    }
+  //  );
+  //}
+  //
+  //document_focus_row (a_index, a_success_handler) {
+  //  this._callRpc('focused row', 'document set focused row ' + a_index + ';', function(a_epaper, a_message) {
+  //      if ( undefined !== a_success_handler ) {
+  //        a_success_handler(a_message.substring('S:ok:focused row:'.length));
+  //      }
+  //    }
+  //  );
+  //}
 
-  document_focus_row (a_index, a_success_handler) {
-    this._callRpc('focused row', 'document set focused row ' + a_index + ';', function(a_epaper, a_message) {
-        if ( undefined !== a_success_handler ) {
-          a_success_handler(a_message.substring('S:ok:focused row:'.length));
-        }
-      }
-    );
-  }
-
-  _document_changed (a_document) {
-    if (this._socket === undefined || a_document == null) return; // MARTELADA
-    console.log('And then document wos set' + document);
-    this.open(a_document);
+  _documentChanged (document) {
+    if ( document ) {
+      this.open(document);
+    }
   }
 
   //***************************************************************************************//
@@ -615,20 +666,6 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
   //                             ~~~ Private methods ~~~                                   //
   //                                                                                       //
   //***************************************************************************************//
-
-  _validate_response (a_expected_response, a_response) {
-    var expected_start;
-
-    expected_start = 'S:ok:' + a_expected_response;
-    if ( match = a_response.match(/^S:failure:.*?:(.*)/) ) {
-      return new Error(JSON.parse(match[1]));
-    } else if ( a_response.indexOf('S:error:') === 0 || a_response.indexOf('S:exception:') === 0 ) {
-      return new Error(a_response);
-    } else if (a_response.indexOf(expected_start) === 0 ) {
-      return a_response.substring(expected_start.length + 1);
-    }
-    return undefined;
-  }
 
   /**
    * Sanitizes the document object model, auto selects the first chapter
@@ -639,11 +676,10 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
     this._document       = JSON.parse(JSON.stringify(documentModel));
     this._chapterCount   = this._document.chapters.length;
     this._totalPageCount = 0;
-    for ( var idx = 0; idx < this._chapterCount; idx++ ) {
-      this._document.chapters[idx].locale        = this._document.chapters[idx].locale        || 'pt_PT';
-      this._document.chapters[idx].edit          = this._document.chapters[idx].edit          || false;
-      this._document.chapters[idx].subdocument   = this._document.chapters[idx].subdocument   || false;
-      this._document.chapters[idx].pageCount     = this._document.pageCount                   || 1;
+    for ( let idx = 0; idx < this._chapterCount; idx++ ) {
+      this._document.chapters[idx].locale    = this._document.chapters[idx].locale    || 'pt_PT';
+      this._document.chapters[idx].editable  = this._document.chapters[idx].editable  || false;
+      this._document.chapters[idx].pageCount = this._document.pageCount               || 1;
       this._totalPageCount += this._document.chapters[idx].pageCount;
     }
     this._chapterIndex = 0;
@@ -658,109 +694,67 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
    */
   _openChapter (pageNumber, postOpenFunction) {
     // Promise to open the report layout in case it not loaded yet
-    var open_document = function () {
+    let open_document = function () {
       return new Promise(function (a_resolve, a_reject) {
-        if ( this._jrxml === this._chapter.jrxml && this._locale === this._chapter.locale && this._subdocument === this._chapter.subdocument ) {
+        if ( this._jrxml === this._chapter.jrxml && this._locale === this._chapter.locale ) {
           return a_resolve(this);
         }
-        this._sendCommand('document open "' + this._chapter.jrxml + '","' + this._chapter.locale + '",' + this._chapter.subdocument + ',false;', function (a_response) {
-          var response = this._validate_response('open', a_response);
-          if ( response instanceof Error ) {
+        this._socket.openDocument(this._chapter, function (response) {
+          if ( response.errors !== undefined ) {
             a_reject(response);
-          } else if ( response !== undefined ) {
+          } else {
 
-            this._message     = response;
-            this._r_idx       = 0;
-            this._document_id = this._getDouble();
-            this._page_width  = this._getDouble();
-            this._page_height = this._getDouble();
+            this._documentId  = response.id;
+            this._page_width  = response.page.width;
+            this._page_height = response.page.height;
             if ( isNaN(this._page_height) ) {
               this._page_height = 4000;
             }
-            this._right_margin = this._getDouble();
+            this._right_margin = response.page.margins.right;
             this._jrxml        = this._chapter.jrxml;
             this._locale       = this._chapter.locale;
-            this._subdocument  = this._chapter.subdocument;
-
             a_resolve(this);
           }
-        });
-      }.bind(this));
-    }.bind(this);
-
-    // Promise to configure the JSON API
-    var configure_api = function () {
-      return new Promise(function (a_resolve, a_reject) {
-        var config_msg;
-
-        if ( this.session ) {
-          config_msg = 'document set session "' + this.session + '";';
-        } else {
-          config_msg = 'document config json_api "' + this._jsonApiConfig.replace(/"/g, '""') + '";';
-        }
-        this._sendCommand(config_msg, function (a_response) {
-          var response;
-
-          if ( this.session ) {
-            response = this._validate_response('json_api', a_response);
-          } else {
-            response = this._validate_response('session', a_response);
-          }
-          if ( response instanceof Error ) {
-            a_reject(response);
-          } else {
-            if ( a_response.startsWith('S:ok:json_api') ) {
-              //this._prefix       = this._chapter.prefix;
-              //this._schema       = this._chapter.schema;
-              //this._table_prefix = this._chapter.table_prefix;
-              a_resolve(self);
-            } else if ( a_response.startsWith('S:ok:session') ) {
-              a_resolve(self);
-            }
-          }
-        });
+        }.bind(this), this.documentHandler.bind(this))
       }.bind(this));
     }.bind(this);
 
     // Promise to load the document data
-    var load_document = function () {
+    let load_document = function () {
       return new Promise(function (a_resolve, a_reject) {
-        var args = {
-          edit:        this._chapter.edit,
+        let args = {
+          id:          this._documentId,
+          editable:    this._chapter.editable,
           path:        this._chapter.path,
           scale:       this._sx,
-          subdocument: this._subdocument,
           focus:       this._openFocus,
           page:        this._nextPage
         };
-        this._sendCommand('document load "' + JSON.stringify(args).replace(/"/g,'""') + '";', function (a_response) {
-          var response = this._validate_response('load', a_response);
-
-          if ( response instanceof Error ) {
+        this._chapter.id = this._documentId;
+        this._socket.loadDocument(args, function (response) {
+          if ( response.errors !== undefined ) {
             a_reject(response);
           } else {
-            if ( a_response.startsWith('S:ok:load') ) {
-              this._path    = this._chapter.path;
-              this._params  = this._chapter.params;
-              this._edition = this._chapter.edit;
-              this._documentScale   = args.scale;
-              this._scalePxToServer = this._page_width * this._ratio / this._canvas.width;
-              this.setZoom(this.zoom, true);
-              this._repaintPage();
-              this._fireEvent('casper-epaper-loaded', {
-                                                        pageWidth:    this._page_width,
-                                                        pageHeight:   this._page_height,
-                                                        document:     this._document,
-                                                        chapterIndex: this._chapterIndex,
-                                                        pageNumber:   this._pageNumber,
-                                                        pageCount:    this._totalPageCount
-                                                      });
-              this._loading = false;
-              this.$.servertip.enabled = true;
-              a_resolve(this);
-            }
+            this._path    = this._chapter.path;
+            this._params  = this._chapter.params;
+            this._edition = this._chapter.editable;
+            this._documentScale   = args.scale;
+            this._scalePxToServer = this._page_width * this._ratio / this._canvas.width;
+            this.setZoom(this.zoom, true);
+            this._repaintPage();
+            // this._fireEvent('casper-epaper-loaded', {
+            //                                           pageWidth:    this._page_width,
+            //                                           pageHeight:   this._page_height,
+            //                                           document:     this._document,
+            //                                           chapterIndex: this._chapterIndex,
+            //                                           pageNumber:   this._pageNumber,
+            //                                           pageCount:    this._totalPageCount
+            //                                         });
+             this._loading = false;
+             this.$.servertip.enabled = true;
+             a_resolve(this);
           }
-        });
+        }.bind(this));
       }.bind(this));
     }.bind(this);
 
@@ -770,7 +764,7 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
         a_resolve(this);
       }.bind(this);
     }
-    var post_open = function() {
+    let post_open = function() {
       return new Promise(postOpenFunction);
     }.bind(this);
 
@@ -785,11 +779,11 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
 
     // ... perform the command sequence ...
     open_document()
-      .then(configure_api)
       .then(load_document)
       .then(post_open)
       .catch(function(a_error) {
-        alert("Paper error " + a_error);
+      //  alert("Paper error " + a_error);
+        console.log(a_error.errors[0].internal.why);
         this._clear();
       }.bind(this));
   }
@@ -822,21 +816,6 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
   //***************************************************************************************//
 
   /**
-   * @brief Assign defaults to undefined component attributes
-   */
-  _calculateAttributeDefaults () {
-    if ( this.url === undefined ) {
-      if ( window.location.protocol === 'https:' ) {
-        this.url = 'wss://' + window.location.hostname;
-      } else {
-        this.url = 'ws://' + window.location.hostname;
-      }
-    }
-    this.port = this.port || window.location.port;
-    this.uri  = this.uri  || 'epaper';
-  }
-
-  /**
    * Change the size of the epaper canvas.
    *
    * @param {number} width canvas width in px
@@ -854,8 +833,8 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
       this._canvas_width  = width;
       this._canvas_height = height;
       this._setupScale();
-      if ( this._document_id !== undefined && this._documentScale !== this._sx ) {
-        this._sendCommand('document set scale ' + this._sx + ' ' + this._sx + ';');
+      if ( this._documentId !== undefined && this._documentScale !== this._sx ) {
+        this._socket.setScale(this._documentId, 1.0 * this._sx.toFixed(2));
         this._documentScale = this._sx;
       }
     }
@@ -865,13 +844,13 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
    * @brief Determine the device pixel ratio: 1 on classical displays 2 on retina/UHD displays
    */
   _setupPixelRatio () {
-    var devicePixelRatio  = window.devicePixelRatio || 1;
+    let devicePixelRatio  = window.devicePixelRatio || 1;
     if (devicePixelRatio > 1.6) {
       devicePixelRatio = 2;
     } else {
       devicePixelRatio = 1;
     }
-    var backingStoreRatio = this._ctx.webkitBackingStorePixelRatio ||
+    let backingStoreRatio = this._ctx.webkitBackingStorePixelRatio ||
                             this._ctx.mozBackingStorePixelRatio ||
                             this._ctx.msBackingStorePixelRatio ||
                             this._ctx.oBackingStorePixelRatio ||
@@ -904,11 +883,8 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
     this._path         = undefined;
     this._params       = undefined;
     this._jrxml        = undefined;
-    //this._prefix       = undefined;
     this._locale       = undefined;
-    //this._table_prefix = undefined;
     this._edit         = false;
-    this._subdocument  = false;
     this._loading      = false;
     this._openFocus    = undefined;
     this._nextPage     = undefined;
@@ -924,7 +900,6 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
    * @brief Creates the handler that listens to mouse movements
    */
   _moveHandler (a_event) {
-
     if ( this.$.input.overlayVisible ) {
       return;
     }
@@ -946,7 +921,9 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
   }
 
   _mouseUpHandler (a_event) {
-    this._sendCommand("set click " + (event.offsetX * this._scalePxToServer).toFixed(2) + ', ' + (event.offsetY * this._scalePxToServer).toFixed(2) + ';');
+    this._socket.sendClick(this._documentId,
+                           parseFloat((a_event.offsetX * this._scalePxToServer).toFixed(2)),
+                           parseFloat((a_event.offsetY * this._scalePxToServer).toFixed(2)));
     if ( this._edition ) {
       this.$.input.grabFocus();
     }
@@ -959,10 +936,10 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
   //***************************************************************************************//
 
   _paintGrid (a_major, a_minor) {
-    var width  = this._canvas.width;
-    var height = this._canvas.height;
-    var x      = 0;
-    var y      = 0;
+    let width  = this._canvas.width;
+    let height = this._canvas.height;
+    let x      = 0;
+    let y      = 0;
 
     this._ctx.beginPath();
     this._ctx.strokeStyle = "#C0C0C0";
@@ -1000,16 +977,16 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
     this._ctx.strokeStyle = "#000000";
   }
 
-  _getDouble() {
+  _getDouble () {
 
-    var fractional    = 0.0;
-    var whole         = 0.0;
-    var negative      = false;
-    var parsing_whole = true;
-    var divider       = 1.0;
-    var current_c     = "";
+    let fractional    = 0.0;
+    let whole         = 0.0;
+    let negative      = false;
+    let parsing_whole = true;
+    let divider       = 1.0;
+    let current_c     = "";
 
-    if (this._message[this._r_idx] == '-') {
+    if ( this._message[this._r_idx] === '-' ) {
       negative = true;
       this._r_idx++;
     }
@@ -1053,8 +1030,15 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
     }
   }
 
+  _getString () {
+    let l = this._getDouble();
+    let s  = this._r_idx;
+    this._r_idx += l + 1;
+    return this._message.substring(s, s + l);
+  }
+
   _onPaintMessage (a_message) {
-    this._r_idx   = 1;
+    this._r_idx   = 2; // D:
     this._message = a_message;
     this._paintBand();
   }
@@ -1063,7 +1047,7 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
    * Paints blank page
    */
   _clearPage () {
-    var saved_fill = this._ctx.fillStyle;
+    let saved_fill = this._ctx.fillStyle;
 
     this._ctx.fillStyle = this._background_color;
     this._ctx.fillRect(0, 0, this._canvas.width, this._canvas.height);
@@ -1082,7 +1066,7 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
    * @note This function must keep the object context and canvas context unmodified
    */
   _repaintPage () {
-    var band;
+    let band;
 
     this._reset_redraw_timer();
 
@@ -1095,7 +1079,7 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
 
     // ... repaint the bands top to down to respect the painter's algorithm ...
     if ( this._bands !== undefined ) {
-      for ( var i = 0; i < this._bands.length; i++ ) {
+      for ( let i = 0; i < this._bands.length; i++ ) {
 
         band = this._bands[i];
         this._r_idx       = band._idx;
@@ -1139,22 +1123,22 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
    */
   _paintBand () {
 
-    var do_paint   = true;
-    var option     = '';
-    var option_num = 0.0;
-    var x          = 0.0;
-    var y          = 0.0;
-    var x2         = 0.0;
-    var y2         = 0.0;
-    var r          = 0.0;
-    var w          = 0.0;
-    var h          = 0.0;
-    var sx         = 0.0;
-    var sy         = 0.0;
-    var sh         = 0.0;
-    var sw         = 0.0;
-    var s          = this._ratio;
-    var t1,t2,t3;
+    let do_paint   = true;
+    let option     = '';
+    let option_num = 0.0;
+    let x          = 0.0;
+    let y          = 0.0;
+    let x2         = 0.0;
+    let y2         = 0.0;
+    let r          = 0.0;
+    let w          = 0.0;
+    let h          = 0.0;
+    let sx         = 0.0;
+    let sy         = 0.0;
+    let sh         = 0.0;
+    let sw         = 0.0;
+    let s          = this._ratio;
+    let t1,t2,t3;
 
     this._resetRenderState();
     while (this._r_idx < this._message.length) {
@@ -1196,7 +1180,7 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
           y = this._getDouble();
 
           // ... search for a band with same id on the stored band array ...
-          var band = null;
+          let band = null;
           sx = this._binaryFindBandById(w);
           if ( sx !== -1 ) {
             band = this._bands[sx];
@@ -1409,7 +1393,7 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
             this._sub_document_uri   = undefined;
             this._sub_document_jrxml = undefined;
 
-            var edit_mode = this._message[this._r_idx++];
+            let edit_mode = this._message[this._r_idx++];
             switch ( edit_mode ) {
 
             case 'r': // 'r' Text, but read only
@@ -1462,7 +1446,7 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
               break;
 
             case 'c':  // 'c'<version>,<empty_line><length>,<field_id>,<length>,<display_field>{,<length>,<field>}[,<length>,<list json>] Simple combo  client side
-              var version = this._getDouble();
+              let version = this._getDouble();
               if ( version === 2 ) {
                 w  = this._getDouble();
                 t2 = this._message.substring(this._r_idx, this._r_idx + w);
@@ -1474,12 +1458,12 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
                 }
               } else {
                 // empty_line: 0 or 1
-                var nullable_list = this._getDouble();
+                let nullable_list = this._getDouble();
                 // fields '}'
-                var fields = [];
+                let fields = [];
                 w = this._getDouble();
                 if ( w > 2 ) {
-                  var tmp = this._message.substring(this._r_idx + 1, this._r_idx + w - 1);
+                  let tmp = this._message.substring(this._r_idx + 1, this._r_idx + w - 1);
                   fields = tmp.split(',');
                   //console.log("Combo FIELDS: " + fields);
                 }
@@ -1559,10 +1543,10 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
               this.$.input.setMode(edit_mode);
 
 
-              var fields = [];
+              let fields = [];
               w = this._getDouble();
               if ( w > 2 ) {
-                var tmp = this._message.substring(this._r_idx + 1, this._r_idx + w - 1);
+                let tmp = this._message.substring(this._r_idx + 1, this._r_idx + w - 1);
                 fields = tmp.split(',');
 
                 //console.log("Combo FIELDS: " + fields);
@@ -1583,6 +1567,10 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
             h = this._getDouble() / s;
             this._inputBoxDrawString = this._message.substring(this._r_idx);
 
+            // TODO review with multipage
+            x += this.$.canvas.getBoundingClientRect().left - this.$.desktop.getBoundingClientRect().left;
+            y += this.$.canvas.getBoundingClientRect().top - this.$.desktop.getBoundingClientRect().top;
+
             this.$.input.alignPosition(x, y, w, h);
             this.$.input.setVisible(true);
 
@@ -1601,11 +1589,11 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
               this._r_idx += 1; // '{'
 
               w = this._getDouble();
-              var id = this._message.substring(this._r_idx, this._r_idx + w);
+              let id = this._message.substring(this._r_idx, this._r_idx + w);
               this._r_idx += w + 1;
 
               w = this._getDouble();
-              var value = this._message.substring(this._r_idx, this._r_idx + w);
+              let value = this._message.substring(this._r_idx, this._r_idx + w);
               this._r_idx += w + 1; // +1 -> '}'
               this.$.input.setValue(id, value);
 
@@ -1654,7 +1642,7 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
             if ( ';' !== this._message[this._r_idx - 1] ) {
               w = this._getDouble();
 
-              var json = this._message.substring(this._r_idx, this._r_idx + w);
+              let json = this._message.substring(this._r_idx, this._r_idx + w);
 
               //this.$.input.setModelFromJson(undefined, json);
               //this.$.input.autoSizeOverlay(this.$.input.style.width);
@@ -1680,7 +1668,7 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
 
             this._r_idx += 1;
 
-            var tmp_stroke_style = this._ctx.strokeStyle;
+            let tmp_stroke_style = this._ctx.strokeStyle;
             this._ctx.strokeStyle = "#FF0000";
             this._ctx.strokeRect(this._getDouble(), this._getDouble(), this._getDouble(), this._getDouble());
             this._ctx.strokeStyle = tmp_stroke_style;
@@ -1837,8 +1825,8 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
           y = this._getDouble();
           w = this._getDouble();
           h = this._getDouble();
-          var ox = (w / 2) * this._KAPPA,
-              oy = (h / 2) * this._KAPPA,
+          let ox = (w / 2) * CasperEpaper.KAPPA,
+              oy = (h / 2) * CasperEpaper.KAPPA,
               xe = x + w,
               ye = y + h,
               xm = x + w / 2,
@@ -1878,50 +1866,46 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
           break;
 
         /*
-         * === 'I' Image : I<url_chars_count>,<url>,<x>,<y>,<w>,<h>
-         * === 'I' Image : I<url_chars_count>,<url>,<x>,<y>,<w>,<h>,<sx>,<sy>,<sw>,<sh>
+         * === 'I' Image : I<id>,<url_chars_count>,<url>,<x>,<y>,<w>,<h>
+         * === 'I' Image : I<id>,<url_chars_count>,<url>,<x>,<y>,<w>,<h>,<sx>,<sy>,<sw>,<sh>
          */
         case 'I':
 
-          w = this._getDouble();
-          this._t = this._message.substring(this._r_idx, this._r_idx + w);
-          this._r_idx += w + 1;
+          let img_info = {
+            _id:   this._getDouble(),
+            _path: this._getString(),
+            _t:    this._getDouble(),
+            _l:    this._getDouble(),
+            _b:    this._getDouble(),
+            _r:    this._getDouble(),
+            _m:    this._getString(),
+            _h:    this._getString(),
+            _v:    this._getString()
+          };
 
-          x = this._getDouble();
-          y = this._getDouble();
-          w = this._getDouble();
-          h = this._getDouble();
-          if ( this._message[this._r_idx - 1] != ';' ) {
-            sx = this._getDouble();
-            sy = this._getDouble();
-            sw = this._getDouble();
-            sh = this._getDouble();
-          } else {
-            sx = -1.0;
-          }
-          var img = this._images[this._t];
-          if ( img === undefined ) {
-            var self = this;
+          let img = this._images[img_info._id];
+          if ( img === undefined && img_info._path.length ) {
             img = new Image();
+            if ( false) {  // Image scaling QA
+              document.getElementById('epaper-container').appendChild(img);
+              img.style.display = 'none';
+              img.id = img_info._id;
+            }
+            this._images[img_info._id] = img;
             img.onload = function() {
-              self.restart_redraw_timer();
-            }
+              this._restart_redraw_timer();
+            }.bind(this);
             img.onerror = function() {
-              self._images[this.src] = undefined;
-            }
-            img.src = this._t;
-            this._images[this._t] = img;
+              this._images[img_info._id] = undefined;
+            }.bind(this);
+            img.src = this._uploaded_assets_url + img_info._path;
+            this._images[img_info._id] = img;
           }
-          if ( img.complete && typeof img.naturalWidth !== undefined && img.naturalWidth !== 0 ) {
+          if ( img && img.complete && typeof img.naturalWidth !== undefined && img.naturalWidth !== 0 ) {
             try {
-              if ( sx !== -1.0 ) {
-                this._ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h);
-              } else {
-                this._ctx.drawImage(img, x, y, w, h);
-                //console.log("=== Draw image @" + x + "," + y + " " + w + "x" + h);
-                //this._ctx.drawImage(this.step_down(img, w,h), x, y, w, h);
-              }
+              this._scale_image(img_info, img);
             } catch (a_err) {
+              console.log(a_err);
               // Keep the faulty image in the cache to avoid bombarding the server with broken requests
             }
           }
@@ -1935,7 +1919,7 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
           w = this._getDouble();
           this._t = this._message.substring(this._r_idx, this._r_idx + w);
           this._r_idx += w + 1;
-          this._font_spec[this._FONT_NAME_INDEX] = this._t;
+          this._font_spec[CasperEpaper.FONT_NAME_INDEX] = this._t;
           this._ctx.font = this._font_spec.join('');
           break;
 
@@ -1958,9 +1942,9 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
               this.$.input._f_underline_position  = this._getDouble();
           } else {
               this._font_mask = this._getDouble();
-              this._font_spec[this._SIZE_INDEX]   = Math.round(this._getDouble());
-              this._font_spec[this._BOLD_INDEX]   = (this._font_mask & this._BOLD_MASK)   ? 'bold '   : '';
-              this._font_spec[this._ITALIC_INDEX] = (this._font_mask & this._ITALIC_MASK) ? 'italic ' : '';
+              this._font_spec[CasperEpaper.SIZE_INDEX]   = Math.round(this._getDouble());
+              this._font_spec[CasperEpaper.BOLD_INDEX]   = (this._font_mask & CasperEpaper.BOLD_MASK)   ? 'bold '   : '';
+              this._font_spec[CasperEpaper.ITALIC_INDEX] = (this._font_mask & CasperEpaper.ITALIC_MASK) ? 'italic ' : '';
               this._ctx.font = this._font_spec.join('');
           }
           break;
@@ -2003,8 +1987,8 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
             this._grid_major = this._getDouble();
             this._grid_minor = this._getDouble();
           } else if ( 'p' === option ) {
-            var new_page_number = this._getDouble();
-            var new_page_count = this._getDouble();
+            let new_page_number = this._getDouble();
+            let new_page_count = this._getDouble();
 
             if ( this._chapterPageNumber != new_page_number || this._chapterPageCount != new_page_count ) {
               //if ( this.on_page_properties_changed != undefined ) {
@@ -2025,7 +2009,7 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
   /**
    * Adjust the canvas dimension taking into account the pixel ratio
    *
-   * Also calculates the scale the server should
+   * Also calculates the scale the server should use
    */
   _setupScale () {
     this._canvas.width  = this._canvas_width  * this._ratio;
@@ -2040,9 +2024,9 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
   _binaryFindBandById (a_id) {
 
     if ( this._bands !== undefined && this._bands.length > 0 ) {
-      var mid;
-      var min = 0.0;
-      var max = this._bands.length - 1;
+      let mid;
+      let min = 0.0;
+      let max = this._bands.length - 1;
 
       while ( min <= max ) {
         mid = Math.floor((min + max) / 2.0);
@@ -2065,7 +2049,7 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
    * @start the redraw timer will redraw the page after a timeout
    */
   _restart_redraw_timer (a_time_in_ms) {
-    var timeout = a_time_in_ms !== undefined ? a_time_in_ms : 300;
+    let timeout = a_time_in_ms !== undefined ? a_time_in_ms : 300;
 
     if ( window[this._redraw_timer_key] !== undefined ) {
       window.clearTimeout(window[this._redraw_timer_key]);
@@ -2082,6 +2066,117 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
     if ( window[this._redraw_timer_key] !== undefined ) {
       window.clearTimeout(window[this._redraw_timer_key]);
       window[this._redraw_timer_key] = undefined;
+    }
+  }
+
+  _scale_image (img_info, img) {
+    let max_image_width  = img_info._r - img_info._l;
+    let max_image_height = img_info._b - img_info._t;
+
+    let s_x = -1;
+    let s_y = -1;
+    let s_w = img.naturalWidth;
+    let s_h = img.naturalHeight;
+
+    let f_x = 1;
+    let f_y = 1;
+    let t_w = max_image_width;
+    let t_h = max_image_height;
+
+    // calculate scale to apply
+    switch(img_info._m) {
+      case 'CL':
+        // Only the portion of the image that fits the specified object width and height will be printed. Image is not stretched.
+        t_w = Math.min(max_image_width, img.naturalWidth);
+        t_h = Math.min(max_image_height, img.naturalHeight);
+        s_w = t_w;
+        s_h = t_h;
+        break;
+
+      case 'FF':
+        // Image will be stretched to adapt to the specified object width and height.
+        f_x = max_image_width / img.naturalWidth;
+        f_y = max_image_height / img.naturalHeight;
+        t_w /= f_x;
+        t_h /= f_y;
+        break;
+
+      case 'RS':
+        // Image will adapt to the specified object width or height keeping its original shape.
+        f_x = f_y = Math.min(max_image_width / img.naturalWidth, max_image_height / img.naturalHeight);
+        t_w = Math.min(img.naturalWidth  * f_x, max_image_width);
+        t_h = Math.min(img.naturalHeight * f_x, max_image_height);
+        break;
+
+      case 'RH':
+      case 'RS':
+        // A scale image type that instructs the engine to stretch the image height to fit the actual height of the image.
+        // If the actual image width exceeds the declared image element width, the image is proportionally stretched to fit the declared width.
+        if ( img.naturalWidth <= max_image_width && img.naturalHeight <= max_image_height ) {
+            f_x = f_y = Math.min(max_image_width / img.naturalWidth, max_image_width / img.naturalHeight);
+        } else if ( sk_bitmap.width() > img.naturalHeight ) {
+            f_x = max_image_width / img.naturalWidth;
+            f_y = Math.min(max_image_height / img.naturalHeight, f_x);
+        } else {
+            f_y = max_image_height / img.naturalHeight;
+            f_x = Math.min(max_image_width / sk_bitmap.width(), f_y);
+        }
+        t_w = img.naturalWidth  * f_x;
+        t_h = img.naturalHeight * f_y;
+        break;
+
+      default:
+        // return? invalidate?
+        break;
+    }
+
+    // calculate x-position
+    let x;
+    if ( img_info._h === 'R' ) {
+      x   = img_info._r - t_w;
+      s_x = s_w - t_w;
+    } else if ( img_info._h === 'C' ) {
+      x   = img_info._l + ( ( max_image_width - t_w ) / 2 );
+      s_x = ( img.naturalWidth / 2 ) - ( t_w / 2 );
+    } else { /* left */
+      x   = img_info._l;
+      s_x = 0;
+    }
+
+    // calculate y-position
+    let y;
+    if ( img_info._v === 'B' ) {
+      y   = ( b - 0 /*a_image->bottom_pen_.width_*/ ) - t_h;
+      s_y = b - t_h;
+    } else if ( img_info._v === 'M' ) {
+      y   =  img_info._t  + ( ( max_image_height - t_h ) / 2 );
+      s_y = ( img_info/ 2 ) - ( t_h / 2 );
+    } else { /* top */
+      y   = img_info._t;
+      s_y = 0;
+    }
+    this._ctx.drawImage(img, s_x, s_y, s_w, s_h, x, y, t_w, t_h);
+
+    if ( false ) {  // Image scaling QA
+      let ie = document.getElementById(img_info._id);
+      ie.style.top      = (x + 150 / this._ratio) + 'px';
+      ie.style.left     = (y + 150 / this._ratio) + 'px';
+      ie.style.width    = t_w / this._ratio + 'px';
+      ie.style.height   = t_h / this._ratio + 'px';
+      ie.style.position = 'absolute';
+      ie.style.display = 'inline';
+    }
+
+    if ( false ) { // Bounding boxes debug
+      this._ctx.save();
+      this._ctx.strokeStyle = '#FF0000';
+      this._ctx.lineWidth   = 1.0;
+      this._ctx.strokeRect(img_info._l, img_info._t, img_info._r - img_info._l, img_info._b - img_info._t);
+      this._ctx.strokeStyle = '#00FF00';
+      this._ctx.strokeRect(s_x, s_y, s_w, s_h);
+      this._ctx.strokeStyle = '#0000FF';
+      this._ctx.strokeRect(x, y, t_w, t_h);
+      this._ctx.restore();
     }
   }
 
@@ -2106,17 +2201,17 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
 
   _adjustScroll () {
     if ( this._scrollContainer ) {
-      var inputCr = this.$.input.getBoundingClientRect();
-      var leftEdge, rightEdge, topEdge, bottomEdge;
+      let inputCr = this.$.input.getBoundingClientRect();
+      let leftEdge, rightEdge, topEdge, bottomEdge;
 
-      if ( this.iframe ) {
+      /*if ( this.iframe ) {
         leftEdge   = window.innerWidth  * 0.05;
         rightEdge  = window.innerWidth  * 0.95;
         topEdge    = window.innerHeight * 0.05;
         bottomEdge = window.innerHeight * 0.95;
       } else {
         console.log('=== TODO TODO TODO normal scrolling w/o iframe');
-      }
+      }*/
 
       // ... for each edge check if the input is outside ...
       if ( inputCr.width > rightEdge - leftEdge ) {
@@ -2140,44 +2235,42 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
 
   _addDocumentLine (a_src_widget) {
     if ( this._context_menu_idx !== - 1) {
-      this._sendCommand('document add band "' + this._bands[this._context_menu_idx]._type +
-                                '" ' + this._bands[this._context_menu_idx]._id + ';',
-                        function (a_msg) {
-                          if ( a_msg === 'S:ok:parser' ) {
-                            // Start animation
-                          } else if ( a_msg.indexOf('S:ok:band add') === 0 ) {
-                            // All done
-                          } else {
-                            // error
-                            console.log('=== add_line failed: a_msg');
-                          }
-                        });
+      this._socket.addBand(this._documentId,
+                           this._bands[this._context_menu_idx]._type,
+                           this._bands[this._context_menu_idx]._id,
+                           this._addDocumentLineResponse.bind(this));
+    }
+  }
+
+  _addDocumentLineResponse (x) {
+    if ( x.errors ) {
+      // @TODO error handling and cursors
+      console.log(x.errors[0].internal.why);
     }
   }
 
   _removeDocumentLine (a_src_widget) {
     if ( this._context_menu_idx !== - 1) {
-      this._sendCommand('document remove band "' + this._bands[this._context_menu_idx]._type +
-                                '" ' + this._bands[this._context_menu_idx]._id + ';',
-                        function (a_msg) {
-                          if ( a_msg === 'S:ok:parser' ) {
-                            // Start animation
-                          } else if ( a_msg.indexOf('S:ok:band remove') === 0 ) {
-                            // All done
-                          } else {
-                            // error
-                            console.log('=== remove_line failed: a_msg');
-                          }
-                        });
+      this._socket.deleteBand(this._documentId,
+                              this._bands[this._context_menu_idx]._type,
+                              this._bands[this._context_menu_idx]._id,
+                              this._removeDocumentLineResponse.bind(this));
+    }
+  }
+
+  _removeDocumentLineResponse (x) {
+    if ( x.errors ) {
+      // @TODO error handling and cursors
+      console.log(x.errors[0].internal.why);
     }
   }
 
   _binaryFindBandByY (a_y) {
 
     if ( this._bands !== undefined && this._bands.length > 0 ) {
-      var mid;
-      var min = 0.0;
-      var max = this._bands.length - 1;
+      let mid;
+      let min = 0.0;
+      let max = this._bands.length - 1;
 
       while ( min <= max ) {
         mid = Math.floor((min + max) / 2.0);
@@ -2204,7 +2297,7 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
       this._deactivateLineContextMenu();
       return;
     } else {
-      var idx = this._binaryFindBandByY(a_y);
+      let idx = this._binaryFindBandByY(a_y);
 
       if ( idx != -1 ) {
         if ( this._bands[idx]._type === 'DT' && this._bands[idx].editable_ == true ) {
@@ -2236,12 +2329,12 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
   }
 
   _activateLineContextMenu (a_band) {
-    var button_y = a_band._ty + a_band._height / 2 - (this._BTN_SIZE * this._ratio) / 2;
-    var button_x = (this._page_width - this._right_margin) * this._sx;
+    let button_y = a_band._ty + a_band._height / 2 - (CasperEpaper.BTN_SIZE * this._ratio) / 2;
+    let button_x = (this._page_width - this._right_margin) * this._sx;
 
     this.$.line_add_button.style.left = (button_x / this._ratio ) + 'px';
     this.$.line_add_button.style.top  = (button_y / this._ratio ) + 'px';
-    button_x += this._BTN_SIZE * this._ratio * 0.9;
+    button_x += CasperEpaper.BTN_SIZE * this._ratio * 0.9;
     this.$.line_del_button.style.left = (button_x / this._ratio ) + 'px';
     this.$.line_del_button.style.top  = (button_y / this._ratio ) + 'px';
 
@@ -2256,41 +2349,11 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
     this.$.line_del_button.style.display = 'none';
   }
 
-  //***************************************************************************************//
-  //                                                                                       //
-  //                                ~~~ Band tearing ~~~                                   //
-  //                                                                                       //
-  //***************************************************************************************//
-
-  on_edit_subdocument (a_src_widget) {
-
-    this.open_document(this._sub_document_jrxml,  // #TODO sub documents again
-                       this._locale,
-                       //this._prefix,
-                       //this._schema,
-                       //this._table_prefix,
-                       true,
-                       true,
-                       function (a_epaper, a_page_width, a_page_height) {
-                          a_epaper.load_document(a_epaper._sub_document_uri, undefined, true, true, function(a_epaper) {
-                            console.log("=== Sub document loaded YUPPIIII!!!!");
-                        });
-                      });
-  }
-
-  on_close_subdocument () {
-    this.closeDocument();
-  }
-
-  on_add_entity (a_src_widget) {
-    console.log("*** ADD entity");
-  }
-
   /**
    * Cover the whole canvas with a white transparent overlay
    */
   _washout_canvas () {
-    var saved_fill = this._ctx.fillStyle;
+    let saved_fill = this._ctx.fillStyle;
     this._ctx.fillStyle = 'rgba(255,255,255,0.5)';
     this._ctx.fillRect(0,0, this._canvas.width, this._canvas.height);
     this._ctx.fillStyle = saved_fill;
@@ -2303,7 +2366,7 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
    * @param {number} pageCount the updated page counts
    */
   _updatePageCount (chapterIndex, pageCount) {
-    var previousTotalPages = this._totalPageCount;
+    let previousTotalPages = this._totalPageCount;
 
     if ( this._document && this._document.chapters && chapterIndex >= 0 && chapterIndex < this._document.chapters.length) {
       this._totalPageCount -= ( this._document.chapters[chapterIndex].pageCount || 1);
@@ -2323,9 +2386,9 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
   _updatePageNumber (pageNumber) {
 
     if ( this._document && this._document.chapters ) {
-      var page = pageNumber;
+      let page = pageNumber;
 
-      for ( var idx = 0; idx < (this._chapterIndex || 0); idx++ ) {
+      for ( let idx = 0; idx < (this._chapterIndex || 0); idx++ ) {
         page += ( this._document.chapters[idx].pageCount || 1);
       }
       if ( this._loading === false ) {
@@ -2341,133 +2404,110 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
   //                                                                                       //
   //***************************************************************************************//
 
-  _sendCommand (a_message, a_callback) {
-    this._request_callback = a_callback || this.default_ws_handler;
-    this._socket.sendCommand(a_message, this._request_callback);
-  }
+  documentHandler (a_message) {
+    switch (a_message[0]) {
+      //case 'S':
+      //  if ( a_message.indexOf('S:ok:data:') === 0 ) {
+      //    if ( this._getDataCallback !== undefined ) {
+      //      this._getDataCallback(a_message.substring('S:ok:data:'.length));
+      //      this._getDataCallback = undefined;
+      //    }
+      //  } else {
+      //    this._request_callback(a_message);
+      //  }
+      //  break;
 
-  _getData (route, callback) {
-    if ( this._getDataCallback === undefined ) {
-      this._getDataCallback = callback;
-      this._socket.sendCommand('get data "'+route+'";', this._request_callback);
-    }
-  }
+      case 'n':
+        const notification = JSON.parse(a_message.substring(2));
 
-  _callRpc (a_invoke_id, a_command, a_success_handler, a_failure_handler) {
-
-    a_failure_handler = a_failure_handler || function (a_epaper, a_message) {
-      if ( a_epaper._listener !== undefined ) {
-        a_epaper._listener.on_error(a_message);
-      } else {
-        alert(a_message);
-      }
-    }
-
-    this._sendCommand(a_command, function (a_message) {
-      if ( a_message.indexOf('S:error:') === 0 || a_message.indexOf('S:exception:') === 0 ) {
-        a_failure_handler(this, a_message);
-        return;
-      }
-      if ( a_message.indexOf('S:ok:' + a_invoke_id) === 0 ) {
-        a_success_handler(this, a_message);
-      }
-
-    });
-  }
-
-  disconnect () {
-    this._socket.disconnect();
-  }
-
-  // default websocket handler
-  default_ws_handler (a_msg) {
-
-  }
-
-  _onSocketMessage (a_message) {
-    switch (a_message.data[0]) {
-      case 'S':
-        if ( a_message.data.indexOf('S:ok:data:') === 0 ) {
-          if ( this._getDataCallback !== undefined ) {
-            this._getDataCallback(a_message.data.substring('S:ok:data:'.length));
-            this._getDataCallback = undefined;
-          }
-        } else {
-          this._request_callback(a_message.data);
-        }
-        break;
-
-      case 'N':
-        var message = a_message.data.substring(2);
-
-        if ( message.startsWith('update:focus,forward') ) {
-          if ( this.nextChapter() ) {
+        if ( notification.focus ) {
+          if ( notification.focus === 'forward' ) {
+            this.nextChapter();
             return;
           }
-        } else if ( message.startsWith('update:focus,backward') ) {
-          if ( this.previousChapter() ) {
+          if ( notification.focus === 'backwards' ) {
+            this.previousChapter();
             return;
           }
-        } else if (message.startsWith('update:variable,PAGE_COUNT,')) {
-          var pageCount;
-
-          pageCount = parseInt(message.substring('update:variable,PAGE_COUNT,'.length));
-          this._updatePageCount(this._chapterIndex, pageCount);
-          return;
-
-        } else if (message.startsWith('update:variable,PAGE_NUMBER,')) {
-          var pageNumber;
-
-          pageNumber = parseInt(message.substring('update:variable,PAGE_NUMBER,'.length));
-          this._updatePageNumber(pageNumber);
-          return;
         }
-        this._fireEvent('casper-epaper-notification', { message: message });
-        break;
-
-      case 'E':
-
-        this._r_idx   = 1;
-        this._message = a_message.data;
-
-        var w = this._getDouble();
-        var k = this._message.substring(this._r_idx, this._r_idx + w);
-        this._r_idx += w + 1; // +1 -> ','
-
-            w = this._getDouble();
-        var t = this._message.substring(this._r_idx, this._r_idx + w);
-        this._r_idx += w + 1; // +1 -> ','
-
-            w = this._getDouble();
-        var m = this._message.substring(this._r_idx, this._r_idx + w);
-        this._r_idx += w + 1; // +1 -> ','
-
-        if ( this._message[this._r_idx - 1] != ';' ) {
-          console.log("command is not terminated ...");
+        if ( notification.variables ) {
+          if ( notification.variables.PAGE_COUNT ) {
+            this._updatePageCount(this._chapterIndex, notification.variables.PAGE_COUNT);
+          }
+          if ( notification.variables.PAGE_NUMBER ) {
+            this._updatePageNumber(notification.variables.PAGE_NUMBER);
+          }
         }
+        //let message = a_message.substring(2);
 
-        //if ( undefined !== this._listener && undefined !== this._listener.on_error_received ) {
-        //  this._listener.on_error_received(t, m);
+        //if ( message.startsWith('update:focus,forward') ) {
+        //  if ( this.nextChapter() ) {
+        //    return;
+        //  }
+        //} else if ( message.startsWith('update:focus,backward') ) {
+        //  if ( this.previousChapter() ) {
+        //    return;
+        //  }
+        //} else if (message.startsWith('update:variable,PAGE_COUNT,')) {
+        //  let pageCount;
+//
+        //  pageCount = parseInt(message.substring('update:variable,PAGE_COUNT,'.length));
+        //  this._updatePageCount(this._chapterIndex, pageCount);
+        //  return;
+//
+        //} else if (message.startsWith('update:variable,PAGE_NUMBER,')) {
+        //  let pageNumber;
+//
+        //  pageNumber = parseInt(message.substring('update:variable,PAGE_NUMBER,'.length));
+        //  this._updatePageNumber(pageNumber);
+        //  return;
         //}
-        var errorDetail = undefined;
-        if ( m.indexOf('S:failure:load:') === 0 ) {
-          error = JSON.parse(m.replace('S:failure:load:',''));
-          errorDetail = error.errors.first();
-        } else if ( m.indexOf('S:failure:pdf:') === 0 ) {
-          error = JSON.parse(m.replace('S:failure:pdf:',''));
-          errorDetail = error.errors.first();
-        } else if ( m !== undefined && m.length !== 0 ) {
-          errorDetail = m;
-        }
-
-        if ( errorDetail !== undefined ) {
-          this._fireEvent('casper-epaper-error', errorDetail);
-        }
-
+        //this._fireEvent('casper-epaper-notification', { message: message });
         break;
+
+      //case 'E':
+//
+      //  this._r_idx   = 1;
+      //  this._message = a_message;
+//
+      //  let w = this._getDouble();
+      //  let k = this._message.substring(this._r_idx, this._r_idx + w);
+      //  this._r_idx += w + 1; // +1 -> ','
+//
+      //      w = this._getDouble();
+      //  let t = this._message.substring(this._r_idx, this._r_idx + w);
+      //  this._r_idx += w + 1; // +1 -> ','
+//
+      //      w = this._getDouble();
+      //  let m = this._message.substring(this._r_idx, this._r_idx + w);
+      //  this._r_idx += w + 1; // +1 -> ','
+//
+      //  if ( this._message[this._r_idx - 1] != ';' ) {
+      //    console.log("command is not terminated ...");
+      //  }
+//
+      //  //if ( undefined !== this._listener && undefined !== this._listener.on_error_received ) {
+      //  //  this._listener.on_error_received(t, m);
+      //  //}
+      //  let errorDetail = undefined;
+      //  if ( m.indexOf('S:failure:load:') === 0 ) {
+      //    error = JSON.parse(m.replace('S:failure:load:',''));
+      //    errorDetail = error.errors.first();
+      //  } else if ( m.indexOf('S:failure:pdf:') === 0 ) {
+      //    error = JSON.parse(m.replace('S:failure:pdf:',''));
+      //    errorDetail = error.errors.first();
+      //  } else if ( m !== undefined && m.length !== 0 ) {
+      //    errorDetail = m;
+      //  }
+//
+      //  if ( errorDetail !== undefined ) {
+      //    this._fireEvent('casper-epaper-error', errorDetail);
+      //  }
+//
+      //  break;
 
       case 'D':
-        this._onPaintMessage(a_message.data);
+        this._onPaintMessage(a_message);
         break;
 
       default:
@@ -2476,26 +2516,15 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
     }
   }
 
-  _onSocketOpen (a_message) {
-    this._is_socket_open = true;
-    this._fireEvent('casper-socket-open', { casperEpaper: this});
-  }
-
-  _onSocketClose (a_message) {
-    this._is_socket_open = false;
-    this._fireEvent('casper-socket-close', { casperEpaper: this});
-  }
-
-  _isSocketOpen() {
-    return this._is_socket_open;
-  }
-
-  _fireEvent (eventName, eventData) {
-    if ( this.iframe ) {
+  _fireEvent (eventName, eventData) { // TODO check legacy
+    //if ( this.iframe ) {
       window.parent.document.dispatchEvent(new CustomEvent(eventName, { detail: eventData }));
-    } else {
-      this.fire(eventName, eventData);
-    }
+    //} else {
+      // @TODO remove legacy API
+      //if ( undefined !== this.fire ) {
+      //  this.fire(eventName, eventData);
+      //}
+    //}
   }
 }
 
