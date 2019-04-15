@@ -307,4 +307,4 @@ class CasperEpaperTooltip extends PolymerElement {
   }
 }
 
-window.customElements.define(CasperEpaperCombolist.is, CasperEpaperCombolist);
+window.customElements.define(CasperEpaperTooltip.is, CasperEpaperTooltip);
