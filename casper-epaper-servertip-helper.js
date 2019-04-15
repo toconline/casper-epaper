@@ -180,3 +180,5 @@ class CasperEpaperServertipHelper extends PolymerElement {
     }
   }
 }
+
+window.customElements.define(CasperEpaperServertipHelper.is, CasperEpaperServertipHelper);

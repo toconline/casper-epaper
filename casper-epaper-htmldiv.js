@@ -72,3 +72,5 @@ class CasperEpaperHtmldiv extends PolymerElement {
     Polymer.dom(this.$.content).innerHTML = a_html;
   }
 }
+
+window.customElements.define(CasperEpaperHtmldiv.is, CasperEpaperHtmldiv);

@@ -178,3 +178,5 @@ class CasperEpaperDatepicker extends PolymerElement {
     event.stopPropagation();
   }
 }
+
+window.customElements.define(CasperEpaperDatepicker.is, CasperEpaperDatepicker);

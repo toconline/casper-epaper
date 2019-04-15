@@ -2498,3 +2498,5 @@ class CasperEpaper extends Casper.I18n(PolymerElement) {
     }
   }
 }
+
+window.customElements.define(CasperEpaper.is, CasperEpaper);

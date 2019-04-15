@@ -938,3 +938,5 @@ class CasperEpaperInput extends PolymerElement {
     }
   }
 }
+
+window.customElements.define(CasperEpaperInput.is, CasperEpaperInput);

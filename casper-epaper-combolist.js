@@ -120,7 +120,7 @@ var _collatedSearch = function (text, searchValue) {
   return -1;
 };
 
-class casperEpaperCombolist extends PolymerElement {
+class CasperEpaperCombolist extends PolymerElement {
 
   static get template() {
     return html`
@@ -876,3 +876,5 @@ class casperEpaperCombolist extends PolymerElement {
     event.stopPropagation();
   }
 }
+
+window.customElements.define(CasperEpaperCombolist.is, CasperEpaperCombolist);

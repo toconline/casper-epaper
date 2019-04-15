@@ -306,3 +306,5 @@ class CasperEpaperTooltip extends PolymerElement {
     this._ctx.fill();
   }
 }
+
+window.customElements.define(CasperEpaperCombolist.is, CasperEpaperCombolist);
