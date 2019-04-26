@@ -28,115 +28,115 @@ import './casper-epaper-servertip-helper.js';
 class CasperEpaper extends PolymerElement {
   static get template() {
     return html`
-    <style>
-      :host {
-        display: block;
-        background-color: #ddd;
-        position: relative;
-        width: 100%;
-        height: 100%;
-      }
+      <style>
+        :host {
+          display: block;
+          background-color: #ddd;
+          position: relative;
+          width: 100%;
+          height: 100%;
+        }
 
-      iron-icon {
-        position: absolute;
-        display: inline-block;
-        cursor: pointer;
-        padding: 1px;
-        margin: 0px;
-        width: 24px;
-        height: 24px;
-        fill: var(--dark-primary-color);
-      }
+        iron-icon {
+          position: absolute;
+          display: inline-block;
+          cursor: pointer;
+          padding: 1px;
+          margin: 0px;
+          width: 24px;
+          height: 24px;
+          fill: var(--dark-primary-color);
+        }
 
-      #line_add_button:hover {
-        fill: var(--primary-color);
-      }
+        #line_add_button:hover {
+          fill: var(--primary-color);
+        }
 
-      #line_del_button:hover {
-        fill: #B94F4F;
-      }
+        #line_del_button:hover {
+          fill: #B94F4F;
+        }
 
-      .desktop {
-        top: 0px;
-        left: 0px;
-        width: 100%;
-        height: 100%;
-        position: absolute;
-        overflow: auto;
-        display: flex;
-      }
+        .desktop {
+          top: 0px;
+          left: 0px;
+          width: 100%;
+          height: 100%;
+          position: absolute;
+          overflow: auto;
+          display: flex;
+        }
 
-      .shadow {
-        top: 0px;
-        left: 0px;
-        position: absolute;
-        width: 100%;
-        height: 100%;
-        -moz-box-shadow:    inset 0 0 10px #00000080;
-        -webkit-box-shadow: inset 0 0 10px #00000080;
-        box-shadow:         inset 0 0 10px #00000080;
-        pointer-events:     none;
-      }
+        .shadow {
+          top: 0px;
+          left: 0px;
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          -moz-box-shadow:    inset 0 0 10px #00000080;
+          -webkit-box-shadow: inset 0 0 10px #00000080;
+          box-shadow:         inset 0 0 10px #00000080;
+          pointer-events:     none;
+        }
 
-      canvas {
-        outline: none;
-        box-shadow: rgba(0, 0, 0, 0.24) 0px 5px 12px 0px, rgba(0, 0, 0, 0.12) 0px 0px 12px 0px;
-        margin-top: 60px;
-        margin-bottom: 60px;
-      }
+        canvas {
+          outline: none;
+          box-shadow: rgba(0, 0, 0, 0.24) 0px 5px 12px 0px, rgba(0, 0, 0, 0.12) 0px 0px 12px 0px;
+          margin-top: 60px;
+          margin-bottom: 60px;
+        }
 
-      .toolbar {
-        top: 6px;
-        right: 32px;
-        position: absolute;
-        z-index: 1;
-      }
+        .toolbar {
+          top: 6px;
+          right: 32px;
+          position: absolute;
+          z-index: 1;
+        }
 
-      .toolbar-button {
-        margin: 6px 2px;
-        border-radius: 50%;
-        background-color: var(--primary-color);
-        padding: 0px;
-        max-width: 32px;
-        max-height: 32px;
-        --iron-icon-fill-color: white;
-        --iron-icon-width: 100%;
-        --iron-icon-height: 100%;
-        -webkit-box-shadow: 0px 2px 12px -1px rgba(0,0,0,0.61);
-        -moz-box-shadow: 0px 2px 12px -1px rgba(0,0,0,0.61);
-        box-shadow: 0px 2px 12px -1px rgba(0,0,0,0.61);
-      }
+        .toolbar-button {
+          margin: 6px 2px;
+          border-radius: 50%;
+          background-color: var(--primary-color);
+          padding: 0px;
+          max-width: 32px;
+          max-height: 32px;
+          --iron-icon-fill-color: white;
+          --iron-icon-width: 100%;
+          --iron-icon-height: 100%;
+          -webkit-box-shadow: 0px 2px 12px -1px rgba(0,0,0,0.61);
+          -moz-box-shadow: 0px 2px 12px -1px rgba(0,0,0,0.61);
+          box-shadow: 0px 2px 12px -1px rgba(0,0,0,0.61);
+        }
 
-      .toolbar-white {
-        --iron-icon-fill-color: var(--primary-color);
-        background-color: white;
-      }
+        .toolbar-white {
+          --iron-icon-fill-color: var(--primary-color);
+          background-color: white;
+        }
 
-      .spacer {
-        flex-grow: 1.0;
-      }
+        .spacer {
+          flex-grow: 1.0;
+        }
 
-    </style>
-    <div class="toolbar">
-      <paper-icon-button class="toolbar-button toolbar-white" on-click="_zoomOut" tooltip="Reduzir" icon="casper-icons:minus"></paper-icon-button>
-      <paper-icon-button class="toolbar-button toolbar-white" on-click="_zoomIn" tooltip="Ampliar" icon="casper-icons:plus"></paper-icon-button>
-      <paper-icon-button class="toolbar-button" on-click="_gotoPreviousPage" tooltip="Página anterior" icon="casper-icons:arrow-left"></paper-icon-button>
-      <paper-icon-button class="toolbar-button" on-click="_gotoNextPage" tooltip="Página seguinte" icon="casper-icons:arrow-right"></paper-icon-button>
-      <paper-icon-button class="toolbar-button" on-click="_print" tooltip="Imprimir" icon="casper-icons:print"></paper-icon-button>
-      <paper-icon-button class="toolbar-button" on-click="_download" tooltip="Descarregar PDF" icon="casper-icons:download-pdf"></paper-icon-button>
-    </div>
-    <div id="desktop" class="desktop">
-      <div class="spacer"></div>
-      <canvas id="canvas" width="[[width]]" height="[[height]]"></canvas>
-      <div class="spacer"></div>
-      <casper-epaper-input id="input"></casper-epaper-input>
-      <casper-epaper-tooltip id="tooltip"></casper-epaper-tooltip>
-      <casper-epaper-servertip-helper id="servertip"></casper-epaper-servertip-helper>
-      <iron-icon id="line_add_button" on-tap="_addDocumentLine" icon="casper-icons:add-circle"></iron-icon>
-      <iron-icon id="line_del_button" on-tap="_removeDocumentLine" icon="casper-icons:remove-circle"></iron-icon>
-    </div>
-    <div class="shadow"></div>
-`;
+      </style>
+      <div class="toolbar">
+        <paper-icon-button class="toolbar-button toolbar-white" on-click="_zoomOut" tooltip="Reduzir" icon="casper-icons:minus"></paper-icon-button>
+        <paper-icon-button class="toolbar-button toolbar-white" on-click="_zoomIn" tooltip="Ampliar" icon="casper-icons:plus"></paper-icon-button>
+        <paper-icon-button class="toolbar-button" on-click="_gotoPreviousPage" tooltip="Página anterior" icon="casper-icons:arrow-left"></paper-icon-button>
+        <paper-icon-button class="toolbar-button" on-click="_gotoNextPage" tooltip="Página seguinte" icon="casper-icons:arrow-right"></paper-icon-button>
+        <paper-icon-button class="toolbar-button" on-click="_print" tooltip="Imprimir" icon="casper-icons:print"></paper-icon-button>
+        <paper-icon-button class="toolbar-button" on-click="_download" tooltip="Descarregar PDF" icon="casper-icons:download-pdf"></paper-icon-button>
+      </div>
+      <div id="desktop" class="desktop">
+        <div class="spacer"></div>
+        <canvas id="canvas" width="[[width]]" height="[[height]]"></canvas>
+        <div class="spacer"></div>
+        <casper-epaper-input id="input"></casper-epaper-input>
+        <casper-epaper-tooltip id="tooltip"></casper-epaper-tooltip>
+        <casper-epaper-servertip-helper id="servertip"></casper-epaper-servertip-helper>
+        <iron-icon id="line_add_button" on-tap="_addDocumentLine" icon="casper-icons:add-circle"></iron-icon>
+        <iron-icon id="line_del_button" on-tap="_removeDocumentLine" icon="casper-icons:remove-circle"></iron-icon>
+      </div>
+      <div class="shadow"></div>
+    `;
   }
 
   static get is () {

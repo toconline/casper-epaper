@@ -17,16 +17,10 @@
   - along with casper-combolist.  If not, see <http://www.gnu.org/licenses/>.
   -
  */
-/*link rel="import" href="../polymer/polymer-element.html"*/
-/*
- `casper-epaper-servertip-helper` Helper to request server tooltip when the mouse hovers over a point
-*/
-/*
-  FIXME(polymer-modulizer): the above comments were extracted
-  from HTML and may be out of place here. Review them and
-  then delete this comment!
-*/
-class CasperEpaperServertipHelper extends HTMLElement {
+
+import { PolymerElement } from '@polymer/polymer/polymer-element.js';
+
+class CasperEpaperServertipHelper extends PolymerElement {
 
   static get is () {
     return 'casper-epaper-servertip-helper';
