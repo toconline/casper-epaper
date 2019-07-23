@@ -24,6 +24,9 @@ import '@polymer/iron-icon/iron-icon.js';
 import '@casper2020/casper-icons/casper-icons.js';
 import './casper-epaper-input.js';
 import './casper-epaper-servertip-helper.js';
+import './casper-epaper-types/casper-epaper-pdf.js';
+import './casper-epaper-types/casper-epaper-image.js';
+import './casper-epaper-types/casper-epaper-iframe.js';
 
 class CasperEpaper extends PolymerElement {
   static get template() {
@@ -80,9 +83,15 @@ class CasperEpaper extends PolymerElement {
 
         canvas {
           outline: none;
-          box-shadow: rgba(0, 0, 0, 0.24) 0px 5px 12px 0px, rgba(0, 0, 0, 0.12) 0px 0px 12px 0px;
-          margin-top: 60px;
-          margin-bottom: 60px;
+          box-shadow: rgba(0, 0, 0, 0.24) 0px 5px 12px 0px, 
+                      rgba(0, 0, 0, 0.12) 0px 0px 12px 0px;
+        }
+
+        canvas,
+        casper-epaper-pdf,
+        casper-epaper-image,
+        casper-epaper-iframe {
+          margin: 60px 0;
         }
 
         .toolbar {
@@ -127,7 +136,16 @@ class CasperEpaper extends PolymerElement {
       </div>
       <div id="desktop" class="desktop">
         <div class="spacer"></div>
+
+        <!--Document Epaper-->
         <canvas id="canvas" width="[[width]]" height="[[height]]"></canvas>
+        <!--PDF Epaper-->
+        <casper-epaper-pdf id="pdf"></casper-epaper-pdf>
+        <!--Iframe Epaper-->
+        <casper-epaper-iframe id="iframe"></casper-epaper-iframe>
+        <!--Image Epaper-->
+        <casper-epaper-image id="image" zoom="[[zoom]]"></casper-epaper-image>
+        
         <div class="spacer"></div>
         <casper-epaper-input id="input"></casper-epaper-input>
         <casper-epaper-tooltip id="tooltip"></casper-epaper-tooltip>
@@ -191,8 +209,14 @@ class CasperEpaper extends PolymerElement {
 
   ready () {
     super.ready ();
-    this._socket            = this.app.socket;
+
+    this._pdf               = this.$.pdf;
+    this._image             = this.$.image;
+    this._iframe            = this.$.iframe;
     this._canvas            = this.$.canvas;
+    this._toggleBetweenEpaperTypes('document');
+
+    this._socket            = this.app.socket;
     this._canvas_width      = this._canvas.width;
     this._canvas_height     = this._canvas.height;
     this._scrollContainer   = document.getElementById(this.scroller);
@@ -296,6 +320,40 @@ class CasperEpaper extends PolymerElement {
     this._currentPage = 1; // # TODO goto page on open /
     this._prepareOpenCommand(documentModel);
     this._openChapter();
+    this._toggleBetweenEpaperTypes('document');
+  }
+
+  /**
+   * Open a new image.
+   * 
+   * @param {String} imageSource The image's source URL.
+   */
+  openImage (imageSource) {
+    this._toggleBetweenEpaperTypes('image');
+
+    this._image.source = imageSource;
+  }
+
+  /**
+   * Open an iframe.
+   * 
+   * @param {String} iframeSource The iframe's source URL.
+   */
+  openIframe (iframeSource) {
+    this._toggleBetweenEpaperTypes('iframe');
+
+    this._iframe.source = iframeSource;
+  }
+
+  /**
+   * Open a PDF file.
+   * 
+   * @param {String} iframeSource The PDF's source URL.
+   */
+  openPDF (iframePDF) {
+    this._toggleBetweenEpaperTypes('PDF');
+
+    this._pdf.source = iframePDF;
   }
 
   /**
@@ -2525,6 +2583,13 @@ class CasperEpaper extends PolymerElement {
       //  this.fire(eventName, eventData);
       //}
     //}
+  }
+
+  _toggleBetweenEpaperTypes (epaperType) {
+    this._pdf.style.display = epaperType === 'PDF' ? 'block' : 'none';
+    this._image.style.display = epaperType === 'image' ? 'block' : 'none';
+    this._iframe.style.display = epaperType === 'iframe' ? 'block' : 'none';
+    this._canvas.style.display = epaperType === 'document' ? 'block' : 'none';
   }
 }
 

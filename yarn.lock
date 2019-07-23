@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@casper2020/casper-icons@^1.0.0-rc.1":
-  version "1.0.0-rc.1"
-  resolved "https://registry.yarnpkg.com/@casper2020/casper-icons/-/casper-icons-1.0.0-rc.1.tgz#f047e0a0680ac29155bdc61e7b309e255ae17a7e"
-  integrity sha512-A2+zeXmIMLNfO6T6L6I6T3ipVaxtvTUureNgTn5M/mGEPWx0n5YGHRifmCqkaMcnthqtztVG985hc1faBu6GRw==
+"@casper2020/casper-icons@^1.x":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@casper2020/casper-icons/-/casper-icons-1.0.3.tgz#f2a4d7e3a77da1b9720088ea6535659e82432023"
+  integrity sha512-281HWouKb6zY1ptpS5UkFbDZl7NjrxoxaKkcRNwHwGWpCfwBoc64FwlWVd0GHnOiZowE8yPULptK068P/lELnQ==
   dependencies:
     "@polymer/iron-icons" "^3.0.0"
     "@polymer/polymer" "^3.0.0"
