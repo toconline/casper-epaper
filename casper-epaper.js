@@ -83,7 +83,7 @@ class CasperEpaper extends PolymerElement {
 
         canvas {
           outline: none;
-          box-shadow: rgba(0, 0, 0, 0.24) 0px 5px 12px 0px, 
+          box-shadow: rgba(0, 0, 0, 0.24) 0px 5px 12px 0px,
                       rgba(0, 0, 0, 0.12) 0px 0px 12px 0px;
         }
 
@@ -145,7 +145,7 @@ class CasperEpaper extends PolymerElement {
         <casper-epaper-iframe id="iframe"></casper-epaper-iframe>
         <!--Image Epaper-->
         <casper-epaper-image id="image" zoom="[[zoom]]"></casper-epaper-image>
-        
+
         <div class="spacer"></div>
         <casper-epaper-input id="input"></casper-epaper-input>
         <casper-epaper-tooltip id="tooltip"></casper-epaper-tooltip>
@@ -316,16 +316,16 @@ class CasperEpaper extends PolymerElement {
    *
    * @param {Object} documentModel an object that specifies the layout and data of the document
    */
-  open (documentModel) {
+  async open (documentModel) {
     this._currentPage = 1; // # TODO goto page on open /
     this._prepareOpenCommand(documentModel);
-    this._openChapter();
     this._toggleBetweenEpaperTypes('document');
+    return this._openChapter();
   }
 
   /**
    * Open a new image.
-   * 
+   *
    * @param {String} imageSource The image's source URL.
    */
   openImage (imageSource) {
@@ -336,7 +336,7 @@ class CasperEpaper extends PolymerElement {
 
   /**
    * Open an iframe.
-   * 
+   *
    * @param {String} iframeSource The iframe's source URL.
    */
   openIframe (iframeSource) {
@@ -347,7 +347,7 @@ class CasperEpaper extends PolymerElement {
 
   /**
    * Open a PDF file.
-   * 
+   *
    * @param {String} iframeSource The PDF's source URL.
    */
   openPDF (iframePDF) {
@@ -366,7 +366,7 @@ class CasperEpaper extends PolymerElement {
     if ( this._document && this._document.chapters && this._document.chapters.length >= 1 ) {
       this._chapterIndex = chapterIndex;
       this._chapter      = this._document.chapters[chapterIndex];
-      this._openChapter(pageNumber);
+      return this._openChapter(pageNumber);
     } else {
       // warning
     }
@@ -750,82 +750,7 @@ class CasperEpaper extends PolymerElement {
    *
    * @param {number} pageNumber page starts at 1
    */
-  _openChapter (pageNumber, postOpenFunction) {
-    // Promise to open the report layout in case it not loaded yet
-    let open_document = function () {
-      return new Promise(function (a_resolve, a_reject) {
-        if ( this._jrxml === this._chapter.jrxml && this._locale === this._chapter.locale ) {
-          return a_resolve(this);
-        }
-        this._socket.openDocument(this._chapter, function (response) {
-          if ( response.errors !== undefined ) {
-            a_reject(response);
-          } else {
-
-            this._documentId  = response.id;
-            this._page_width  = response.page.width;
-            this._page_height = response.page.height;
-            if ( isNaN(this._page_height) ) {
-              this._page_height = 4000;
-            }
-            this._right_margin = response.page.margins.right;
-            this._jrxml        = this._chapter.jrxml;
-            this._locale       = this._chapter.locale;
-            a_resolve(this);
-          }
-        }.bind(this), this.documentHandler.bind(this))
-      }.bind(this));
-    }.bind(this);
-
-    // Promise to load the document data
-    let load_document = function () {
-      return new Promise(function (a_resolve, a_reject) {
-        let args = {
-          id:          this._documentId,
-          editable:    this._chapter.editable,
-          path:        this._chapter.path,
-          scale:       this._sx,
-          focus:       this._openFocus,
-          page:        this._nextPage
-        };
-        this._chapter.id = this._documentId;
-        this._socket.loadDocument(args, function (response) {
-          if ( response.errors !== undefined ) {
-            a_reject(response);
-          } else {
-            this._path    = this._chapter.path;
-            this._params  = this._chapter.params;
-            this._edition = this._chapter.editable;
-            this._documentScale   = args.scale;
-            this._scalePxToServer = this._page_width * this._ratio / this._canvas.width;
-            this.setZoom(this.zoom, true);
-            this._repaintPage();
-            // this._fireEvent('casper-epaper-loaded', {
-            //                                           pageWidth:    this._page_width,
-            //                                           pageHeight:   this._page_height,
-            //                                           document:     this._document,
-            //                                           chapterIndex: this._chapterIndex,
-            //                                           pageNumber:   this._pageNumber,
-            //                                           pageCount:    this._totalPageCount
-            //                                         });
-             this._loading = false;
-             this.$.servertip.enabled = true;
-             a_resolve(this);
-          }
-        }.bind(this));
-      }.bind(this));
-    }.bind(this);
-
-    // Optional promise to execute after the document is loaded
-    if ( postOpenFunction === undefined ) {
-      postOpenFunction = function(a_resolve, a_reject) {
-        a_resolve(this);
-      }.bind(this);
-    }
-    let post_open = function() {
-      return new Promise(postOpenFunction);
-    }.bind(this);
-
+  async _openChapter (pageNumber, postOpenFunction) {
     this._inputBoxDrawString = undefined;
     this.$.servertip.enabled = false;
     this.$.input.setVisible(false);
@@ -835,15 +760,53 @@ class CasperEpaper extends PolymerElement {
     this._openFocus = this._nextPage > 0 ? 'start' : 'end';
     this._loading = true;
 
-    // ... perform the command sequence ...
-    open_document()
-      .then(load_document)
-      .then(post_open)
-      .catch(function(a_error) {
-      //  alert("Paper error " + a_error);
-        console.log(a_error.errors[0].internal.why);
+    //try {
+    let response;
+
+    if ( ! (this._jrxml === this._chapter.jrxml && this._locale === this._chapter.locale) ) {
+      this._socket._showOverlay({message: 'A carregar modelo do documento', icon: 'connecting', spinner: true, loading_icon: 'loading-icon-03'});
+      response = await this._socket.openDocument(this._chapter);
+      if ( response.errors !== undefined ) {
         this._clear();
-      }.bind(this));
+        throw new Error(response.errors);
+      }
+      this._documentId  = response.id;
+      this._socket.registerDocumentHandler(this._documentId, (message) => this.documentHandler(message));
+      this._page_width  = response.page.width;
+      this._page_height = response.page.height;
+      if ( isNaN(this._page_height) ) {
+        this._page_height = 4000;
+      }
+      this._right_margin = response.page.margins.right;
+      this._jrxml        = this._chapter.jrxml;
+      this._locale       = this._chapter.locale;
+    }
+    this._chapter.id = this._documentId;
+
+    this._socket._showOverlay({message: 'A carregar dados do documento', icon: 'connecting', spinner: true, loading_icon: 'loading-icon-03'});
+    response = await this._socket.loadDocument({
+      id:          this._documentId,
+      editable:    this._chapter.editable,
+      path:        this._chapter.path,
+      scale:       this._sx,
+      focus:       this._openFocus,
+      page:        this._nextPage
+    });
+    if ( response.errors !== undefined ) {
+      this._clear();
+      throw new Error(response.errors);
+    }
+    this._path    = this._chapter.path;
+    this._params  = this._chapter.params;
+    this._edition = this._chapter.editable;
+    this._documentScale   = this._sx;
+    this._scalePxToServer = this._page_width * this._ratio / this._canvas.width;
+    this.setZoom(this.zoom, true);
+    this._repaintPage();
+    this._loading = false;
+    this.$.servertip.enabled = true;
+    this._socket._dismissOverlay();
+    return true;
   }
 
   /**
