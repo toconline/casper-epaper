@@ -210,6 +210,9 @@ class CasperEpaper extends PolymerElement {
   ready () {
     super.ready ();
 
+    window.epig = this;
+    console.warn("EPaper pinned to window.epig TODO remove this");
+
     this._pdf               = this.$.pdf;
     this._image             = this.$.image;
     this._iframe            = this.$.iframe;
@@ -561,7 +564,7 @@ class CasperEpaper extends PolymerElement {
     return true;
   }
 
-  async closeDocument (a_success_handler) {
+  async closeDocument () {
     this._clear();
     this._hideWidgets(true);
     this._resetCommandData();

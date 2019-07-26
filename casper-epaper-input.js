@@ -607,16 +607,16 @@ class CasperEpaperInput extends PolymerElement {
     if ( ['enter', 'tab', 'shift+tab'].indexOf(vkey) > -1 ) {
       this.epaper._socket.setText(this.epaper._documentId,
                                   this._textArea.value,
-                                  vkey === 'shift+tab' ? 'left' : 'right',
-                                  this._setTextResponse.bind(this));
+                                  vkey === 'shift+tab' ? 'left' : 'right');
+                                 // this._setTextResponse.bind(this)); TODO WE HAVE A PROMISE NOW
       event.preventDefault();
       return;
     }
   }
 
-  _setTextResponse (response) {
-    console.log('value set on server yeeehhhhh');
-  }
+  //_setTextResponse (response) {
+  //  console.log('value set on server yeeehhhhh');
+  //}
 
   /*****************************************************************************************/
   /*                                                                                       */
