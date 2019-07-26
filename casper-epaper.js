@@ -496,12 +496,12 @@ class CasperEpaper extends PolymerElement {
     }
   }
 
-  _gotoPreviousPage () {
-    this._currentPage = this.gotoPage(this._currentPage - 1);
+  async _gotoPreviousPage () {
+    this._currentPage = await this.gotoPage(this._currentPage - 1);
   }
 
-  _gotoNextPage () {
-    this._currentPage = this.gotoPage(this._currentPage + 1);
+  async _gotoNextPage () {
+    this._currentPage = await this.gotoPage(this._currentPage + 1);
   }
 
   /**
@@ -509,7 +509,7 @@ class CasperEpaper extends PolymerElement {
    *
    * @param {number} pageNumber the page to render
    */
-  gotoPage (pageNumber) {
+  async gotoPage (pageNumber) {
 
     if ( this._document && this._document.chapters && this._document.chapters.length >= 1 ) {
       let currentPage = 1;
@@ -523,7 +523,7 @@ class CasperEpaper extends PolymerElement {
           if ( i === this._chapterIndex ) {
             if ( this._chapterPageNumber !== newPageNumber ) {
               this._resetScroll();
-              this._socket.gotoPage(this._documentId, newPageNumber);
+              await this._socket.gotoPage(this._documentId, newPageNumber);
               return pageNumber;
             }
           } else {
@@ -550,37 +550,26 @@ class CasperEpaper extends PolymerElement {
   /**
    * Re-opens the last document that was open
    */
-  reOpen () {
+  async reOpen () {
     if ( this._document !== undefined ) {
-      let cloned_command = JSON.parse(JSON.stringify(this._document));
+      const cloned_command = JSON.parse(JSON.stringify(this._document));
       this._clear();
-      this.open(cloned_command);
+      await this.open(cloned_command);
     } else {
       this._clear();
     }
+    return true;
   }
 
-  closeDocument (a_success_handler) {
+  async closeDocument (a_success_handler) {
     this._clear();
     this._hideWidgets(true);
     this._resetCommandData();
-    this._fireEvent('casper-epaper-notification', { message: 'update:variable,PAGE_COUNT,1;' });
-    this._fireEvent('casper-epaper-notification', { message: 'update:variable,PAGE_NUMBER,1;' });
+    this._fireEvent('casper-epaper-notification', { message: 'update:variable,PAGE_COUNT,1;' });  // TODO needed by whom?
+    this._fireEvent('casper-epaper-notification', { message: 'update:variable,PAGE_NUMBER,1;' }); // TODO needed by whom?
     this._document = undefined;
-    this._callRpc('close', 'document close "' + this._documentId  + '";', function(a_epaper, a_message) {
-        let expected_response = 'S:ok:close:' + a_epaper._documentId;
-        if ( a_message.indexOf(expected_response) === 0 ) {
-          if ( a_message.length > expected_response.length ) {
-            a_epaper._documentId  = a_message.substring(expected_response.length + 1).replace('\n', '');
-          } else {
-            a_epaper._documentId  = undefined;
-          }
-        }
-        if ( undefined !== a_success_handler ) {
-          a_success_handler();
-        }
-      }
-    );
+    await this._socket.closeDocument(this._documentId);
+    return true;
   }
 
   _print () {
@@ -693,25 +682,6 @@ class CasperEpaper extends PolymerElement {
 
     return job;
   }
-
-  // This more a Refresh??
-  //reload_document (a_success_handler) {
-  //  this._callRpc('reload', 'document reload;', function(a_epaper, a_message) {
-  //      if ( undefined !== a_success_handler ) {
-  //        a_success_handler(a_message.substring('S:ok:reload:'.length));
-  //      }
-  //    }
-  //  );
-  //}
-  //
-  //document_focus_row (a_index, a_success_handler) {
-  //  this._callRpc('focused row', 'document set focused row ' + a_index + ';', function(a_epaper, a_message) {
-  //      if ( undefined !== a_success_handler ) {
-  //        a_success_handler(a_message.substring('S:ok:focused row:'.length));
-  //      }
-  //    }
-  //  );
-  //}
 
   _documentChanged (document) {
     if ( document ) {
