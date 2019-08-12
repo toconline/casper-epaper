@@ -202,7 +202,8 @@ class CasperEpaper extends PolymerElement {
       /** zoom factor when zoom is 1 one pt in report is one px in the screen */
       zoom: {
         type: Number,
-        value: 1
+        value: 1,
+        observer: '__enableOrDisableZoomButtons'
       },
       /** object that specifies the document being displayed/edited */
       document: {
@@ -318,15 +319,7 @@ class CasperEpaper extends PolymerElement {
    * Decreases the epaper's zoom.
    */
   zoomOut () {
-    if (this.zoom > 0.5) {
-      this.zoom *= 0.8;
-      this.$.zoomIn.disabled = false;
-
-      // Disable the button if the epaper is zoomed out too much.
-      if (this.zoom <= 0.5) {
-        this.$.zoomOut.disabled = true;
-      }
-    }
+    if (this.zoom > 0.5) this.zoom *= 0.8;
   }
 
   /**
@@ -555,6 +548,11 @@ class CasperEpaper extends PolymerElement {
   __enableOrDisablePageButtons () {
     this.$.previousPage.disabled = this.__currentPage === 1;
     this.$.nextPage.disabled = this.__currentPage === this.__totalPageCount;
+  }
+
+  __enableOrDisableZoomButtons () {
+    this.$.zoomIn.disabled = this.zoom >= 2;
+    this.$.zoomOut.disabled = this.zoom <= 0.5;
   }
 
   __toggleBetweenEpaperTypes (epaperType) {
