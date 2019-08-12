@@ -1,6 +1,11 @@
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
+import { timeOut } from '@polymer/polymer/lib/utils/async.js';
+import { Debouncer } from '@polymer/polymer/lib/utils/debounce.js';
 
 class CasperEpaperPdf extends PolymerElement {
+
+  static get PDF_JS_SOURCE () { return 'https://mozilla.github.io/pdf.js/build/pdf.js'; }
+  static get PDF_JS_WORKER_SOURCE () { return 'https://mozilla.github.io/pdf.js/build/pdf.worker.js'; };
 
   static get is () {
     return 'casper-epaper-pdf';
@@ -8,9 +13,37 @@ class CasperEpaperPdf extends PolymerElement {
 
   static get properties () {
     return {
+      /**
+       * The PDF document source url.
+       * @type {String}
+       */
       source: {
         type: String,
-        observer: '_sourceChanged'
+        observer: '__openPDF'
+      },
+      /**
+       * The zoom that should be applied to the document.
+       * @type {Number}
+       */
+      zoom: {
+        type: Number,
+        observer: '__openPDF'
+      },
+      /**
+       * The PDF document's current page.
+       * @type {Number}
+       */
+      page: {
+        type: Number,
+        observer: '__openPDF'
+      },
+      /**
+       * The total number of pages that the document has.
+       * @type {Number}
+       */
+      totalPageCount: {
+        type: Number,
+        notify: true
       }
     }
   }
@@ -21,30 +54,63 @@ class CasperEpaperPdf extends PolymerElement {
     `;
   }
 
-  _sourceChanged () {
-    const pdfjsSource = 'https://mozilla.github.io/pdf.js/build/pdf.js';
-    const pdfjsWorkerSource = 'https://mozilla.github.io/pdf.js/build/pdf.worker.js';
-    const testFile = 'https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf';
+  /**
+   * Open a PDF document specified in the source property.
+   */
+  __openPDF () {
+    this.__openPDFDebouncer = Debouncer.debounce(
+      this.__openPDFDebouncer,
+      timeOut.after(150),
+      async () => {
+        this.__loadScript();
 
-    if (!this._scriptAlreadyLoaded) {
-      const script = document.createElement('script');
-      script.onload = async () => {
-        const pdfjs = window['pdfjs-dist/build/pdf'];
-        pdfjs.GlobalWorkerOptions.workerSrc = pdfjsWorkerSource;
-        const pdfFile = await pdfjs.getDocument(testFile).promise;
-        const pdfFilePage = await pdfFile.getPage(1);
-        const pdfFileViewport = pdfFilePage.getViewport({ scale: 1.5 });
+        if (!this.source) return;
 
-        this.$.canvas.width = pdfFileViewport.width;
-        this.$.canvas.height = pdfFileViewport.height;
+        // Cancel the existing render to avoid errors from simultaneous operations.
+        if (this.__pdfRenderTask) {
+          await this.__pdfRenderTask._internalRenderTask.cancel();
+        }
 
-        pdfFilePage.render({
-          viewport: pdfFileViewport,
+        const file = await this.__pdfJS.getDocument(this.source).promise;
+        const filePage = await file.getPage(this.page);
+        const fileViewport = filePage.getViewport({ scale: this.zoom });
+
+        this.$.canvas.width = fileViewport.width;
+        this.$.canvas.height = fileViewport.height;
+        this.totalPageCount = file._pdfInfo.numPages;
+
+        this.__pdfRenderTask = filePage.render({
+          viewport: fileViewport,
           canvasContext: this.$.canvas.getContext('2d')
         });
-      };
-      script.src = pdfjsSource;
 
+        this.__pdfRenderTask.promise
+          .then(() => { this.__pdfRenderTask = undefined; })
+          .catch(exception => {
+            // This means an error has occurred while displaying the PDF not caused by cancelling the render.
+            if (!exception instanceof this.__pdfJS.RenderingCancelledException) {
+              this.__openPDF();
+            }
+          });
+      }
+    );
+  }
+
+  /**
+   * Load the PDF.js script.
+   */
+  __loadScript () {
+    if (!this.__scriptAlreadyLoaded) {
+      const script = document.createElement('script');
+      script.onload = () => {
+        this.__pdfJS = window['pdfjs-dist/build/pdf'];
+        this.__pdfJS.GlobalWorkerOptions.workerSrc = CasperEpaperPdf.PDF_JS_WORKER_SOURCE;
+
+        this.__scriptAlreadyLoaded = true;
+        this.__openPDF();
+      };
+
+      script.src = CasperEpaperPdf.PDF_JS_SOURCE;
       this.shadowRoot.appendChild(script);
     }
   }

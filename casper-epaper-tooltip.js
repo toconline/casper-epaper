@@ -103,6 +103,8 @@ class CasperEpaperTooltip extends PolymerElement {
   }
 
   ready () {
+    super.ready();
+
     this._ctx = this.$.canvas.getContext('2d');
     this._tipEdge = 'N';
     this._setupPixelRatio();
