@@ -326,15 +326,7 @@ class CasperEpaper extends PolymerElement {
    * Increases the epaper's zoom.
    */
   zoomIn () {
-    if (this.zoom < 2) {
-      this.zoom *= 1.2;
-      this.$.zoomOut.disabled = false;
-
-      // Disable the button if the epaper is zoomed in too much.
-      if (this.zoom >= 2) {
-        this.$.zoomIn.disabled = true;
-      }
-    }
+    if (this.zoom < 2) this.zoom *= 1.2;
   }
 
   /**
