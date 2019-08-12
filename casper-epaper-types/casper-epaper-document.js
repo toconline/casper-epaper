@@ -41,7 +41,12 @@ class CasperEpaperDocument extends PolymerElement {
       socket: Object,
       zoom: {
         type: Number,
-        observer: '_zoomChanged'
+        observer: '__zoomChanged'
+      },
+      currentPage: {
+        type: Number,
+        observer: '__currentPageChanged',
+        notify: true
       },
       totalPageCount: {
         type: Number,
@@ -103,7 +108,7 @@ class CasperEpaperDocument extends PolymerElement {
     }
 
     // ... clear the page before we start ...
-    this._zoomChanged(this.zoom, true);
+    this.__zoomChanged(this.zoom, true);
     this._setupScale();
 
     // ... FOUT Mitigation @TODO proper FOUT mitigation ...
@@ -147,7 +152,7 @@ class CasperEpaperDocument extends PolymerElement {
    * @param {Object} documentModel an object that specifies the layout and data of the document
    */
   async open (documentModel) {
-    this._currentPage = 1; // # TODO goto page on open /
+    this.currentPage = 1; // # TODO goto page on open /
     this._prepareOpenCommand(documentModel);
     return this._openChapter();
   }
@@ -395,7 +400,7 @@ class CasperEpaperDocument extends PolymerElement {
     this._edition = this._chapter.editable;
     this._documentScale   = this._sx;
     this._scalePxToServer = this._page_width * this._ratio / this._canvas.width;
-    this._zoomChanged(this.zoom, true);
+    this.__zoomChanged(this.zoom, true);
     this._repaintPage();
     this._loading = false;
     this.$.servertip.enabled = true;
@@ -417,7 +422,7 @@ class CasperEpaperDocument extends PolymerElement {
    * @param {number}  zoom factor must be a number
    * @param {boolean} forced truish to force the zoom update
    */
-  _zoomChanged (zoom, forced) {
+  __zoomChanged (zoom, forced) {
     let w; // Canvas width in px
     let h; // Canvas height in px
 
@@ -427,6 +432,39 @@ class CasperEpaperDocument extends PolymerElement {
       w = Math.round((this._page_width  || this.width ) * this.zoom);
       h = Math.round((this._page_height || this.height) * this.zoom);
       this._setSize(w, h);
+    }
+  }
+
+  /**
+   * Goto to the specified page. Requests page change or if needed loads the required chapter
+   *
+   * @param {number} pageNumber the page to render
+   */
+  async __currentPageChanged (pageNumber) {
+
+    if ( this._document && this._document.chapters && this._document.chapters.length >= 1 ) {
+      let currentPage = 1;
+
+      pageNumber = parseInt(pageNumber);
+      for ( let i = 0;  i < this._document.chapters.length; i++ ) {
+        if ( pageNumber >= currentPage && pageNumber < (currentPage + this._document.chapters[i].pageCount) ) {
+          let newPageNumber;
+
+          newPageNumber = 1 + pageNumber - currentPage;
+          if ( i === this._chapterIndex ) {
+            if ( this._chapterPageNumber !== newPageNumber ) {
+              this._resetScroll();
+              await this.socket.gotoPage(this._documentId, newPageNumber);
+              return pageNumber;
+            }
+          } else {
+            this.gotoChapter(i, newPageNumber);
+            return pageNumber;
+          }
+          this._chapterPageNumber = newPageNumber;
+        }
+        currentPage += this._document.chapters[i].pageCount;
+      }
     }
   }
 
@@ -2005,6 +2043,10 @@ class CasperEpaperDocument extends PolymerElement {
         // ignore
         break;
     }
+  }
+
+  _fireEvent (eventName, eventData) { // TODO check legacy
+    window.parent.document.dispatchEvent(new CustomEvent(eventName, { detail: eventData }));
   }
 
   //***************************************************************************************//

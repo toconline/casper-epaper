@@ -5,7 +5,7 @@ import { Debouncer } from '@polymer/polymer/lib/utils/debounce.js';
 class CasperEpaperPdf extends PolymerElement {
 
   static get PDF_JS_SOURCE () { return 'https://mozilla.github.io/pdf.js/build/pdf.js'; }
-  static get PDF_JS_WORKER_SOURCE () { return 'https://mozilla.github.io/pdf.js/build/pdf.worker.js'; };
+  static get PDF_JS_WORKER_SOURCE () { return 'https://mozilla.github.io/pdf.js/build/pdf.worker.js'; }
 
   static get is () {
     return 'casper-epaper-pdf';
@@ -33,7 +33,7 @@ class CasperEpaperPdf extends PolymerElement {
        * The PDF document's current page.
        * @type {Number}
        */
-      page: {
+      currentPage: {
         type: Number,
         observer: '__openPDF'
       },
@@ -58,6 +58,7 @@ class CasperEpaperPdf extends PolymerElement {
    * Open a PDF document specified in the source property.
    */
   __openPDF () {
+    // Debounce the all render operation to avoid multiple calls to the render method.
     this.__openPDFDebouncer = Debouncer.debounce(
       this.__openPDFDebouncer,
       timeOut.after(150),
@@ -72,7 +73,7 @@ class CasperEpaperPdf extends PolymerElement {
         }
 
         const file = await this.__pdfJS.getDocument(this.source).promise;
-        const filePage = await file.getPage(this.page);
+        const filePage = await file.getPage(this.currentPage);
         const fileViewport = filePage.getViewport({ scale: this.zoom });
 
         this.$.canvas.width = fileViewport.width;

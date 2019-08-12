@@ -9,13 +9,19 @@ class CasperEpaperImage extends PolymerElement {
 
   static get properties () {
     return {
+      /**
+       * The image's source url.
+       */
       source: {
         type: String,
-        observer: '_sourceChanged'
+        observer: '__sourceChanged'
       },
+      /**
+       * The epaper's zoom that will resize the image accordingly.
+       */
       zoom: {
         type: Number,
-        observer: '_zoomChanged'
+        observer: '__zoomChanged'
       }
     }
   }
@@ -28,7 +34,7 @@ class CasperEpaperImage extends PolymerElement {
                       rgba(0, 0, 0, 0.12) 0px 0px 12px 0px;
         }
       </style>
-      <img src="[[_source]]" width="[[_width]]" height="[[_height]]"/>
+      <img src="[[__source]]" width="[[__width]]" height="[[__height]]"/>
     `;
   }
 
@@ -36,12 +42,17 @@ class CasperEpaperImage extends PolymerElement {
     super.ready();
 
     afterNextRender(this, () => {
-      this._availableWidth = this.parentElement.offsetWidth;
-      this._availableHeight = this.parentElement.offsetHeight;
+      this.__availableWidth = this.parentElement.offsetWidth;
+      this.__availableHeight = this.parentElement.offsetHeight;
     });
   }
 
-  _sourceChanged (source) {
+  /**
+   * Observer that gets fired when the image's source url changes.
+   *
+   * @param {String} source The image's source url.
+   */
+  __sourceChanged (source) {
     const imageToLoad = new Image();
     imageToLoad.onload = event => {
       const imageLoaded = event.path.shift();
@@ -51,27 +62,31 @@ class CasperEpaperImage extends PolymerElement {
       // This means it's a horizontal image.
       if (imageLoaded.width > imageLoaded.height) {
         // Check if the original image fits within the available horizontal space, otherwise adjust its size.
-        this._originalWidth = Math.min(this._availableWidth - 120, imageLoaded.width);
-        this._originalHeight = this._originalWidth / this._aspectRatio;
+        this.__originalWidth = Math.min(this.__availableWidth - 120, imageLoaded.width);
+        this.__originalHeight = this.__originalWidth / this._aspectRatio;
       } else {
         // Check if the original image fits within the available vertical space, otherwise adjust its size.
-        this._originalHeight = Math.min(this._availableHeight - 120, imageLoaded.height);
-        this._originalWidth = this._originalHeight * this._aspectRatio;
+        this.__originalHeight = Math.min(this.__availableHeight - 120, imageLoaded.height);
+        this.__originalWidth = this.__originalHeight * this._aspectRatio;
       }
 
-      this._zoomChanged();
-      this._source = source;
+      this.__zoomChanged();
+      this.__source = source;
     };
 
     // Trigger the image load.
     imageToLoad.src = source;
   }
 
-  _zoomChanged () {
-    if (!this._originalWidth && !this._originalHeight) return;
+  /**
+   * Observer that gets fired when the epaper's zoom changes and the image
+   * is resized accordingly.
+   */
+  __zoomChanged () {
+    if (!this.__originalWidth && !this.__originalHeight) return;
 
-    this._width = this._originalWidth * this.zoom;
-    this._height = this._originalHeight * this.zoom;
+    this.__width = this.__originalWidth * this.zoom;
+    this.__height = this.__originalHeight * this.zoom;
   }
 }
 

@@ -151,13 +151,13 @@ class CasperEpaper extends PolymerElement {
           height="[[height]]"
           socket="[[_socket]]"
           scroller="[[scroller]]"
-          current-page="{{_currentPage}}"
+          current-page="{{__currentPage}}"
           total-page-count="{{__totalPageCount}}"></casper-epaper-document>
         <!--PDF Epaper-->
         <casper-epaper-pdf
           id="pdf"
           zoom="[[zoom]]"
-          page="[[_currentPage]]"
+          current-page="[[__currentPage]]"
           total-page-count="{{__totalPageCount}}">
         </casper-epaper-pdf>
         <!--Iframe Epaper-->
@@ -207,7 +207,7 @@ class CasperEpaper extends PolymerElement {
       /** object that specifies the document being displayed/edited */
       document: {
         type: Object,
-        observer: '_documentChanged'
+        observer: '__documentChanged'
       },
       /** id of the containing element that can be scrolled */
       scroller: {
@@ -216,7 +216,11 @@ class CasperEpaper extends PolymerElement {
       },
       __totalPageCount: {
         type: Number,
-        observer: '__totalPageCountChanged'
+        observer: '__enableOrDisablePageButtons'
+      },
+      __currentPage: {
+        type: Number,
+        observer: '__enableOrDisablePageButtons'
       }
     };
   }
@@ -227,9 +231,9 @@ class CasperEpaper extends PolymerElement {
     window.epig = this;
     console.warn("EPaper pinned to window.epig TODO remove this");
 
-    this._currentPage       = 1;
-    this._pageNumber        = 1;
+    this.__currentPage      = 1;
     this.__totalPageCount   = 0;
+    this._pageNumber        = 1;
     this._chapterPageCount  = 0;
     this._chapterPageNumber = 1;
     this._socket            = this.app.socket;
@@ -357,40 +361,6 @@ class CasperEpaper extends PolymerElement {
       }
     }
     return false;
-  }
-
-  /**
-   * Goto to the specified page. Requests page change or if needed loads the required chapter
-   *
-   * @param {number} pageNumber the page to render
-   */
-  async gotoPage (pageNumber) {
-
-    if ( this._document && this._document.chapters && this._document.chapters.length >= 1 ) {
-      let currentPage = 1;
-
-      pageNumber = parseInt(pageNumber);
-      for ( let i = 0;  i < this._document.chapters.length; i++ ) {
-        if ( pageNumber >= currentPage && pageNumber < (currentPage + this._document.chapters[i].pageCount) ) {
-          let newPageNumber;
-
-          newPageNumber = 1 + pageNumber - currentPage;
-          if ( i === this._chapterIndex ) {
-            if ( this._chapterPageNumber !== newPageNumber ) {
-              this._resetScroll();
-              await this._socket.gotoPage(this._documentId, newPageNumber);
-              return pageNumber;
-            }
-          } else {
-            this.gotoChapter(i, newPageNumber);
-            return pageNumber;
-          }
-          this._chapterPageNumber = newPageNumber;
-        }
-        currentPage += this._document.chapters[i].pageCount;
-      }
-    }
-    return this._currentPage;
   }
 
   /**
@@ -524,10 +494,8 @@ class CasperEpaper extends PolymerElement {
     return job;
   }
 
-  _documentChanged (document) {
-    if ( document ) {
-      this.open(document);
-    }
+  __documentChanged (document) {
+    if (document) this.open(document);
   }
 
   //***************************************************************************************//
@@ -560,44 +528,23 @@ class CasperEpaper extends PolymerElement {
     }
   }
 
-  __enableOrDisablePageButtons () {
-    this.$.previousPage.disabled = this._currentPage === 1;
-    this.$.nextPage.disabled = this._currentPage === this.__totalPageCount;
-  }
-
   __previousPage () {
-    if (this._currentPage > 1) {
-      this._currentPage--;
-      this.__enableOrDisablePageButtons();
+    if (this.__currentPage > 1) {
+      this.__currentPage--;
     }
   }
 
   __nextPage () {
-    if (this._currentPage < this.__totalPageCount) {
-      this._currentPage++;
-      this.__enableOrDisablePageButtons();
+    if (this.__currentPage < this.__totalPageCount) {
+      this.__currentPage++;
     }
   }
 
-  __totalPageCountChanged () {
-    this.__enableOrDisablePageButtons();
-  }
-
-  //***************************************************************************************//
-  //                                                                                       //
-  //                               ~~~ Websocket handlers ~~~                              //
-  //                                                                                       //
-  //***************************************************************************************//
-
-  _fireEvent (eventName, eventData) { // TODO check legacy
-    //if ( this.iframe ) {
-      window.parent.document.dispatchEvent(new CustomEvent(eventName, { detail: eventData }));
-    //} else {
-      // @TODO remove legacy API
-      //if ( undefined !== this.fire ) {
-      //  this.fire(eventName, eventData);
-      //}
-    //}
+  __enableOrDisablePageButtons () {
+    console.enable();
+    console.log(this.__currentPage);
+    this.$.previousPage.disabled = this.__currentPage === 1;
+    this.$.nextPage.disabled = this.__currentPage === this.__totalPageCount;
   }
 
   __toggleBetweenEpaperTypes (epaperType) {
