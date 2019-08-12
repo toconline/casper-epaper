@@ -133,12 +133,12 @@ class CasperEpaper extends PolymerElement {
 
       </style>
       <div class="toolbar">
-        <paper-icon-button on-click="__zoomOut"      id="zoomOut"      tooltip="Reduzir"         icon="casper-icons:minus"        class="toolbar-button toolbar-white"></paper-icon-button>
-        <paper-icon-button on-click="__zoomIn"       id="zoomIn"       tooltip="Ampliar"         icon="casper-icons:plus"         class="toolbar-button toolbar-white"></paper-icon-button>
-        <paper-icon-button on-click="__previousPage" id="previousPage" tooltip="Página anterior" icon="casper-icons:arrow-left"   class="toolbar-button"></paper-icon-button>
-        <paper-icon-button on-click="__nextPage"     id="nextPage"     tooltip="Página seguinte" icon="casper-icons:arrow-right"  class="toolbar-button"></paper-icon-button>
-        <paper-icon-button on-click="__print"        id="print"        tooltip="Imprimir"        icon="casper-icons:print"        class="toolbar-button"></paper-icon-button>
-        <paper-icon-button on-click="__download"     id="download"     tooltip="Descarregar PDF" icon="casper-icons:download-pdf" class="toolbar-button"></paper-icon-button>
+        <paper-icon-button on-click="zoomOut"          id="zoomOut"      tooltip="Reduzir"         icon="casper-icons:minus"        class="toolbar-button toolbar-white"></paper-icon-button>
+        <paper-icon-button on-click="zoomIn"           id="zoomIn"       tooltip="Ampliar"         icon="casper-icons:plus"         class="toolbar-button toolbar-white"></paper-icon-button>
+        <paper-icon-button on-click="goToPreviousPage" id="previousPage" tooltip="Página anterior" icon="casper-icons:arrow-left"   class="toolbar-button"></paper-icon-button>
+        <paper-icon-button on-click="goToNextPage"     id="nextPage"     tooltip="Página seguinte" icon="casper-icons:arrow-right"  class="toolbar-button"></paper-icon-button>
+        <paper-icon-button on-click="__print"          id="print"        tooltip="Imprimir"        icon="casper-icons:print"        class="toolbar-button"></paper-icon-button>
+        <paper-icon-button on-click="__download"       id="download"     tooltip="Descarregar PDF" icon="casper-icons:download-pdf" class="toolbar-button"></paper-icon-button>
       </div>
       <div id="desktop" class="desktop">
         <div class="spacer"></div>
@@ -294,6 +294,54 @@ class CasperEpaper extends PolymerElement {
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.PDF);
 
     this.$.pdf.source = iframePDF;
+  }
+
+  /**
+   * Navigate to the previous page.
+   */
+  goToPreviousPage () {
+    if (this.__currentPage > 1) {
+      this.__currentPage--;
+    }
+  }
+
+  /**
+   * Navigate to the next page.
+   */
+  goToNextPage () {
+    if (this.__currentPage < this.__totalPageCount) {
+      this.__currentPage++;
+    }
+  }
+
+  /**
+   * Decreases the epaper's zoom.
+   */
+  zoomOut () {
+    if (this.zoom > 0.5) {
+      this.zoom *= 0.8;
+      this.$.zoomIn.disabled = false;
+
+      // Disable the button if the epaper is zoomed out too much.
+      if (this.zoom <= 0.5) {
+        this.$.zoomOut.disabled = true;
+      }
+    }
+  }
+
+  /**
+   * Increases the epaper's zoom.
+   */
+  zoomIn () {
+    if (this.zoom < 2) {
+      this.zoom *= 1.2;
+      this.$.zoomOut.disabled = false;
+
+      // Disable the button if the epaper is zoomed in too much.
+      if (this.zoom >= 2) {
+        this.$.zoomIn.disabled = true;
+      }
+    }
   }
 
   /**
@@ -504,45 +552,7 @@ class CasperEpaper extends PolymerElement {
   //                                                                                       //
   //***************************************************************************************//
 
-  __zoomOut () {
-    if (this.zoom > 0.5) {
-      this.zoom *= 0.8;
-      this.$.zoomIn.disabled = false;
-
-      // Disable the button if the epaper is zoomed out too much.
-      if (this.zoom <= 0.5) {
-        this.$.zoomOut.disabled = true;
-      }
-    }
-  }
-
-  __zoomIn () {
-    if (this.zoom < 2) {
-      this.zoom *= 1.2;
-      this.$.zoomOut.disabled = false;
-
-      // Disable the button if the epaper is zoomed in too much.
-      if (this.zoom >= 2) {
-        this.$.zoomIn.disabled = true;
-      }
-    }
-  }
-
-  __previousPage () {
-    if (this.__currentPage > 1) {
-      this.__currentPage--;
-    }
-  }
-
-  __nextPage () {
-    if (this.__currentPage < this.__totalPageCount) {
-      this.__currentPage++;
-    }
-  }
-
   __enableOrDisablePageButtons () {
-    console.enable();
-    console.log(this.__currentPage);
     this.$.previousPage.disabled = this.__currentPage === 1;
     this.$.nextPage.disabled = this.__currentPage === this.__totalPageCount;
   }
