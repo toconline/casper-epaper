@@ -571,7 +571,7 @@ class CasperEpaper extends PolymerElement {
       this.__enableOrDisablePageButtons();
     }
   }
-q
+
   __nextPage () {
     if (this._currentPage < this.__totalPageCount) {
       this._currentPage++;
