@@ -42,6 +42,10 @@ class CasperEpaperDocument extends PolymerElement {
       zoom: {
         type: Number,
         observer: '_zoomChanged'
+      },
+      totalPageCount: {
+        type: Number,
+        notify: true
       }
     };
   }
@@ -323,12 +327,12 @@ class CasperEpaperDocument extends PolymerElement {
   _prepareOpenCommand (documentModel) {
     this._document       = JSON.parse(JSON.stringify(documentModel));
     this._chapterCount   = this._document.chapters.length;
-    this._totalPageCount = 0;
+    this.totalPageCount = 0;
     for ( let idx = 0; idx < this._chapterCount; idx++ ) {
       this._document.chapters[idx].locale    = this._document.chapters[idx].locale    || 'pt_PT';
       this._document.chapters[idx].editable  = this._document.chapters[idx].editable  || false;
       this._document.chapters[idx].pageCount = this._document.pageCount               || 1;
-      this._totalPageCount += this._document.chapters[idx].pageCount;
+      this.totalPageCount += this._document.chapters[idx].pageCount;
     }
     this._chapterIndex = 0;
     this._chapter      = this._document.chapters[0];
@@ -575,14 +579,14 @@ class CasperEpaperDocument extends PolymerElement {
    * @param {number} pageCount the updated page counts
    */
   _updatePageCount (chapterIndex, pageCount) {
-    let previousTotalPages = this._totalPageCount;
+    let previousTotalPages = this.totalPageCount;
 
     if ( this._document && this._document.chapters && chapterIndex >= 0 && chapterIndex < this._document.chapters.length) {
-      this._totalPageCount -= ( this._document.chapters[chapterIndex].pageCount || 1);
+      this.totalPageCount -= ( this._document.chapters[chapterIndex].pageCount || 1);
       this._document.chapters[chapterIndex].pageCount  = pageCount;
-      this._totalPageCount += pageCount;
-      if ( this._totalPageCount !== previousTotalPages && this._loading === false ) {
-        this._fireEvent('casper-epaper-notification', { message: 'update:variable,PAGE_COUNT,' + this._totalPageCount + ';' });
+      this.totalPageCount += pageCount;
+      if ( this.totalPageCount !== previousTotalPages && this._loading === false ) {
+        this._fireEvent('casper-epaper-notification', { message: 'update:variable,PAGE_COUNT,' + this.totalPageCount + ';' });
       }
     }
   }

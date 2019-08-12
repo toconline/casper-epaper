@@ -103,19 +103,24 @@ class CasperEpaper extends PolymerElement {
         }
 
         .toolbar-button {
-          margin: 6px 2px;
-          border-radius: 50%;
-          background-color: var(--primary-color);
           padding: 0px;
+          margin: 6px 2px;
           max-width: 32px;
           max-height: 32px;
-          --iron-icon-fill-color: white;
+          border-radius: 50%;
+          background-color: var(--primary-color);
           --iron-icon-width: 100%;
           --iron-icon-height: 100%;
-          -webkit-box-shadow: 0px 2px 12px -1px rgba(0,0,0,0.61);
-          -moz-box-shadow: 0px 2px 12px -1px rgba(0,0,0,0.61);
-          box-shadow: 0px 2px 12px -1px rgba(0,0,0,0.61);
+          --iron-icon-fill-color: white;
+          -webkit-box-shadow: 0px 2px 12px -1px rgba(0, 0, 0, 0.61);
+          -moz-box-shadow: 0px 2px 12px -1px rgba(0, 0, 0, 0.61);
+          box-shadow: 0px 2px 12px -1px rgba(0, 0, 0, 0.61);
         }
+
+        .toolbar-button[disabled] {
+          background-color: lightgray;
+          --iron-icon-fill-color: darkgray;
+        }        
 
         .toolbar-white {
           --iron-icon-fill-color: var(--primary-color);
@@ -128,12 +133,12 @@ class CasperEpaper extends PolymerElement {
 
       </style>
       <div class="toolbar">
-        <paper-icon-button on-click="__zoomOut"      tooltip="Reduzir"         icon="casper-icons:minus"        class="toolbar-button toolbar-white"></paper-icon-button>
-        <paper-icon-button on-click="__zoomIn"       tooltip="Ampliar"         icon="casper-icons:plus"         class="toolbar-button toolbar-white"></paper-icon-button>
-        <paper-icon-button on-click="__previousPage" tooltip="Página anterior" icon="casper-icons:arrow-left"   class="toolbar-button"></paper-icon-button>
-        <paper-icon-button on-click="__nextPage"     tooltip="Página seguinte" icon="casper-icons:arrow-right"  class="toolbar-button"></paper-icon-button>
-        <paper-icon-button on-click="__print"        tooltip="Imprimir"        icon="casper-icons:print"        class="toolbar-button"></paper-icon-button>
-        <paper-icon-button on-click="__download"     tooltip="Descarregar PDF" icon="casper-icons:download-pdf" class="toolbar-button"></paper-icon-button>
+        <paper-icon-button on-click="__zoomOut"      id="zoomOut"      tooltip="Reduzir"         icon="casper-icons:minus"        class="toolbar-button toolbar-white"></paper-icon-button>
+        <paper-icon-button on-click="__zoomIn"       id="zoomIn"       tooltip="Ampliar"         icon="casper-icons:plus"         class="toolbar-button toolbar-white"></paper-icon-button>
+        <paper-icon-button on-click="__previousPage" id="previousPage" tooltip="Página anterior" icon="casper-icons:arrow-left"   class="toolbar-button"></paper-icon-button>
+        <paper-icon-button on-click="__nextPage"     id="nextPage"     tooltip="Página seguinte" icon="casper-icons:arrow-right"  class="toolbar-button"></paper-icon-button>
+        <paper-icon-button on-click="__print"        id="print"        tooltip="Imprimir"        icon="casper-icons:print"        class="toolbar-button"></paper-icon-button>
+        <paper-icon-button on-click="__download"     id="download"     tooltip="Descarregar PDF" icon="casper-icons:download-pdf" class="toolbar-button"></paper-icon-button>
       </div>
       <div id="desktop" class="desktop">
         <div class="spacer"></div>
@@ -147,13 +152,13 @@ class CasperEpaper extends PolymerElement {
           socket="[[_socket]]"
           scroller="[[scroller]]"
           current-page="{{_currentPage}}"
-          total-page-count="{{_totalPageCount}}"></casper-epaper-document>
+          total-page-count="{{__totalPageCount}}"></casper-epaper-document>
         <!--PDF Epaper-->
         <casper-epaper-pdf
           id="pdf"
           zoom="[[zoom]]"
           page="[[_currentPage]]"
-          total-page-count="{{_totalPageCount}}">
+          total-page-count="{{__totalPageCount}}">
         </casper-epaper-pdf>
         <!--Iframe Epaper-->
         <casper-epaper-iframe id="iframe"></casper-epaper-iframe>
@@ -208,6 +213,10 @@ class CasperEpaper extends PolymerElement {
       scroller: {
         type: String,
         value: undefined
+      },
+      __totalPageCount: {
+        type: Number,
+        observer: '__totalPageCountChanged'
       }
     };
   }
@@ -220,7 +229,7 @@ class CasperEpaper extends PolymerElement {
 
     this._currentPage       = 1;
     this._pageNumber        = 1;
-    this._totalPageCount    = 0;
+    this.__totalPageCount   = 0;
     this._chapterPageCount  = 0;
     this._chapterPageNumber = 1;
     this._socket            = this.app.socket;
@@ -350,30 +359,6 @@ class CasperEpaper extends PolymerElement {
     return false;
   }
 
-  __zoomOut () {
-    if (this.zoom > 0.5) {
-      this.zoom *= 0.8;
-    }
-  }
-
-  __zoomIn () {
-    if (this.zoom < 2) {
-      this.zoom *= 1.2;
-    }
-  }
-
-  __previousPage () {
-    if (this._currentPage > 1) {
-      this._currentPage--;
-    }
-  }
-
-  __nextPage () {
-    if (this._currentPage < this._totalPageCount) {
-      this._currentPage++;
-    }
-  }
-
   /**
    * Goto to the specified page. Requests page change or if needed loads the required chapter
    *
@@ -414,7 +399,7 @@ class CasperEpaper extends PolymerElement {
    * @return page count
    */
   getPageCount () {
-    return this._totalPageCount;
+    return this.__totalPageCount;
   }
 
   async closeDocument () {
@@ -551,6 +536,52 @@ class CasperEpaper extends PolymerElement {
   //                                                                                       //
   //***************************************************************************************//
 
+  __zoomOut () {
+    if (this.zoom > 0.5) {
+      this.zoom *= 0.8;
+      this.$.zoomIn.disabled = false;
+
+      // Disable the button if the epaper is zoomed out too much.
+      if (this.zoom <= 0.5) {
+        this.$.zoomOut.disabled = true;
+      }
+    }
+  }
+
+  __zoomIn () {
+    if (this.zoom < 2) {
+      this.zoom *= 1.2;
+      this.$.zoomOut.disabled = false;
+
+      // Disable the button if the epaper is zoomed in too much.
+      if (this.zoom >= 2) {
+        this.$.zoomIn.disabled = true;
+      }
+    }
+  }
+
+  __enableOrDisablePageButtons () {
+    this.$.previousPage.disabled = this._currentPage === 1;
+    this.$.nextPage.disabled = this._currentPage === this.__totalPageCount;
+  }
+
+  __previousPage () {
+    if (this._currentPage > 1) {
+      this._currentPage--;
+      this.__enableOrDisablePageButtons();
+    }
+  }
+q
+  __nextPage () {
+    if (this._currentPage < this.__totalPageCount) {
+      this._currentPage++;
+      this.__enableOrDisablePageButtons();
+    }
+  }
+
+  __totalPageCountChanged () {
+    this.__enableOrDisablePageButtons();
+  }
 
   //***************************************************************************************//
   //                                                                                       //
