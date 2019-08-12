@@ -128,12 +128,12 @@ class CasperEpaper extends PolymerElement {
 
       </style>
       <div class="toolbar">
-        <paper-icon-button class="toolbar-button toolbar-white" on-click="__zoomOut" tooltip="Reduzir" icon="casper-icons:minus"></paper-icon-button>
-        <paper-icon-button class="toolbar-button toolbar-white" on-click="__zoomIn" tooltip="Ampliar" icon="casper-icons:plus"></paper-icon-button>
-        <paper-icon-button class="toolbar-button" on-click="__gotoPreviousPage" tooltip="Página anterior" icon="casper-icons:arrow-left"></paper-icon-button>
-        <paper-icon-button class="toolbar-button" on-click="__gotoNextPage" tooltip="Página seguinte" icon="casper-icons:arrow-right"></paper-icon-button>
-        <paper-icon-button class="toolbar-button" on-click="_print" tooltip="Imprimir" icon="casper-icons:print"></paper-icon-button>
-        <paper-icon-button class="toolbar-button" on-click="_download" tooltip="Descarregar PDF" icon="casper-icons:download-pdf"></paper-icon-button>
+        <paper-icon-button on-click="__zoomOut"      tooltip="Reduzir"         icon="casper-icons:minus"        class="toolbar-button toolbar-white"></paper-icon-button>
+        <paper-icon-button on-click="__zoomIn"       tooltip="Ampliar"         icon="casper-icons:plus"         class="toolbar-button toolbar-white"></paper-icon-button>
+        <paper-icon-button on-click="__previousPage" tooltip="Página anterior" icon="casper-icons:arrow-left"   class="toolbar-button"></paper-icon-button>
+        <paper-icon-button on-click="__nextPage"     tooltip="Página seguinte" icon="casper-icons:arrow-right"  class="toolbar-button"></paper-icon-button>
+        <paper-icon-button on-click="__print"        tooltip="Imprimir"        icon="casper-icons:print"        class="toolbar-button"></paper-icon-button>
+        <paper-icon-button on-click="__download"     tooltip="Descarregar PDF" icon="casper-icons:download-pdf" class="toolbar-button"></paper-icon-button>
       </div>
       <div id="desktop" class="desktop">
         <div class="spacer"></div>
@@ -362,13 +362,13 @@ class CasperEpaper extends PolymerElement {
     }
   }
 
-  __gotoPreviousPage () {
+  __previousPage () {
     if (this._currentPage > 1) {
       this._currentPage--;
     }
   }
 
-  __gotoNextPage () {
+  __nextPage () {
     if (this._currentPage < this._totalPageCount) {
       this._currentPage++;
     }
@@ -428,11 +428,11 @@ class CasperEpaper extends PolymerElement {
     return true;
   }
 
-  _print () {
+  __print () {
     this.app.showPrintDialog(this.getPrintJob(true));
   }
 
-  _download () {
+  __download () {
     this.app.showPrintDialog(this.getPrintJob(false));
   }
 
