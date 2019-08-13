@@ -22,6 +22,7 @@ import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
 
 import '@polymer/iron-icon/iron-icon.js';
 import '@casper2020/casper-icons/casper-icons.js';
+import './casper-epaper-tabs.js';
 import './casper-epaper-input.js';
 import './casper-epaper-servertip-helper.js';
 import './casper-epaper-types/casper-epaper-pdf.js';
@@ -30,12 +31,17 @@ import './casper-epaper-types/casper-epaper-iframe.js';
 import './casper-epaper-types/casper-epaper-document.js';
 
 class CasperEpaper extends PolymerElement {
+
+  static get EPAPER_MAX_ZOOM () { return 2; }
+  static get EPAPER_MIN_ZOOM () { return 0.5; }
+
   static get template() {
     return html`
       <style>
         :host {
-          display: block;
-          background-color: #ddd;
+          display: flex;
+          flex-direction: column;
+          background-color: #DDD;
           position: relative;
           width: 100%;
           height: 100%;
@@ -61,11 +67,8 @@ class CasperEpaper extends PolymerElement {
         }
 
         .desktop {
-          top: 0px;
-          left: 0px;
           width: 100%;
           height: 100%;
-          position: absolute;
           overflow: auto;
           display: flex;
         }
@@ -96,15 +99,19 @@ class CasperEpaper extends PolymerElement {
         }
 
         .toolbar {
-          top: 6px;
-          right: 32px;
-          position: absolute;
+          padding: 15px;
           z-index: 1;
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+        }
+
+        .toolbar * {
+          margin-left: 8px;
         }
 
         .toolbar-button {
           padding: 0px;
-          margin: 6px 2px;
           max-width: 32px;
           max-height: 32px;
           border-radius: 50%;
@@ -135,6 +142,11 @@ class CasperEpaper extends PolymerElement {
       <div class="toolbar">
         <paper-icon-button on-click="zoomOut"          id="zoomOut"      tooltip="Reduzir"         icon="casper-icons:minus"        class="toolbar-button toolbar-white"></paper-icon-button>
         <paper-icon-button on-click="zoomIn"           id="zoomIn"       tooltip="Ampliar"         icon="casper-icons:plus"         class="toolbar-button toolbar-white"></paper-icon-button>
+
+        <casper-epaper-tabs>
+          <slot name="casper-epaper-tabs"></slot>
+        </casper-epaper-tabs>
+
         <paper-icon-button on-click="goToPreviousPage" id="previousPage" tooltip="Página anterior" icon="casper-icons:arrow-left"   class="toolbar-button"></paper-icon-button>
         <paper-icon-button on-click="goToNextPage"     id="nextPage"     tooltip="Página seguinte" icon="casper-icons:arrow-right"  class="toolbar-button"></paper-icon-button>
         <paper-icon-button on-click="__print"          id="print"        tooltip="Imprimir"        icon="casper-icons:print"        class="toolbar-button"></paper-icon-button>
@@ -319,14 +331,14 @@ class CasperEpaper extends PolymerElement {
    * Decreases the epaper's zoom.
    */
   zoomOut () {
-    if (this.zoom > 0.5) this.zoom *= 0.8;
+    if (this.zoom > CasperEpaper.EPAPER_MIN_ZOOM) this.zoom *= 0.8;
   }
 
   /**
    * Increases the epaper's zoom.
    */
   zoomIn () {
-    if (this.zoom < 2) this.zoom *= 1.2;
+    if (this.zoom < CasperEpaper.EPAPER_MAX_ZOOM) this.zoom *= 1.2;
   }
 
   /**
@@ -543,8 +555,8 @@ class CasperEpaper extends PolymerElement {
   }
 
   __enableOrDisableZoomButtons () {
-    this.$.zoomIn.disabled = this.zoom >= 2;
-    this.$.zoomOut.disabled = this.zoom <= 0.5;
+    this.$.zoomIn.disabled = this.zoom >= CasperEpaper.EPAPER_MAX_ZOOM;
+    this.$.zoomOut.disabled = this.zoom <= CasperEpaper.EPAPER_MIN_ZOOM;
   }
 
   __toggleBetweenEpaperTypes (epaperType) {
