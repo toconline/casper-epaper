@@ -13,13 +13,13 @@ class CasperEpaperTabs extends PolymerElement {
           display: flex;
         }
 
-        ::slotted(casper-epaper-tab:first-child) {
+        ::slotted(casper-epaper-tab:first-of-type) {
           border-top-left-radius: 20px;
           border-bottom-left-radius: 20px;
-          border-left: 1px solid var(--primary-color);
+          border-left: 1px solid var(--primary-color) !important;
         }
 
-        ::slotted(casper-epaper-tab:last-child) {
+        ::slotted(casper-epaper-tab:last-of-type) {
           border-top-right-radius: 20px;
           border-bottom-right-radius: 20px;
         }
@@ -31,12 +31,15 @@ class CasperEpaperTabs extends PolymerElement {
   ready () {
     super.ready();
 
-    const epaperTabs = this.shadowRoot.querySelector('slot').assignedElements()[0].assignedElements();
-
     this.shadowRoot.addEventListener('click', event => {
-      epaperTabs.forEach(epaperTab => epaperTab.removeAttribute('active'));
+      const clickedTab = event.composedPath().find(element => element.nodeName.toLowerCase() === 'casper-epaper-tab');
+      clickedTab.setAttribute('active', true);
 
-      event.composedPath().find(element => element.nodeName.toLowerCase() === 'casper-epaper-tab').setAttribute('active', true);
+      Array.from(clickedTab.parentElement.children).forEach(children => {
+        if (children.nodeName.toLowerCase() === 'casper-epaper-tab' && children !== clickedTab) {
+          children.removeAttribute('active');
+        }
+      });
     });
   }
 }

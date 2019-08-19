@@ -327,6 +327,15 @@ class CasperEpaper extends PolymerElement {
   }
 
   /**
+   * Sets the epaper's zoom to a specific value.
+   */
+  setZoom (zoom) {
+    if (this.zoom >= CasperEpaper.EPAPER_MIN_ZOOM && this.zoom <= CasperEpaper.EPAPER_MAX_ZOOM) {
+      this.zoom = zoom;
+    }
+  }
+
+  /**
    * Decreases the epaper's zoom.
    */
   zoomOut () {
