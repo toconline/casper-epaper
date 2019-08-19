@@ -5,7 +5,7 @@ import '@polymer/iron-icon/iron-icon.js';
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
 import { afterNextRender } from '@polymer/polymer/lib/utils/render-status.js';
 
-class CasperEpaperDocument extends PolymerElement {
+export class CasperEpaperDocument extends PolymerElement {
 
   /*
    * Constants
@@ -1384,8 +1384,8 @@ class CasperEpaperDocument extends PolymerElement {
             this._inputBoxDrawString = this._message.substring(this._r_idx);
 
             // TODO review with multipage
-            x += this.$.canvas.getBoundingClientRect().left - this.$.desktop.getBoundingClientRect().left;
-            y += this.$.canvas.getBoundingClientRect().top - this.$.desktop.getBoundingClientRect().top;
+            x += this.$.canvas.getBoundingClientRect().left - this.parentElement.getBoundingClientRect().left;
+            y += this.$.canvas.getBoundingClientRect().top - this.parentElement.getBoundingClientRect().top;
 
             this.$.input.alignPosition(x, y, w, h);
             this.$.input.setVisible(true);
