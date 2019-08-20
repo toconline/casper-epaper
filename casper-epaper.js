@@ -123,8 +123,8 @@ class CasperEpaper extends PolymerElement {
         }
 
         .toolbar-button[disabled] {
-          background-color: lightgray;
-          --iron-icon-fill-color: darkgray;
+          background-color: #E0E0E0;
+          --iron-icon-fill-color: white;
         }        
 
         .toolbar-white {

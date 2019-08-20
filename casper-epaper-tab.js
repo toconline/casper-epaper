@@ -44,10 +44,10 @@ class CasperEpaperTab extends PolymerElement {
         }
 
         :host([disabled]) {
-          color: darkgray;
+          color: white;
           pointer-events: none;
-          border-color: lightgray;
-          background-color: lightgray;
+          border-color: #D4D4D4;
+          background-color: #E0E0E0;
         }
 
         :host(:hover) {
