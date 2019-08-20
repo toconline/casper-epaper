@@ -11,7 +11,8 @@ class CasperEpaperTabs extends PolymerElement {
     return {
       selectedIndex: {
         type: Number,
-        notify: true
+        notify: true,
+        observer: '__selectedIndexChanged'
       }
     };
   }
@@ -22,6 +23,9 @@ class CasperEpaperTabs extends PolymerElement {
         :host {
           display: flex;
           margin-left: 8px;
+          overflow: hidden;
+          border-radius: 20px;
+          box-shadow: 0px 2px 12px -1px rgba(0, 0, 0, 0.61);
         }
 
         ::slotted(casper-epaper-tab:first-of-type) {
@@ -42,14 +46,14 @@ class CasperEpaperTabs extends PolymerElement {
     super.ready();
 
     afterNextRender(this, () => {
-      const epaperTabs = this.shadowRoot.querySelector('slot').assignedElements();
+      this.__epaperTabs = this.shadowRoot.querySelector('slot').assignedElements();
 
-      epaperTabs.forEach((tab, tabIndex) => {
+      this.__epaperTabs.forEach((tab, tabIndex) => {
         tab.addEventListener('active-changed', () => {
           if (!tab.active) return;
 
           this.selectedIndex = tabIndex;
-          epaperTabs
+          this.__epaperTabs
             .filter(epaperTab => epaperTab !== tab)
             .forEach(epaperTab => epaperTab.active = false);
         });
@@ -61,6 +65,15 @@ class CasperEpaperTabs extends PolymerElement {
         });
       });
     });
+  }
+
+  __selectedIndexChanged (selectedIndex) {
+    if (this.__epaperTabs.length > selectedIndex && !this.__epaperTabs[selectedIndex].disabled) {
+      this.__epaperTabs[selectedIndex].active = true;
+    } else {
+      this.selectedIndex = undefined;
+      this.__epaperTabs.forEach(tab => tab.active = false);
+    }
   }
 }
 
