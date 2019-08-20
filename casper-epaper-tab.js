@@ -11,11 +11,13 @@ class CasperEpaperTab extends PolymerElement {
       active: {
         type: Boolean,
         value: false,
+        notify: true,
         observer: '__activeChanged'
       },
       disabled: {
         type: Boolean,
         value: false,
+        notify: true,
         observer: '__disabledChanged'
       }
     };
@@ -30,11 +32,9 @@ class CasperEpaperTab extends PolymerElement {
           display: flex;
           align-items: center;
           justify-content: center;
+          background-color: white;
           color: var(--primary-color);
-          border-left: 1px solid var(--primary-color);
-          border-top: 1px solid var(--primary-color);
-          border-right: 1px solid var(--primary-color);
-          border-bottom: 1px solid var(--primary-color);
+          border: 1px solid var(--primary-color);
           transition: background-color 100ms linear;
         }
 
@@ -58,6 +58,12 @@ class CasperEpaperTab extends PolymerElement {
       <slot></slot>
     `;
   };
+
+  ready () {
+    super.ready();
+
+    this.shadowRoot.host.addEventListener('click', () => this.active = true);
+  }
 
   __activeChanged () {
     if (this.active) {

@@ -22,7 +22,6 @@ import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
 
 import '@polymer/iron-icon/iron-icon.js';
 import '@casper2020/casper-icons/casper-icons.js';
-import './casper-epaper-tabs.js';
 import './casper-epaper-servertip-helper.js';
 import './casper-epaper-types/casper-epaper-pdf.js';
 import './casper-epaper-types/casper-epaper-image.js';
@@ -142,9 +141,7 @@ class CasperEpaper extends PolymerElement {
         <paper-icon-button on-click="zoomOut"          id="zoomOut"      tooltip="Reduzir"         icon="casper-icons:minus"        class="toolbar-button toolbar-white"></paper-icon-button>
         <paper-icon-button on-click="zoomIn"           id="zoomIn"       tooltip="Ampliar"         icon="casper-icons:plus"         class="toolbar-button toolbar-white"></paper-icon-button>
 
-        <casper-epaper-tabs>
-          <slot name="casper-epaper-tabs"></slot>
-        </casper-epaper-tabs>
+        <slot name="casper-epaper-tabs"></slot>
 
         <paper-icon-button on-click="goToPreviousPage" id="previousPage" tooltip="Página anterior" icon="casper-icons:arrow-left"   class="toolbar-button"></paper-icon-button>
         <paper-icon-button on-click="goToNextPage"     id="nextPage"     tooltip="Página seguinte" icon="casper-icons:arrow-right"  class="toolbar-button"></paper-icon-button>
