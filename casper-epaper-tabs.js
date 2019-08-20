@@ -16,7 +16,6 @@ class CasperEpaperTabs extends PolymerElement {
         ::slotted(casper-epaper-tab:first-of-type) {
           border-top-left-radius: 20px;
           border-bottom-left-radius: 20px;
-          border-left: 1px solid var(--primary-color) !important;
         }
 
         ::slotted(casper-epaper-tab:last-of-type) {
@@ -33,12 +32,9 @@ class CasperEpaperTabs extends PolymerElement {
 
     this.shadowRoot.addEventListener('click', event => {
       const clickedTab = event.composedPath().find(element => element.nodeName.toLowerCase() === 'casper-epaper-tab');
-      clickedTab.setAttribute('active', true);
-
-      Array.from(clickedTab.parentElement.children).forEach(children => {
-        if (children.nodeName.toLowerCase() === 'casper-epaper-tab' && children !== clickedTab) {
-          children.removeAttribute('active');
-        }
+      clickedTab.active = true;
+      clickedTab.parentElement.querySelectorAll('casper-epaper-tab').forEach(tab => {
+        tab.active = tab === clickedTab;
       });
     });
   }

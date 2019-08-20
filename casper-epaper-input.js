@@ -578,16 +578,16 @@ class CasperEpaperInput extends PolymerElement {
 
     if ( this._initialSelection === true || this._textArea.value.length === 0 ) {
       if ( ['down', 'up', 'left', 'right'].indexOf(vkey) > -1 ) {
-        this.epaper._socket.moveCursor(this.epaper._documentId, vkey);
+        this.epaper.socket.moveCursor(this.epaper._documentId, vkey);
         event.preventDefault();
         return;
       } else if ( ['tab', 'shift+tab'].indexOf(vkey) > -1 ) {
         if ( this._initialSelection === true ) {
           this._initialSelection = false;
           if ( vkey === 'shift+tab') {
-            this.epaper._socket.sendKey(this.epaper._documentId, vkey, 'shift');
+            this.epaper.socket.sendKey(this.epaper._documentId, vkey, 'shift');
           } else {
-            this.epaper._socket.sendKey(this.epaper._documentId, vkey);
+            this.epaper.socket.sendKey(this.epaper._documentId, vkey);
           }
           event.preventDefault();
           return;
@@ -606,7 +606,7 @@ class CasperEpaperInput extends PolymerElement {
     }
 
     if ( ['enter', 'tab', 'shift+tab'].indexOf(vkey) > -1 ) {
-      this.epaper._socket.setText(this.epaper._documentId,
+      this.epaper.socket.setText(this.epaper._documentId,
                                   this._textArea.value,
                                   vkey === 'shift+tab' ? 'left' : 'right');
                                  // this._setTextResponse.bind(this)); TODO WE HAVE A PROMISE NOW
@@ -677,7 +677,7 @@ class CasperEpaperInput extends PolymerElement {
         if ( this._comboFilter.length !== 0 && ['down', 'up'].indexOf(vkey) > -1) {
           /* TODO this.$.combo.moveSelection(vkey); */
         } else {
-          this.epaper._socket.moveCursor(this.epaper._documentId, vkey);
+          this.epaper.socket.moveCursor(this.epaper._documentId, vkey);
         }
         event.preventDefault();
       } else if ( ['tab', 'shift+tab', 'enter'].indexOf(vkey) > -1 ) {
@@ -686,8 +686,8 @@ class CasperEpaperInput extends PolymerElement {
         if ( this.$.combo.getSelectedId() && this.$.combo.getSelectedId() !== this.$.combo.getInitialId() ) {
         //  this.epaper._sendCommand('set list item "' + this.$.combo.getSelectedId()  + '";');
         }*/
-        //this.epaper._socket.setText();
-        this.epaper._socket.setTextT(this.epaper._document_id, this.$.combo.getSelectedId(), 'right', true);
+        //this.epaper.socket.setText();
+        this.epaper.socket.setText(this.epaper._document_id, this.$.combo.getSelectedId(), 'right', true);
 
         //this.epaper._sendCommand('set key "'+vkey.replace(/\+/g, '"+"')+'";');
         event.preventDefault();
@@ -789,17 +789,17 @@ class CasperEpaperInput extends PolymerElement {
   _onKeyDownR (event) {
     if ( event.keyCode === 32 || (event.keyCode === 88 && this._textArea.value.length === 0) ) {
       // TODO debouncer this.debounce('casper-toggle', function () {
-        this.epaper._socket.sendKey(this.epaper._documentId, 'toggle');
+        this.epaper.socket.sendKey(this.epaper._documentId, 'toggle');
       //}.bind(this), 300);
     } else {
       var vkey = this._keycodeToVkey(event);
 
       if ( ['down', 'up', 'left', 'right'].indexOf(vkey) > -1 ) {
-        this.epaper._socket.moveCursor(this.epaper._documentId, vkey);
+        this.epaper.socket.moveCursor(this.epaper._documentId, vkey);
       } else if ( vkey === 'shift+tab' ) {
-        this.epaper._socket.moveCursor(this.epaper._documentId, 'left');
+        this.epaper.socket.moveCursor(this.epaper._documentId, 'left');
       } else if ( vkey === 'enter' || vkey === 'tab' ) {
-        this.epaper._socket.moveCursor(this.epaper._documentId, 'right');
+        this.epaper.socket.moveCursor(this.epaper._documentId, 'right');
       }
     }
     event.preventDefault();
@@ -897,7 +897,7 @@ class CasperEpaperInput extends PolymerElement {
   _onMouseDown (event) {
     if ( this._mode === 'R' ) {
       event.preventDefault();
-      this.epaper._socket.sendKey(this.epaper._documentId, 'toggle');
+      this.epaper.socket.sendKey(this.epaper._documentId, 'toggle');
     } else if ( this._mode === 'c' ) {
       if ( this._select.opened ) {
         event.stopPropagation();
