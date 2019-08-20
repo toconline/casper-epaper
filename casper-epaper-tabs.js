@@ -22,7 +22,6 @@ class CasperEpaperTabs extends PolymerElement {
       <style>
         :host {
           display: flex;
-          margin-left: 8px;
           overflow: hidden;
           border-radius: 15px;
           box-shadow: 0px 2px 12px -1px rgba(0, 0, 0, 0.61);
