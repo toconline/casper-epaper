@@ -34,7 +34,7 @@ class CasperEpaperTab extends PolymerElement {
           justify-content: center;
           background-color: white;
           color: var(--primary-color);
-          border: 1px solid var(--primary-color);
+          border-right: 1px solid var(--primary-color);
           transition: background-color 100ms linear;
         }
 
