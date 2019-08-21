@@ -19,6 +19,7 @@
  */
 
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
+import { afterNextRender } from '@polymer/polymer/lib/utils/render-status.js';
 
 import '@polymer/iron-icon/iron-icon.js';
 import '@casper2020/casper-icons/casper-icons.js';
@@ -151,6 +152,10 @@ class CasperEpaper extends PolymerElement {
         <paper-icon-button on-click="goToNextPage"     id="nextPage"     tooltip="Página seguinte" icon="casper-icons:arrow-right"  class="toolbar-button"></paper-icon-button>
         <paper-icon-button on-click="__print"          id="print"        tooltip="Imprimir"        icon="casper-icons:print"        class="toolbar-button"></paper-icon-button>
         <paper-icon-button on-click="__download"       id="download"     tooltip="Descarregar PDF" icon="casper-icons:download-pdf" class="toolbar-button"></paper-icon-button>
+
+        <template is="dom-if" if="[[__hasContextMenu]]">
+          <paper-icon-button icon="casper-icons:bars" class="toolbar-button toolbar-white"></paper-icon-button>
+        </template>
       </div>
       <div id="desktop" class="desktop">
         <div class="spacer"></div>
@@ -181,6 +186,7 @@ class CasperEpaper extends PolymerElement {
 
       </div>
       <div class="shadow"></div>
+      <slot name="casper-epaper-context-menu"></slot>
     `;
   }
 
@@ -251,6 +257,29 @@ class CasperEpaper extends PolymerElement {
     this._chapterPageNumber = 1;
     this._socket            = this.app.socket;
     this.__toggleBetweenEpaperTypes('document');
+
+    afterNextRender(this, () => {
+      let contextMenu;
+      const contextMenuSlot = this.shadowRoot.querySelector('slot[name="casper-epaper-context-menu"]');
+      const contextMenuSlotElement = contextMenuSlot.assignedElements().shift();
+
+      // This happens when the epaper is used inside a casper-moac element.
+      if (contextMenuSlotElement && contextMenuSlotElement.nodeName.toLowerCase() === 'slot') {
+        contextMenu = contextMenuSlotElement.assignedElements().shift();
+        this.__hasContextMenu = contextMenu && contextMenu.nodeName.toLowerCase() === 'casper-context-menu';
+      }
+
+      if (this.__hasContextMenu) {
+        afterNextRender(this, () => {
+          const contextMenuTrigger = this.shadowRoot.querySelector('.toolbar paper-icon-button:last-of-type');
+          contextMenu.positionTarget = contextMenuTrigger;
+          contextMenu.verticalAlign = 'top';
+          contextMenu.horizontalAlign = 'right';
+          contextMenu.verticalOffset = contextMenuTrigger.offsetHeight + 10;
+          contextMenuTrigger.addEventListener('click', () => contextMenu.toggle());
+        });
+      }
+    });
   }
 
   isPrintableDocument () {
