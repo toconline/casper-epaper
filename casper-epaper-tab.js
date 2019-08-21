@@ -28,7 +28,6 @@ class CasperEpaperTab extends PolymerElement {
       <style>
         :host {
           height: 32px;
-          padding: 0 25px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -55,14 +54,25 @@ class CasperEpaperTab extends PolymerElement {
           cursor: pointer;
           background-color: var(--primary-color);
         }
+
+        .tab-container {
+          width: 100%;
+          height: 100%;
+          padding: 0 25px;
+          display: flex;
+          align-items: center;
+        }
       </style>
-      <div on-click="__activateTab">
+      <div class="tab-container" on-click="__activateTab">
         <slot></slot>
       </div>
     `;
   };
 
-  __activateTab () {
+  __activateTab (event) {
+    // Stop the bubbling of the event if the tab is currently active.
+    if (this.active) event.stopPropagation();
+
     this.active = true;
   }
 
