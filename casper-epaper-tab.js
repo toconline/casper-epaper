@@ -56,14 +56,14 @@ class CasperEpaperTab extends PolymerElement {
           background-color: var(--primary-color);
         }
       </style>
-      <slot></slot>
+      <div on-click="__activateTab">
+        <slot></slot>
+      </div>
     `;
   };
 
-  ready () {
-    super.ready();
-
-    this.shadowRoot.host.addEventListener('click', () => this.active = true);
+  __activateTab () {
+    this.active = true;
   }
 
   __activeChanged () {

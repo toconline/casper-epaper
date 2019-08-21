@@ -30,8 +30,8 @@ class CasperEpaperUpload extends PolymerElement {
         }
 
         .upload-container .icon-container {
-          width: 100px;
-          height: 100px;
+          width: 150px;
+          height: 150px;
           display: flex;
           border-radius: 50%;
           margin-bottom: 25px;
@@ -41,8 +41,8 @@ class CasperEpaperUpload extends PolymerElement {
         }
 
         .upload-container .icon-container iron-icon {
-          width: 70%;
-          height: 70%;
+          width: 50%;
+          height: 50%;
           color: var(--primary-color);
         }
 
@@ -64,7 +64,7 @@ class CasperEpaperUpload extends PolymerElement {
       </style>
       <div class="upload-container">
         <div class="icon-container">
-          <iron-icon icon="casper-icons:download-pdf"></iron-icon>
+          <iron-icon icon="casper-icons:question-solid"></iron-icon>
         </div>
 
         <div class="title-container">[[title]]</div>

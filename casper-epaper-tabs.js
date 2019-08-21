@@ -57,12 +57,6 @@ class CasperEpaperTabs extends PolymerElement {
             .filter(epaperTab => epaperTab !== tab)
             .forEach(epaperTab => epaperTab.active = false);
         });
-
-        tab.addEventListener('disabled-changed', () => {
-          if (tab.disabled && this.selectedIndex === tabIndex) {
-            this.selectedIndex = undefined;
-          }
-        });
       });
     });
   }
