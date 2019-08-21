@@ -27,6 +27,7 @@ import './casper-epaper-servertip-helper.js';
 import './casper-epaper-types/casper-epaper-pdf.js';
 import './casper-epaper-types/casper-epaper-image.js';
 import './casper-epaper-types/casper-epaper-iframe.js';
+import './casper-epaper-types/casper-epaper-upload.js';
 import './casper-epaper-types/casper-epaper-document.js';
 
 class CasperEpaper extends PolymerElement {
@@ -181,6 +182,8 @@ class CasperEpaper extends PolymerElement {
         <casper-epaper-iframe id="iframe"></casper-epaper-iframe>
         <!--Image Epaper-->
         <casper-epaper-image id="image" zoom="[[zoom]]"></casper-epaper-image>
+        <!--Upload Epaper-->
+        <casper-epaper-upload id="upload"></casper-epaper-upload>
 
         <div class="spacer"></div>
 
@@ -198,6 +201,7 @@ class CasperEpaper extends PolymerElement {
     return {
       PDF: 'PDF',
       IMAGE: 'IMAGE',
+      UPLOAD: 'UPLOAD',
       IFRAME: 'IFRAME',
       DOCUMENT: 'DOCUMENT'
     }
@@ -342,6 +346,17 @@ class CasperEpaper extends PolymerElement {
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.PDF);
 
     this.$.pdf.source = iframePDF;
+  }
+
+  /**
+   * Open a new uplaod page.
+   *
+   * @param {Object} options
+   */
+  openUploadPage (options) {
+    Object.keys(options).forEach(option => this.$.upload[option] = options[option]);
+
+    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.UPLOAD);
   }
 
   /**
@@ -606,6 +621,7 @@ class CasperEpaper extends PolymerElement {
   __toggleBetweenEpaperTypes (epaperType) {
     this.$.pdf.style.display = epaperType === CasperEpaper.EPAPER_TYPES.PDF ? 'block' : 'none';
     this.$.image.style.display = epaperType === CasperEpaper.EPAPER_TYPES.IMAGE ? 'block' : 'none';
+    this.$.upload.style.display = epaperType === CasperEpaper.EPAPER_TYPES.UPLOAD ? 'block' : 'none';
     this.$.iframe.style.display = epaperType === CasperEpaper.EPAPER_TYPES.IFRAME ? 'block' : 'none';
     this.$.document.style.display = epaperType === CasperEpaper.EPAPER_TYPES.DOCUMENT ? 'block' : 'none';
   }
