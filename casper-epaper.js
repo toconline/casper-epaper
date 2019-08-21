@@ -263,10 +263,16 @@ class CasperEpaper extends PolymerElement {
       const contextMenuSlot = this.shadowRoot.querySelector('slot[name="casper-epaper-context-menu"]');
       const contextMenuSlotElement = contextMenuSlot.assignedElements().shift();
 
-      // This happens when the epaper is used inside a casper-moac element.
-      if (contextMenuSlotElement && contextMenuSlotElement.nodeName.toLowerCase() === 'slot') {
-        contextMenu = contextMenuSlotElement.assignedElements().shift();
-        this.__hasContextMenu = contextMenu && contextMenu.nodeName.toLowerCase() === 'casper-context-menu';
+      if (contextMenuSlotElement) {
+        // This happens when the epaper is used inside a casper-moac element.
+        if (contextMenuSlotElement.nodeName.toLowerCase() === 'slot') {
+          contextMenu = contextMenuSlotElement.assignedElements().shift();
+          this.__hasContextMenu = contextMenu && contextMenu.nodeName.toLowerCase() === 'casper-context-menu';
+        } else if (contextMenuSlotElement.nodeName.toLowerCase() === 'casper-context-menu') {
+          // This is the normal situation when the casper-context-menu is not nested.
+          contextMenu = contextMenuSlotElement;
+          this.__hasContextMenu = true;
+        }
       }
 
       if (this.__hasContextMenu) {
