@@ -67,10 +67,8 @@ class CasperEpaperPdf extends PolymerElement {
 
         if (!this.source) return;
 
-        // Cancel the existing render to avoid errors from simultaneous operations.
-        if (this.__pdfRenderTask) {
-          await this.__pdfRenderTask._internalRenderTask.cancel();
-        }
+        // Throw an event to disable the previous / next page buttons to avoid concurrent draws.
+        this.dispatchEvent(new CustomEvent('pdf-render-started', { bubbles: true }));
 
         const file = await this.__pdfJS.getDocument(this.source).promise;
         const filePage = await file.getPage(this.currentPage);
@@ -85,8 +83,9 @@ class CasperEpaperPdf extends PolymerElement {
           canvasContext: this.$.canvas.getContext('2d')
         });
 
+
         this.__pdfRenderTask.promise
-          .then(() => { this.__pdfRenderTask = undefined; })
+          .then(() => this.dispatchEvent(new CustomEvent('pdf-render-ended', { bubbles: true })))
           .catch(exception => {
             // This means an error has occurred while displaying the PDF not caused by cancelling the render.
             if (!exception instanceof this.__pdfJS.RenderingCancelledException) {

@@ -266,6 +266,9 @@ class CasperEpaper extends PolymerElement {
     this.__toggleBetweenEpaperTypes('document');
 
     afterNextRender(this, () => {
+      this.$.pdf.addEventListener('pdf-render-started', () => this.__disablePageButtons());
+      this.$.pdf.addEventListener('pdf-render-ended', () => this.__enableOrDisablePageButtons());
+
       let contextMenu;
       const contextMenuSlot = this.shadowRoot.querySelector('slot[name="casper-epaper-context-menu"]');
       const contextMenuSlotElement = contextMenuSlot.assignedElements().shift();
@@ -315,6 +318,8 @@ class CasperEpaper extends PolymerElement {
    */
   async open (documentModel) {
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.DOCUMENT);
+    this.__enableOrDisablePageButtons();
+
     return this.$.document.open(documentModel);
   }
 
@@ -325,6 +330,7 @@ class CasperEpaper extends PolymerElement {
    */
   openImage (imageSource) {
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.IMAGE);
+    this.__enableOrDisablePageButtons();
 
     this.$.image.source = imageSource;
   }
@@ -336,6 +342,7 @@ class CasperEpaper extends PolymerElement {
    */
   openIframe (iframeSource) {
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.IFRAME);
+    this.__enableOrDisablePageButtons();
 
     this.$.iframe.source = iframeSource;
   }
@@ -347,6 +354,7 @@ class CasperEpaper extends PolymerElement {
    */
   openPDF (iframePDF) {
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.PDF);
+    this.__enableOrDisablePageButtons();
 
     this.$.pdf.source = iframePDF;
   }
@@ -360,6 +368,7 @@ class CasperEpaper extends PolymerElement {
     Object.keys(options).forEach(option => this.$.upload[option] = options[option]);
 
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.UPLOAD);
+    this.__enableOrDisablePageButtons();
   }
 
   /**
@@ -611,9 +620,19 @@ class CasperEpaper extends PolymerElement {
   //                                                                                       //
   //***************************************************************************************//
 
+  __disablePageButtons () {
+    this.$.nextPage.disabled = true;
+    this.$.previousPage.disabled = true;
+  }
+
   __enableOrDisablePageButtons () {
-    this.$.previousPage.disabled = this.__currentPage === 1;
-    this.$.nextPage.disabled = this.__currentPage === this.__totalPageCount;
+    if ([CasperEpaper.EPAPER_TYPES.PDF, CasperEpaper.EPAPER_TYPES.DOCUMENT].includes(this.__epaperType)) {
+      this.$.previousPage.disabled = this.__currentPage === 1;
+      this.$.nextPage.disabled = this.__currentPage === this.__totalPageCount;
+    } else {
+      this.$.nextPage.disabled = true;
+      this.$.previousPage.disabled = true;
+    }
   }
 
   __enableOrDisableZoomButtons () {
@@ -622,6 +641,8 @@ class CasperEpaper extends PolymerElement {
   }
 
   __toggleBetweenEpaperTypes (epaperType) {
+    this.__epaperType = epaperType;
+
     this.$.pdf.style.display = epaperType === CasperEpaper.EPAPER_TYPES.PDF ? 'block' : 'none';
     this.$.image.style.display = epaperType === CasperEpaper.EPAPER_TYPES.IMAGE ? 'block' : 'none';
     this.$.upload.style.display = epaperType === CasperEpaper.EPAPER_TYPES.UPLOAD ? 'block' : 'none';
