@@ -266,35 +266,16 @@ class CasperEpaper extends PolymerElement {
     this.__toggleBetweenEpaperTypes('document');
 
     afterNextRender(this, () => {
-      this.$.pdf.addEventListener('pdf-render-started', () => this.__disablePageButtons());
-      this.$.pdf.addEventListener('pdf-render-ended', () => this.__enableOrDisablePageButtons());
+      this.__handleContextMenu();
+      this.$.pdf.addEventListener('pdf-render-started', () => {
+        this.__disablePageButtons();
+        this.__disableZoomButtons();
+      });
 
-      let contextMenu;
-      const contextMenuSlot = this.shadowRoot.querySelector('slot[name="casper-epaper-context-menu"]');
-      const contextMenuSlotElement = contextMenuSlot.assignedElements().shift();
-
-      if (contextMenuSlotElement) {
-        // This happens when the epaper is used inside a casper-moac element.
-        if (contextMenuSlotElement.nodeName.toLowerCase() === 'slot') {
-          contextMenu = contextMenuSlotElement.assignedElements().shift();
-          this.__hasContextMenu = contextMenu && contextMenu.nodeName.toLowerCase() === 'casper-context-menu';
-        } else if (contextMenuSlotElement.nodeName.toLowerCase() === 'casper-context-menu') {
-          // This is the normal situation when the casper-context-menu is not nested.
-          contextMenu = contextMenuSlotElement;
-          this.__hasContextMenu = true;
-        }
-      }
-
-      if (this.__hasContextMenu) {
-        afterNextRender(this, () => {
-          const contextMenuTrigger = this.shadowRoot.querySelector('.toolbar paper-icon-button:last-of-type');
-          contextMenu.positionTarget = contextMenuTrigger;
-          contextMenu.verticalAlign = 'top';
-          contextMenu.horizontalAlign = 'right';
-          contextMenu.verticalOffset = contextMenuTrigger.offsetHeight + 10;
-          contextMenuTrigger.addEventListener('click', () => contextMenu.toggle());
-        });
-      }
+      this.$.pdf.addEventListener('pdf-render-ended', () => {
+        this.__enableOrDisablePageButtons();
+        this.__enableOrDisableZoomButtons();
+      });
     });
   }
 
@@ -620,9 +601,43 @@ class CasperEpaper extends PolymerElement {
   //                                                                                       //
   //***************************************************************************************//
 
+  __handleContextMenu () {
+    let contextMenu;
+    const contextMenuSlot = this.shadowRoot.querySelector('slot[name="casper-epaper-context-menu"]');
+    const contextMenuSlotElement = contextMenuSlot.assignedElements().shift();
+
+    if (contextMenuSlotElement) {
+      // This happens when the epaper is used inside a casper-moac element.
+      if (contextMenuSlotElement.nodeName.toLowerCase() === 'slot') {
+        contextMenu = contextMenuSlotElement.assignedElements().shift();
+        this.__hasContextMenu = contextMenu && contextMenu.nodeName.toLowerCase() === 'casper-context-menu';
+      } else if (contextMenuSlotElement.nodeName.toLowerCase() === 'casper-context-menu') {
+        // This is the normal situation when the casper-context-menu is not nested.
+        contextMenu = contextMenuSlotElement;
+        this.__hasContextMenu = true;
+      }
+    }
+
+    if (this.__hasContextMenu) {
+      afterNextRender(this, () => {
+        const contextMenuTrigger = this.shadowRoot.querySelector('.toolbar paper-icon-button:last-of-type');
+        contextMenu.positionTarget = contextMenuTrigger;
+        contextMenu.verticalAlign = 'top';
+        contextMenu.horizontalAlign = 'right';
+        contextMenu.verticalOffset = contextMenuTrigger.offsetHeight + 10;
+        contextMenuTrigger.addEventListener('click', () => contextMenu.toggle());
+      });
+    }
+  }
+
   __disablePageButtons () {
     this.$.nextPage.disabled = true;
     this.$.previousPage.disabled = true;
+  }
+
+  __disableZoomButtons () {
+    this.$.zoomIn.disabled = true;
+    this.$.zoomOut.disabled = true;
   }
 
   __enableOrDisablePageButtons () {
