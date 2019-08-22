@@ -114,7 +114,7 @@ class CasperEpaper extends PolymerElement {
 
         .toolbar-button,
         ::slotted(paper-icon-button) {
-          padding: 0px;
+          padding: 0;
           max-width: 32px;
           max-height: 32px;
           border-radius: 50%;
@@ -154,8 +154,8 @@ class CasperEpaper extends PolymerElement {
         <!--Casper-epaper-actions-->
         <slot name="casper-epaper-actions"></slot>
 
-        <paper-icon-button on-click="__print"          id="print"        tooltip="Imprimir"        icon="casper-icons:print"        class="toolbar-button"></paper-icon-button>
-        <paper-icon-button on-click="__download"       id="download"     tooltip="Descarregar PDF" icon="casper-icons:download-pdf" class="toolbar-button"></paper-icon-button>
+        <paper-icon-button on-click="__print"    id="print"    tooltip="Imprimir"        icon="casper-icons:print"        class="toolbar-button"></paper-icon-button>
+        <paper-icon-button on-click="__download" id="download" tooltip="Descarregar PDF" icon="casper-icons:download-pdf" class="toolbar-button"></paper-icon-button>
 
         <template is="dom-if" if="[[__hasContextMenu]]">
           <paper-icon-button icon="casper-icons:bars" class="toolbar-button toolbar-white"></paper-icon-button>
@@ -186,7 +186,7 @@ class CasperEpaper extends PolymerElement {
         <!--Image Epaper-->
         <casper-epaper-image id="image" zoom="[[zoom]]"></casper-epaper-image>
         <!--Upload Epaper-->
-        <casper-epaper-upload id="upload"></casper-epaper-upload>
+        <casper-epaper-upload id="upload" zoom="[[zoom]]"></casper-epaper-upload>
 
         <div class="spacer"></div>
 
