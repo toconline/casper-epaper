@@ -62,12 +62,12 @@ class CasperEpaperImage extends PolymerElement {
       // This means it's a horizontal image.
       if (imageLoaded.width > imageLoaded.height) {
         // Check if the original image fits within the available horizontal space, otherwise adjust its size.
-        this.__originalWidth = Math.min(this.__availableWidth - 120, imageLoaded.width);
-        this.__originalHeight = this.__originalWidth / this._aspectRatio;
+        this.__width = Math.min(this.__availableWidth - 120, imageLoaded.width);
+        this.__height = this.__width / this._aspectRatio;
       } else {
         // Check if the original image fits within the available vertical space, otherwise adjust its size.
-        this.__originalHeight = Math.min(this.__availableHeight - 120, imageLoaded.height);
-        this.__originalWidth = this.__originalHeight * this._aspectRatio;
+        this.__height = Math.min(this.__availableHeight - 120, imageLoaded.height);
+        this.__width = this.__height * this._aspectRatio;
       }
 
       this.__zoomChanged();
@@ -80,13 +80,10 @@ class CasperEpaperImage extends PolymerElement {
 
   /**
    * Observer that gets fired when the epaper's zoom changes and the image
-   * is resized accordingly.
+   * is scaled accordingly.
    */
-  __zoomChanged () {
-    if (!this.__originalWidth && !this.__originalHeight) return;
-
-    this.__width = this.__originalWidth * this.zoom;
-    this.__height = this.__originalHeight * this.zoom;
+  __zoomChanged (zoom) {
+    this.shadowRoot.querySelector('img').style.transform = `scale(${zoom})`;
   }
 }
 
