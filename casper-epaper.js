@@ -252,7 +252,7 @@ class CasperEpaper extends PolymerElement {
   }
 
   ready () {
-    super.ready ();
+    super.ready();
 
     window.epig = this;
     console.warn("EPaper pinned to window.epig TODO remove this");

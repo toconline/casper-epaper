@@ -45,7 +45,7 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
           height: 150px;
           display: flex;
           border-radius: 50%;
-          margin-bottom: 30px;
+          margin-bottom: 40px;
           align-items: center;
           justify-content: center;
           border: 1px solid var(--primary-color);
@@ -58,7 +58,7 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
         }
 
         .upload-container .title-container {
-          font-size: 18px;
+          font-size: 20px;
           font-weight: bold;
           text-align: center;
           margin-bottom: 20px;
@@ -73,7 +73,7 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
 
         .upload-container vaadin-upload {
           width: 100%;
-          height: 150px;
+          height: 250px;
         }
 
         .upload-container vaadin-upload casper-button {
