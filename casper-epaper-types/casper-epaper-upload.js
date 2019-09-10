@@ -15,9 +15,13 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
         type: Number,
         observer: '__zoomChanged'
       },
+      uploadUrl: {
+        type: String,
+        value: `${window.location.protocol}//127.0.0.1:3201/upload`
+      },
       title: String,
       subTitle: String,
-      uploadUrl: String,
+      maxFiles: Number,
       acceptMimeTypes: String,
     };
   }
@@ -91,7 +95,9 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
         <vaadin-upload
           id="upload"
           target="[[uploadUrl]]"
-          accept="[[acceptMimeTypes]]">
+          max-files="[[maxFiles]]"
+          accept="[[acceptMimeTypes]]"
+          form-data-name="my-attachment">
           <casper-button slot="add-button">ABRIR</casper-button>
         </vaadin-upload>
       </div>
@@ -102,6 +108,34 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
     super.ready();
 
     this.i18nUpdateUpload(this.$.upload);
+    this.$.upload.addEventListener('upload-request', this.__uploadRequest);
+    this.$.upload.addEventListener('upload-success', this.__uploadSuccess);
+  }
+
+  clearUploadedFiles () {
+    this.$.upload.files = [];
+  }
+
+  __uploadRequest (event) {
+    event.preventDefault();
+    event.detail.xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+    event.detail.xhr.setRequestHeader('Content-Disposition', `form-data; name="${event.detail.file.formDataName}"; filename="uploaded_file";`);
+    event.detail.xhr.send(event.detail.file);
+  }
+
+  __uploadSuccess (event) {
+    if (event.detail.xhr.status === 200) {
+      const uploadedFile = JSON.parse(event.detail.xhr.response).file;
+      this.dispatchEvent(new CustomEvent('casper-epaper-upload-success', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          uploadedFile: uploadedFile,
+          originalFileName: event.detail.file.name,
+          originalFileType: event.detail.file.type,
+        }
+      }));
+    }
   }
 
   __zoomChanged (zoom) {

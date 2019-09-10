@@ -277,6 +277,11 @@ class CasperEpaper extends PolymerElement {
         this.__enableOrDisableZoomButtons();
       });
     });
+
+    this.image = this.$.image;
+    this.iframe = this.$.iframe;
+    this.upload = this.$.upload;
+    this.document = this.$.document;
   }
 
   isPrintableDocument () {
@@ -311,7 +316,7 @@ class CasperEpaper extends PolymerElement {
    */
   openImage (imageSource) {
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.IMAGE);
-    this.__enableOrDisablePageButtons();
+    this.__disablePageButtons();
 
     this.$.image.source = imageSource;
   }
@@ -321,11 +326,12 @@ class CasperEpaper extends PolymerElement {
    *
    * @param {String} iframeSource The iframe's source URL.
    */
-  openIframe (iframeSource) {
+  openIframe (contentType, source, title) {
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.IFRAME);
-    this.__enableOrDisablePageButtons();
+    this.__disablePageButtons();
+    this.__disableZoomButtons();
 
-    this.$.iframe.source = iframeSource;
+    this.$.iframe.open(contentType, source, title);
   }
 
   /**
@@ -349,7 +355,35 @@ class CasperEpaper extends PolymerElement {
     Object.keys(options).forEach(option => this.$.upload[option] = options[option]);
 
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.UPLOAD);
-    this.__enableOrDisablePageButtons();
+    this.__disablePageButtons();
+    this.__disableZoomButtons();
+  }
+
+  /**
+   * Opens an attachment with the correct "type" of epaper.
+   *
+   * @param {Object} attachment The attachment's metadata. This object should contain property
+   * that contains the attachment's type so the component can react accordingly.
+   */
+
+  async openAttachment (attachment) {
+    try {
+      switch (attachment.type) {
+        case 'file/pdf':
+          return this.openPDF(`/file/${attachment.id}`);
+        case 'file/xml':
+          return this.openIframe('xml', `/file/${attachment.id}`, attachment.name);
+        case 'file/htm':
+        case 'file/html':
+          return this.openIframe('html', `/file/${attachment.id}`, attachment.name);
+        case 'file/png':
+        case 'file/jpg':
+        case 'file/jpeg':
+          return this.openImage(`/file/${attachment.id}`);
+      }
+    } catch (error) {
+
+    }
   }
 
   /**
@@ -658,11 +692,11 @@ class CasperEpaper extends PolymerElement {
   __toggleBetweenEpaperTypes (epaperType) {
     this.__epaperType = epaperType;
 
-    this.$.pdf.style.display = epaperType === CasperEpaper.EPAPER_TYPES.PDF ? 'block' : 'none';
-    this.$.image.style.display = epaperType === CasperEpaper.EPAPER_TYPES.IMAGE ? 'block' : 'none';
-    this.$.upload.style.display = epaperType === CasperEpaper.EPAPER_TYPES.UPLOAD ? 'block' : 'none';
-    this.$.iframe.style.display = epaperType === CasperEpaper.EPAPER_TYPES.IFRAME ? 'block' : 'none';
-    this.$.document.style.display = epaperType === CasperEpaper.EPAPER_TYPES.DOCUMENT ? 'block' : 'none';
+    this.$.pdf.style.display = epaperType === CasperEpaper.EPAPER_TYPES.PDF ? '' : 'none';
+    this.$.image.style.display = epaperType === CasperEpaper.EPAPER_TYPES.IMAGE ? '' : 'none';
+    this.$.upload.style.display = epaperType === CasperEpaper.EPAPER_TYPES.UPLOAD ? '' : 'none';
+    this.$.iframe.style.display = epaperType === CasperEpaper.EPAPER_TYPES.IFRAME ? '' : 'none';
+    this.$.document.style.display = epaperType === CasperEpaper.EPAPER_TYPES.DOCUMENT ? '' : 'none';
   }
 }
 
