@@ -372,10 +372,10 @@ class CasperEpaper extends PolymerElement {
         case 'file/pdf':
           return this.openPDF(`/file/${attachment.id}`);
         case 'file/xml':
-          return this.openIframe('xml', `/file/${attachment.id}`, attachment.name);
+        case 'file/txt':
         case 'file/htm':
         case 'file/html':
-          return this.openIframe('html', `/file/${attachment.id}`, attachment.name);
+          return this.openIframe(attachment.type, `/file/${attachment.id}`, attachment.name);
         case 'file/png':
         case 'file/jpg':
         case 'file/jpeg':
