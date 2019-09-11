@@ -1,5 +1,4 @@
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
-import { afterNextRender } from '@polymer/polymer/lib/utils/render-status.js';
 
 class CasperEpaperIframe extends PolymerElement {
 
@@ -49,6 +48,7 @@ class CasperEpaperIframe extends PolymerElement {
       this.__title = title;
 
       switch (contentType) {
+        case 'file/htm':
         case 'file/html':
           this.__srcdoc = fileContents;
           break;

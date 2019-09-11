@@ -4,8 +4,8 @@ import { Debouncer } from '@polymer/polymer/lib/utils/debounce.js';
 
 class CasperEpaperPdf extends PolymerElement {
 
-  static get PDF_JS_SOURCE () { return 'https://mozilla.github.io/pdf.js/build/pdf.js'; }
-  static get PDF_JS_WORKER_SOURCE () { return 'https://mozilla.github.io/pdf.js/build/pdf.worker.js'; }
+  static get PDF_JS_SOURCE () { return '/static/js/pdf.js'; }
+  static get PDF_JS_WORKER_SOURCE () { return '/static/js/pdf.worker.js'; }
 
   static get is () {
     return 'casper-epaper-pdf';

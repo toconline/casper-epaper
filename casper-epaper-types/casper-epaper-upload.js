@@ -15,13 +15,10 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
         type: Number,
         observer: '__zoomChanged'
       },
-      uploadUrl: {
-        type: String,
-        value: `${window.location.protocol}//127.0.0.1:3201/upload`
-      },
       title: String,
       subTitle: String,
       maxFiles: Number,
+      uploadUrl: String,
       acceptMimeTypes: String,
     };
   }
