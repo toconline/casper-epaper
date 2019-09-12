@@ -23,6 +23,7 @@ import { afterNextRender } from '@polymer/polymer/lib/utils/render-status.js';
 
 import '@polymer/iron-icon/iron-icon.js';
 import '@casper2020/casper-icons/casper-icons.js';
+import './casper-epaper-canvas.js';
 import './casper-epaper-servertip-helper.js';
 import './casper-epaper-types/casper-epaper-pdf.js';
 import './casper-epaper-types/casper-epaper-image.js';
@@ -85,12 +86,6 @@ class CasperEpaper extends PolymerElement {
           pointer-events:     none;
         }
 
-        canvas {
-          outline: none;
-          box-shadow: rgba(0, 0, 0, 0.24) 0px 5px 12px 0px,
-                      rgba(0, 0, 0, 0.12) 0px 0px 12px 0px;
-        }
-
         canvas,
         casper-epaper-pdf,
         casper-epaper-image,
@@ -130,7 +125,7 @@ class CasperEpaper extends PolymerElement {
         .toolbar-button[disabled] {
           background-color: #E0E0E0;
           --iron-icon-fill-color: white;
-        }        
+        }
 
         .toolbar-white {
           --iron-icon-fill-color: var(--primary-color);
@@ -164,27 +159,34 @@ class CasperEpaper extends PolymerElement {
       <div id="desktop" class="desktop">
         <div class="spacer"></div>
 
+        <!--Canvas that will be shared between the document and PDF-->
+        <casper-epaper-canvas id="epaperCanvas" zoom="[[__zoom]]"></casper-epaper-canvas>
+
         <!--Document Epaper-->
         <casper-epaper-document
           id="document"
-          zoom="[[zoom]]"
-          width="[[width]]"
-          height="[[height]]"
-          socket="[[_socket]]"
+          zoom="[[__zoom]]"
+          socket="[[__socket]]"
           scroller="[[scroller]]"
           current-page="{{__currentPage}}"
+          epaper-canvas="[[__epaperCanvas]]"
           total-page-count="{{__totalPageCount}}"></casper-epaper-document>
+
         <!--PDF Epaper-->
         <casper-epaper-pdf
           id="pdf"
-          zoom="[[zoom]]"
+          zoom="[[__zoom]]"
           current-page="[[__currentPage]]"
+          epaper-canvas="[[__epaperCanvas]]"
           total-page-count="{{__totalPageCount}}">
         </casper-epaper-pdf>
+
         <!--Iframe Epaper-->
         <casper-epaper-iframe id="iframe"></casper-epaper-iframe>
+
         <!--Image Epaper-->
         <casper-epaper-image id="image" zoom="[[zoom]]"></casper-epaper-image>
+
         <!--Upload Epaper-->
         <casper-epaper-upload id="upload" zoom="[[zoom]]"></casper-epaper-upload>
 
@@ -224,12 +226,6 @@ class CasperEpaper extends PolymerElement {
         type: Number,
         value: 842
       },
-      /** zoom factor when zoom is 1 one pt in report is one px in the screen */
-      zoom: {
-        type: Number,
-        value: 1,
-        observer: '__enableOrDisableZoomButtons'
-      },
       /** object that specifies the document being displayed/edited */
       document: {
         type: Object,
@@ -239,6 +235,11 @@ class CasperEpaper extends PolymerElement {
       scroller: {
         type: String,
         value: undefined
+      },
+      /** zoom factor when zoom is 1 one pt in report is one px in the screen */
+      __zoom: {
+        type: Number,
+        value: 1
       },
       __totalPageCount: {
         type: Number,
@@ -254,15 +255,13 @@ class CasperEpaper extends PolymerElement {
   ready () {
     super.ready();
 
-    window.epig = this;
-    console.warn("EPaper pinned to window.epig TODO remove this");
-
+    this.__epaperCanvas = this.$.epaperCanvas;
     this.__currentPage      = 1;
     this.__totalPageCount   = 0;
     this._pageNumber        = 1;
     this._chapterPageCount  = 0;
     this._chapterPageNumber = 1;
-    this._socket            = this.app.socket;
+    this.__socket           = this.app.socket;
     this.__toggleBetweenEpaperTypes('document');
 
     afterNextRender(this, () => {
@@ -339,11 +338,12 @@ class CasperEpaper extends PolymerElement {
    *
    * @param {String} iframeSource The PDF's source URL.
    */
-  openPDF (iframePDF) {
+  openPDF (pdfSource) {
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.PDF);
     this.__enableOrDisablePageButtons();
 
-    this.$.pdf.source = iframePDF;
+    this.$.pdf.source = pdfSource;
+    this.$.pdf.openPDF();
   }
 
   /**
@@ -408,8 +408,8 @@ class CasperEpaper extends PolymerElement {
    * Sets the epaper's zoom to a specific value.
    */
   setZoom (zoom) {
-    if (this.zoom >= CasperEpaper.EPAPER_MIN_ZOOM && this.zoom <= CasperEpaper.EPAPER_MAX_ZOOM) {
-      this.zoom = zoom;
+    if (this.__zoom >= CasperEpaper.EPAPER_MIN_ZOOM && this.__zoom <= CasperEpaper.EPAPER_MAX_ZOOM) {
+      this.__zoom = zoom;
     }
   }
 
@@ -417,14 +417,18 @@ class CasperEpaper extends PolymerElement {
    * Decreases the epaper's zoom.
    */
   zoomOut () {
-    if (this.zoom > CasperEpaper.EPAPER_MIN_ZOOM) this.zoom *= 0.8;
+    if (this.__zoom > CasperEpaper.EPAPER_MIN_ZOOM) {
+      this.__zoom *= 0.8;
+    }
   }
 
   /**
    * Increases the epaper's zoom.
    */
   zoomIn () {
-    if (this.zoom < CasperEpaper.EPAPER_MAX_ZOOM) this.zoom *= 1.2;
+    if (this.__zoom < CasperEpaper.EPAPER_MAX_ZOOM) {
+      this.__zoom *= 1.2;
+    }
   }
 
   /**
@@ -510,7 +514,7 @@ class CasperEpaper extends PolymerElement {
     this._fireEvent('casper-epaper-notification', { message: 'update:variable,PAGE_COUNT,1;' });  // TODO needed by whom?
     this._fireEvent('casper-epaper-notification', { message: 'update:variable,PAGE_NUMBER,1;' }); // TODO needed by whom?
     this._document = undefined;
-    await this._socket.closeDocument(this._documentId);
+    await this.__socket.closeDocument(this._documentId);
     return true;
   }
 
@@ -685,18 +689,20 @@ class CasperEpaper extends PolymerElement {
   }
 
   __enableOrDisableZoomButtons () {
-    this.$.zoomIn.disabled = this.zoom >= CasperEpaper.EPAPER_MAX_ZOOM;
-    this.$.zoomOut.disabled = this.zoom <= CasperEpaper.EPAPER_MIN_ZOOM;
+    this.$.zoomIn.disabled = this.__zoom >= CasperEpaper.EPAPER_MAX_ZOOM;
+    this.$.zoomOut.disabled = this.__zoom <= CasperEpaper.EPAPER_MIN_ZOOM;
   }
 
   __toggleBetweenEpaperTypes (epaperType) {
     this.__epaperType = epaperType;
 
-    this.$.pdf.style.display = epaperType === CasperEpaper.EPAPER_TYPES.PDF ? '' : 'none';
     this.$.image.style.display = epaperType === CasperEpaper.EPAPER_TYPES.IMAGE ? '' : 'none';
     this.$.upload.style.display = epaperType === CasperEpaper.EPAPER_TYPES.UPLOAD ? '' : 'none';
     this.$.iframe.style.display = epaperType === CasperEpaper.EPAPER_TYPES.IFRAME ? '' : 'none';
-    this.$.document.style.display = epaperType === CasperEpaper.EPAPER_TYPES.DOCUMENT ? '' : 'none';
+    this.$.epaperCanvas.style.display = epaperType === CasperEpaper.EPAPER_TYPES.PDF || epaperType === CasperEpaper.EPAPER_TYPES.DOCUMENT ? '' : 'none';
+
+    this.$.pdf.ignoreEvents = epaperType !== CasperEpaper.EPAPER_TYPES.PDF;
+    this.$.document.ignoreEvents = epaperType !== CasperEpaper.EPAPER_TYPES.DOCUMENT;
   }
 }
 

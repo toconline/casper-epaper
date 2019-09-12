@@ -13,32 +13,35 @@ class CasperEpaperPdf extends PolymerElement {
 
   static get properties () {
     return {
-      /**
-       * The PDF document source url.
-       * @type {String}
-       */
-      source: {
-        type: String,
-        observer: '__openPDF'
-      },
-      /**
-       * The zoom that should be applied to the document.
-       * @type {Number}
-       */
+      ratio: Number,
       zoom: {
         type: Number,
-        observer: '__openPDF'
+        observer: 'openPDF'
       },
       /**
+       * The canvas element that is shared in the epaper component
+       *
+       * @type {Object}
+       */
+      epaperCanvas: Object,
+      /**
+       * The PDF document source url.
+       *
+       * @type {String}
+       */
+      source: String,
+      /**
        * The PDF document's current page.
+       *
        * @type {Number}
        */
       currentPage: {
         type: Number,
-        observer: '__openPDF'
+        observer: 'openPDF'
       },
       /**
        * The total number of pages that the document has.
+       *
        * @type {Number}
        */
       totalPageCount: {
@@ -49,49 +52,50 @@ class CasperEpaperPdf extends PolymerElement {
   }
 
   static get template () {
-    return html`
-      <canvas id="canvas"></canvas>
-    `;
+    return html``;
+  }
+
+  ready () {
+    super.ready();
+
+    this.__loadScript();
   }
 
   /**
    * Open a PDF document specified in the source property.
    */
-  __openPDF () {
+  openPDF () {
+    if (this.ignoreEvents || !this.source) return;
+
     // Debounce the all render operation to avoid multiple calls to the render method.
-    this.__openPDFDebouncer = Debouncer.debounce(
-      this.__openPDFDebouncer,
-      timeOut.after(150),
-      async () => {
-        this.__loadScript();
+    this.__openPDFDebouncer = Debouncer.debounce(this.__openPDFDebouncer, timeOut.after(150), async () => {
+      // Throw an event to disable the previous / next page buttons to avoid concurrent draws.
+      this.dispatchEvent(new CustomEvent('pdf-render-started', { bubbles: true }));
 
-        if (!this.source) return;
+      const file = await this.__pdfJS.getDocument(this.source).promise;
+      const filePage = await file.getPage(this.currentPage);
+      const fileViewport = filePage.getViewport({ scale: this.epaperCanvas.ratio });
 
-        // Throw an event to disable the previous / next page buttons to avoid concurrent draws.
-        this.dispatchEvent(new CustomEvent('pdf-render-started', { bubbles: true }));
+      this.epaperCanvas.canvas.width = fileViewport.width;
+      this.epaperCanvas.canvas.height = fileViewport.height;
+      this.epaperCanvas.clearPage();
 
-        const file = await this.__pdfJS.getDocument(this.source).promise;
-        const filePage = await file.getPage(this.currentPage);
-        const fileViewport = filePage.getViewport({ scale: this.zoom });
+      this.totalPageCount = file._pdfInfo.numPages;
 
-        this.$.canvas.width = fileViewport.width;
-        this.$.canvas.height = fileViewport.height;
-        this.totalPageCount = file._pdfInfo.numPages;
+      this.__pdfRenderTask = filePage.render({
+        viewport: fileViewport,
+        canvasContext: this.epaperCanvas.canvasContext
+      });
 
-        this.__pdfRenderTask = filePage.render({
-          viewport: fileViewport,
-          canvasContext: this.$.canvas.getContext('2d')
+
+      this.__pdfRenderTask.promise
+        .then(() => this.dispatchEvent(new CustomEvent('pdf-render-ended', { bubbles: true })))
+        .catch(exception => {
+          // This means an error has occurred while displaying the PDF not caused by cancelling the render.
+          if (!exception instanceof this.__pdfJS.RenderingCancelledException) {
+            this.__openPDF();
+          }
         });
-
-
-        this.__pdfRenderTask.promise
-          .then(() => this.dispatchEvent(new CustomEvent('pdf-render-ended', { bubbles: true })))
-          .catch(exception => {
-            // This means an error has occurred while displaying the PDF not caused by cancelling the render.
-            if (!exception instanceof this.__pdfJS.RenderingCancelledException) {
-              this.__openPDF();
-            }
-          });
       }
     );
   }
@@ -107,7 +111,6 @@ class CasperEpaperPdf extends PolymerElement {
         this.__pdfJS.GlobalWorkerOptions.workerSrc = CasperEpaperPdf.PDF_JS_WORKER_SOURCE;
 
         this.__scriptAlreadyLoaded = true;
-        this.__openPDF();
       };
 
       script.src = CasperEpaperPdf.PDF_JS_SOURCE;
