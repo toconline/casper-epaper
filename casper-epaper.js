@@ -41,7 +41,7 @@ class CasperEpaper extends PolymerElement {
         :host {
           display: flex;
           flex-direction: column;
-          background-color: #DDD;
+          background-color: var(--casper-moac-paper-background-color, #DDD);
           position: relative;
           width: 100%;
           height: 100%;
