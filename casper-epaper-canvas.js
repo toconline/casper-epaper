@@ -146,6 +146,7 @@ class CasperEpaperCanvas extends PolymerElement {
   resetCanvasDimensions () {
     this.canvas.width  = this.__canvasWidth  * this.ratio;
     this.canvas.height = this.__canvasHeight * this.ratio;
+    this.clearPage();
   }
 
   paintGrid (gridMajor, gridMinor) {
