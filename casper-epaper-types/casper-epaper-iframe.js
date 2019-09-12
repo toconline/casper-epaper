@@ -32,6 +32,7 @@ class CasperEpaperIframe extends PolymerElement {
           border: none;
           width: 100%;
           flex-grow: 1;
+          background-color: white;
         }
       </style>
       <h3>[[__title]]</h3>
@@ -57,6 +58,7 @@ class CasperEpaperIframe extends PolymerElement {
           const xmlDocumentContainer = document.createElement('pre');
           xmlDocumentContainer.style.margin = 0;
           xmlDocumentContainer.style.padding = '20px';
+          xmlDocumentContainer.style.overflow = 'auto';
           xmlDocumentContainer.style.backgroundColor = 'white';
           xmlDocumentContainer.innerText = fileContents;
 
