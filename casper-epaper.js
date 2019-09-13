@@ -97,8 +97,15 @@ class CasperEpaper extends PolymerElement {
           padding: 15px;
           z-index: 1;
           display: flex;
+          width: 100%;
+          position: absolute;
           align-items: center;
-          justify-content: flex-end;
+          box-sizing: border-box;
+          justify-content: space-between;
+        }
+
+        .toolbar > div {
+          display: flex;
         }
 
         .toolbar paper-icon-button,
@@ -138,19 +145,22 @@ class CasperEpaper extends PolymerElement {
 
       </style>
       <div class="toolbar">
-        <paper-icon-button on-click="zoomOut"          id="zoomOut"      tooltip="Reduzir"         icon="casper-icons:minus"        class="toolbar-button toolbar-white"></paper-icon-button>
-        <paper-icon-button on-click="zoomIn"           id="zoomIn"       tooltip="Ampliar"         icon="casper-icons:plus"         class="toolbar-button toolbar-white"></paper-icon-button>
-        <paper-icon-button on-click="goToPreviousPage" id="previousPage" tooltip="Página anterior" icon="casper-icons:arrow-left"   class="toolbar-button"></paper-icon-button>
-        <paper-icon-button on-click="goToNextPage"     id="nextPage"     tooltip="Página seguinte" icon="casper-icons:arrow-right"  class="toolbar-button"></paper-icon-button>
+        <div>
+          <paper-icon-button on-click="zoomOut"          id="zoomOut"      tooltip="Reduzir"         icon="casper-icons:minus"        class="toolbar-button toolbar-white"></paper-icon-button>
+          <paper-icon-button on-click="zoomIn"           id="zoomIn"       tooltip="Ampliar"         icon="casper-icons:plus"         class="toolbar-button toolbar-white"></paper-icon-button>
+          <paper-icon-button on-click="goToPreviousPage" id="previousPage" tooltip="Página anterior" icon="casper-icons:arrow-left"   class="toolbar-button"></paper-icon-button>
+          <paper-icon-button on-click="goToNextPage"     id="nextPage"     tooltip="Página seguinte" icon="casper-icons:arrow-right"  class="toolbar-button"></paper-icon-button>
+          <!--Casper-epaper-tabs-->
+          <slot name="casper-epaper-tabs"></slot>
+        </div>
 
-        <!--Casper-epaper-tabs-->
-        <slot name="casper-epaper-tabs"></slot>
+        <div>
+          <!--Casper-epaper-actions-->
+          <slot name="casper-epaper-actions"></slot>
 
-        <!--Casper-epaper-actions-->
-        <slot name="casper-epaper-actions"></slot>
-
-        <paper-icon-button on-click="__print"    id="print"    tooltip="Imprimir"        icon="casper-icons:print"        class="toolbar-button"></paper-icon-button>
-        <paper-icon-button on-click="__download" id="download" tooltip="Descarregar PDF" icon="casper-icons:download-pdf" class="toolbar-button"></paper-icon-button>
+          <paper-icon-button on-click="__print"    id="print"    tooltip="Imprimir"        icon="casper-icons:print"        class="toolbar-button"></paper-icon-button>
+          <paper-icon-button on-click="__download" id="download" tooltip="Descarregar PDF" icon="casper-icons:download-pdf" class="toolbar-button"></paper-icon-button>
+        </div>
 
         <template is="dom-if" if="[[__hasContextMenu]]">
           <paper-icon-button icon="casper-icons:bars" class="toolbar-button toolbar-white"></paper-icon-button>

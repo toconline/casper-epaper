@@ -31,17 +31,16 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
           height: 80%;
           padding: 50px;
           overflow: auto;
-          transform-origin: 0 0;
           background-color: white;
         }
 
-        .upload-container {
+        #uploadContainer {
           display: flex;
           align-items: center;
           flex-direction: column;
         }
 
-        .upload-container .icon-container {
+        #uploadContainer .icon-container {
           width: 150px;
           height: 150px;
           display: flex;
@@ -52,13 +51,13 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
           border: 1px solid var(--primary-color);
         }
 
-        .upload-container .icon-container iron-icon {
+        #uploadContainer .icon-container iron-icon {
           width: 50%;
           height: 50%;
           color: var(--primary-color);
         }
 
-        .upload-container .title-container {
+        #uploadContainer .title-container {
           font-size: 20px;
           font-weight: bold;
           text-align: center;
@@ -66,22 +65,22 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
           color: var(--primary-color);
         }
 
-        .upload-container .sub-title-container {
+        #uploadContainer .sub-title-container {
           color: darkgray;
           text-align: center;
           margin-bottom: 25px;
         }
 
-        .upload-container vaadin-upload {
+        #uploadContainer vaadin-upload {
           width: 100%;
           height: 250px;
         }
 
-        .upload-container vaadin-upload casper-button {
+        #uploadContainer vaadin-upload casper-button {
           margin: 0;
         }
       </style>
-      <div class="upload-container">
+      <div id="uploadContainer">
         <div class="icon-container">
           <iron-icon icon="casper-icons:question-solid"></iron-icon>
         </div>
@@ -103,6 +102,9 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
 
   ready () {
     super.ready();
+
+    this.__uploadContainerWidth  = 595.0;
+    this.__uploadContainerHeight = 842.0;
 
     this.i18nUpdateUpload(this.$.upload);
     this.$.upload.addEventListener('upload-request', this.__uploadRequest);
@@ -136,7 +138,7 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
   }
 
   __zoomChanged (zoom) {
-    this.shadowRoot.host.style.transform = `scale(${zoom})`;
+    this.$.uploadContainer
   }
 }
 

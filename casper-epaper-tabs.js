@@ -48,6 +48,9 @@ class CasperEpaperTabs extends PolymerElement {
       this.__epaperTabs = this.shadowRoot.querySelector('slot').assignedElements();
 
       this.__epaperTabs.forEach((tab, tabIndex) => {
+        // Check if there is a tab already active.
+        if (tab.active) this.selectedIndex = tabIndex;
+
         tab.addEventListener('active-changed', () => {
           if (!tab.active) return;
 
