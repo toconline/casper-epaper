@@ -37,6 +37,7 @@ export class CasperEpaperDocument extends PolymerElement {
 
   static get properties () {
     return {
+      app: Object,
       socket: Object,
       epaperCanvas: Object,
       zoom: {
@@ -140,12 +141,56 @@ export class CasperEpaperDocument extends PolymerElement {
     return this.__openChapter();
   }
 
+  print () {
+    this.app.showPrintDialog(this.__getPrintJob(true));
+  }
+
+  download () {
+    this.app.showPrintDialog(this.__getPrintJob(false));
+  }
+
+  __getPrintJob (print) {
+    let name  = 'TESTE'; ///*this.i18n.apply(this, */this.document.filename_template;
+    let title = name
+
+    if (!this.__isPrintableDocument()) return;
+
+    return {
+      tube: 'casper-print-queue',
+      name: name,
+      validity: 3600,
+      locale: this.__locale,
+      continous_pages: true,
+      auto_printable: print == true,
+      action: print ? 'epaper-print' : 'epaper-download',
+      public_link: {
+        path: print ? 'print' : 'download'
+      },
+      documents: this.document.chapters.map(chapter => ({
+        name: name,
+        title: title,
+        jrxml: chapter.jrxml,
+        jsonapi: {
+          // TODO extract list of relationships from the report!!!! // TODO NO TOCONLINE
+          urn: 'https://app.toconline.pt/' + chapter.path + '?' + ((undefined !== chapter.params && '' !== chapter.params) ? chapter.params : 'include=lines'),
+          prefix: null,
+          user_id: null,
+          entity_id: null,
+          entity_schema: null,
+          sharded_schema: null,
+          accounting_schema: null,
+          accounting_prefix: null
+        }
+      }))
+    };
+  }
+
   /**
    * Re-opens the last document that was open
    */
   async reOpen () {
-    if ( this.__document !== undefined ) {
-      const cloned_command = JSON.parse(JSON.stringify(this.__document));
+    if ( this.document !== undefined ) {
+      const cloned_command = JSON.parse(JSON.stringify(this.document));
       this.__clear();
       await this.open(cloned_command);
     } else {
@@ -182,9 +227,9 @@ export class CasperEpaperDocument extends PolymerElement {
     }
 
     if ( this.chapterIndex === undefined ) {
-      if ( this.__document && this.__document.chapters ) {
-        for ( let i = 0; i < this.__document.chapters.length; i++ ) {
-          reportName = this.__document.chapters[i].jrxml;
+      if ( this.document && this.document.chapters ) {
+        for ( let i = 0; i < this.document.chapters.length; i++ ) {
+          reportName = this.document.chapters[i].jrxml;
           j = reportName.lastIndexOf('/');
           reportName = reportName.substring(j === -1 ? 0 : j +1, reportName.length);
           if ( reportName === chapterReport ) {
@@ -198,7 +243,7 @@ export class CasperEpaperDocument extends PolymerElement {
     if (chapterIndex !== undefined) {
       if (chapterIndex !== this.__chapterIndex) {
         this.__chapterIndex = chapterIndex;
-        this.__chapter      = this.__document.chapters[chapterIndex];
+        this.__chapter      = this.document.chapters[chapterIndex];
         this.__openChapter(1, highlightAfterLoad);
 
       } else {
@@ -238,7 +283,7 @@ export class CasperEpaperDocument extends PolymerElement {
     this.__path      = undefined;
     this.__params    = undefined;
     this.__jrxml     = undefined;
-    this.__locale    = undefined;
+    this.___locale    = undefined;
     this.__edit      = false;
     this.__loading   = false;
     this.__openFocus = undefined;
@@ -251,12 +296,18 @@ export class CasperEpaperDocument extends PolymerElement {
   //                                                                                       //
   //***************************************************************************************//
 
+  __isPrintableDocument () {
+    return this.document !== undefined
+      && this.documentId !== undefined
+      && this.document.chapters !== undefined;
+  }
+
   __zoomChanged () {
     if (this.ignoreEvents) return;
 
-    if (this.documentId !== undefined && this.__documentScale !== this.epaperCanvas.sx) {
+    if (this.documentId !== undefined && this.documentScale !== this.epaperCanvas.sx) {
       this.socket.setScale(this.documentId, 1.0 * this.epaperCanvas.sx.toFixed(2));
-      this.__documentScale = this.epaperCanvas.sx;
+      this.documentScale = this.epaperCanvas.sx;
     }
   }
 
@@ -269,7 +320,7 @@ export class CasperEpaperDocument extends PolymerElement {
     this.__images = {};
     this.__focusedBandId = undefined;
     this.__resetCommandData(keepLastCommand);
-    this.__documentScale = undefined;
+    this.documentScale = undefined;
     this.epaperCanvas.clearPage();
   }
 
@@ -279,18 +330,18 @@ export class CasperEpaperDocument extends PolymerElement {
    * @param {Object} documentModel the document model
    */
   __prepareOpenCommand (documentModel) {
-    this.__document      = JSON.parse(JSON.stringify(documentModel));
-    this.__chapterCount = this.__document.chapters.length;
+    this.document      = JSON.parse(JSON.stringify(documentModel));
+    this.__chapterCount = this.document.chapters.length;
     this.totalPageCount = 0;
 
     for (let idx = 0; idx < this.__chapterCount; idx++) {
-      this.__document.chapters[idx].locale    = this.__document.chapters[idx].locale    || 'pt_PT';
-      this.__document.chapters[idx].editable  = this.__document.chapters[idx].editable  || false;
-      this.__document.chapters[idx].pageCount = this.__document.pageCount               || 1;
-      this.totalPageCount += this.__document.chapters[idx].pageCount;
+      this.document.chapters[idx].locale    = this.document.chapters[idx].locale    || 'pt_PT';
+      this.document.chapters[idx].editable  = this.document.chapters[idx].editable  || false;
+      this.document.chapters[idx].pageCount = this.document.pageCount               || 1;
+      this.totalPageCount += this.document.chapters[idx].pageCount;
     }
     this.__chapterIndex = 0;
-    this.__chapter      = this.__document.chapters[0];
+    this.__chapter      = this.document.chapters[0];
     this.__edition      = false;
   }
 
@@ -365,7 +416,7 @@ export class CasperEpaperDocument extends PolymerElement {
     this.__path    = this.__chapter.path;
     this.__params  = this.__chapter.params;
     this.__edition = this.__chapter.editable;
-    this.__documentScale  = this.epaperCanvas.sx;
+    this.documentScale  = this.epaperCanvas.sx;
     this.epaperCanvas.scalePxToServer = this.pageWidth * this.epaperCanvas.ratio / this.epaperCanvas.canvas.width;
     this._repaintPage();
 
@@ -390,12 +441,12 @@ export class CasperEpaperDocument extends PolymerElement {
    */
   async __currentPageChanged (pageNumber) {
 
-    if ( this.__document && this.__document.chapters && this.__document.chapters.length >= 1 ) {
+    if ( this.document && this.document.chapters && this.document.chapters.length >= 1 ) {
       let currentPage = 1;
 
       pageNumber = parseInt(pageNumber);
-      for ( let i = 0;  i < this.__document.chapters.length; i++ ) {
-        if ( pageNumber >= currentPage && pageNumber < (currentPage + this.__document.chapters[i].pageCount) ) {
+      for ( let i = 0;  i < this.document.chapters.length; i++ ) {
+        if ( pageNumber >= currentPage && pageNumber < (currentPage + this.document.chapters[i].pageCount) ) {
           let newPageNumber;
 
           newPageNumber = 1 + pageNumber - currentPage;
@@ -411,7 +462,7 @@ export class CasperEpaperDocument extends PolymerElement {
           }
           this.__chapterPageNumber = newPageNumber;
         }
-        currentPage += this.__document.chapters[i].pageCount;
+        currentPage += this.document.chapters[i].pageCount;
       }
     }
   }
@@ -543,11 +594,11 @@ export class CasperEpaperDocument extends PolymerElement {
    */
   _updatePageNumber (pageNumber) {
 
-    if ( this.__document && this.__document.chapters ) {
+    if ( this.document && this.document.chapters ) {
       let page = pageNumber;
 
       for ( let idx = 0; idx < (this.__chapterIndex || 0); idx++ ) {
-        page += ( this.__document.chapters[idx].pageCount || 1);
+        page += ( this.document.chapters[idx].pageCount || 1);
       }
       if ( this.__loading === false ) {
         this._fireEvent('casper-epaper-notification', { message: 'update:variable,PAGE_NUMBER,' + page + ';' });
@@ -570,9 +621,9 @@ export class CasperEpaperDocument extends PolymerElement {
   _updatePageCount (chapterIndex, pageCount) {
     let previousTotalPages = this.totalPageCount;
 
-    if ( this.__document && this.__document.chapters && chapterIndex >= 0 && chapterIndex < this.__document.chapters.length) {
-      this.totalPageCount -= ( this.__document.chapters[chapterIndex].pageCount || 1);
-      this.__document.chapters[chapterIndex].pageCount  = pageCount;
+    if ( this.document && this.document.chapters && chapterIndex >= 0 && chapterIndex < this.document.chapters.length) {
+      this.totalPageCount -= ( this.document.chapters[chapterIndex].pageCount || 1);
+      this.document.chapters[chapterIndex].pageCount  = pageCount;
       this.totalPageCount += pageCount;
       if ( this.totalPageCount !== previousTotalPages && this.__loading === false ) {
         this._fireEvent('casper-epaper-notification', { message: 'update:variable,PAGE_COUNT,' + this.totalPageCount + ';' });

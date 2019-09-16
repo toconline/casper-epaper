@@ -29,7 +29,7 @@ import './casper-epaper-types/casper-epaper-pdf.js';
 import './casper-epaper-types/casper-epaper-image.js';
 import './casper-epaper-types/casper-epaper-iframe.js';
 import './casper-epaper-types/casper-epaper-upload.js';
-import './casper-epaper-types/casper-epaper-document.js';
+import './casper-epaper-types/casper-epaper-server-document.js';
 
 class CasperEpaper extends PolymerElement {
 
@@ -175,6 +175,7 @@ class CasperEpaper extends PolymerElement {
         <!--Document Epaper-->
         <casper-epaper-document
           id="serverDocument"
+          app="[[app]]"
           zoom="[[__zoom]]"
           socket="[[__socket]]"
           scroller="[[scroller]]"
@@ -281,13 +282,6 @@ class CasperEpaper extends PolymerElement {
         this.__enableOrDisableZoomButtons();
       });
     });
-  }
-
-  isPrintableDocument () {
-    return this.__epaperType === CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT
-      && this.$.serverDocument.__document !== undefined
-      && this.$.serverDocument.__documentId !== undefined
-      && this.$.serverDocument.__document.chapters === undefined;
   }
 
   //***************************************************************************************//
@@ -441,6 +435,10 @@ class CasperEpaper extends PolymerElement {
     this.$.upload.clearUploadedFiles();
   }
 
+  print () {
+    this.__epaperActiveComponent.print();
+  }
+
   download () {
     this.__epaperActiveComponent.download();
   }
@@ -530,55 +528,6 @@ class CasperEpaper extends PolymerElement {
     this._document = undefined;
     await this.__socket.closeDocument(this._documentId);
     return true;
-  }
-
-  __print () {
-    this.app.showPrintDialog(this.getPrintJob(true));
-  }
-
-  __download () {
-    this.app.showPrintDialog(this.getPrintJob(false));
-  }
-
-  getPrintJob (print) {
-    let name  = 'TESTE'; ///*this.i18n.apply(this, */this._document.filename_template;
-    let title = name
-
-    if (!this.isPrintableDocument()) return;
-
-    let job = {
-      tube: 'casper-print-queue',
-      name: name,
-      validity: 3600,
-      locale: this._locale,
-      continous_pages: true,
-      auto_printable: print == true,
-      documents: [],
-      public_link: {
-        path: print ? 'print' : 'download'
-      },
-      action: print ? 'epaper-print' : 'epaper-download'
-    }
-    for ( let i = 0; i < this._document.chapters.length; i++) {
-      let chapter = {
-        name: name,
-        title: title,
-        jrxml: this._document.chapters[i].jrxml,
-        jsonapi: {
-          // TODO extract list of relationships from the report!!!! // TODO NO TOCONLINE
-          urn: 'https://app.toconline.pt/' + this._document.chapters[i].path + '?' + ((undefined !== this._document.chapters[i].params && '' !== this._document.chapters[i].params) ? this._document.chapters[i].params : 'include=lines'),
-          prefix: null,
-          user_id: null,
-          entity_id: null,
-          entity_schema: null,
-          sharded_schema: null,
-          accounting_schema: null,
-          accounting_prefix: null
-        }
-      }
-      job.documents.push(chapter);
-    }
-    return job;
   }
 
   getBatchPrintJob (print, documents) {

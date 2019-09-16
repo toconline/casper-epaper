@@ -19,7 +19,7 @@
  */
 
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
-import { CasperEpaperDocument } from './casper-epaper-types/casper-epaper-document.js';
+import { CasperEpaperDocument } from './casper-epaper-types/casper-epaper-server-document.js';
 import '@polymer/iron-input/iron-input.js';
 import '@polymer/iron-icon/iron-icon.js';
 import '@casper2020/casper-icons/casper-icons.js';
