@@ -100,6 +100,17 @@ class CasperEpaperPdf extends PolymerElement {
     );
   }
 
+  download () {
+    const downloadLink = document.createElement('a');
+    downloadLink.setAttribute('href', this.source);
+    downloadLink.setAttribute('download', true);
+    downloadLink.setAttribute('target', '_blank');
+    downloadLink.style.display = 'none';
+    this.shadowRoot.appendChild(downloadLink);
+    downloadLink.click();
+    this.shadowRoot.removeChild(downloadLink);
+  }
+
   /**
    * Load the PDF.js script.
    */

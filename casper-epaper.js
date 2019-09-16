@@ -158,8 +158,8 @@ class CasperEpaper extends PolymerElement {
           <!--Casper-epaper-actions-->
           <slot name="casper-epaper-actions"></slot>
 
-          <paper-icon-button on-click="__print"    id="print"    tooltip="Imprimir"        icon="casper-icons:print"        class="toolbar-button"></paper-icon-button>
-          <paper-icon-button on-click="__download" id="download" tooltip="Descarregar PDF" icon="casper-icons:download-pdf" class="toolbar-button"></paper-icon-button>
+          <paper-icon-button on-click="print"    id="print"    tooltip="Imprimir"        icon="casper-icons:print"        class="toolbar-button"></paper-icon-button>
+          <paper-icon-button on-click="download" id="download" tooltip="Descarregar PDF" icon="casper-icons:download-pdf" class="toolbar-button"></paper-icon-button>
         </div>
 
         <template is="dom-if" if="[[__hasContextMenu]]">
@@ -174,7 +174,7 @@ class CasperEpaper extends PolymerElement {
 
         <!--Document Epaper-->
         <casper-epaper-document
-          id="document"
+          id="serverDocument"
           zoom="[[__zoom]]"
           socket="[[__socket]]"
           scroller="[[scroller]]"
@@ -218,7 +218,7 @@ class CasperEpaper extends PolymerElement {
       IMAGE: 'IMAGE',
       UPLOAD: 'UPLOAD',
       IFRAME: 'IFRAME',
-      DOCUMENT: 'DOCUMENT'
+      SERVER_DOCUMENT: 'SERVER_DOCUMENT'
     }
   }
 
@@ -235,11 +235,6 @@ class CasperEpaper extends PolymerElement {
       height: {
         type: Number,
         value: 842
-      },
-      /** object that specifies the document being displayed/edited */
-      document: {
-        type: Object,
-        observer: '__documentChanged'
       },
       /** id of the containing element that can be scrolled */
       scroller: {
@@ -272,7 +267,7 @@ class CasperEpaper extends PolymerElement {
     this._chapterPageCount  = 0;
     this._chapterPageNumber = 1;
     this.__socket           = this.app.socket;
-    this.__toggleBetweenEpaperTypes('document');
+    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT);
 
     afterNextRender(this, () => {
       this.__handleContextMenu();
@@ -286,18 +281,13 @@ class CasperEpaper extends PolymerElement {
         this.__enableOrDisableZoomButtons();
       });
     });
-
-    this.image = this.$.image;
-    this.iframe = this.$.iframe;
-    this.upload = this.$.upload;
-    this.document = this.$.document;
   }
 
   isPrintableDocument () {
-    return this._document.loading
-      || this._document === undefined
-      || this._documentId === undefined
-      || this._document.chapters === undefined;
+    return this.__epaperType === CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT
+      && this.$.serverDocument.__document !== undefined
+      && this.$.serverDocument.__documentId !== undefined
+      && this.$.serverDocument.__document.chapters === undefined;
   }
 
   //***************************************************************************************//
@@ -305,69 +295,6 @@ class CasperEpaper extends PolymerElement {
   //                                  ~~~ Public API ~~~                                   //
   //                                                                                       //
   //***************************************************************************************//
-
-  /**
-   * Open server document
-
-   * @param {Object} documentModel An object that specifies the layout and data of the document.
-   */
-  async open (documentModel) {
-    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.DOCUMENT);
-    this.__enableOrDisablePageButtons();
-
-    return this.$.document.open(documentModel);
-  }
-
-  /**
-   * Open a new image.
-   *
-   * @param {String} imageSource The image's source URL.
-   */
-  openImage (imageSource) {
-    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.IMAGE);
-    this.__disablePageButtons();
-
-    this.$.image.source = imageSource;
-  }
-
-  /**
-   * Open an iframe.
-   *
-   * @param {String} iframeSource The iframe's source URL.
-   */
-  openIframe (contentType, source, title) {
-    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.IFRAME);
-    this.__disablePageButtons();
-    this.__disableZoomButtons();
-
-    this.$.iframe.open(contentType, source, title);
-  }
-
-  /**
-   * Open a PDF file.
-   *
-   * @param {String} iframeSource The PDF's source URL.
-   */
-  openPDF (pdfSource) {
-    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.PDF);
-    this.__enableOrDisablePageButtons();
-
-    this.$.pdf.source = pdfSource;
-    this.$.pdf.openPDF();
-  }
-
-  /**
-   * Open a new uplaod page.
-   *
-   * @param {Object} options
-   */
-  openUploadPage (options) {
-    Object.keys(options).forEach(option => this.$.upload[option] = options[option]);
-
-    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.UPLOAD);
-    this.__disablePageButtons();
-    this.__disableZoomButtons();
-  }
 
   /**
    * Opens an attachment with the correct "type" of epaper.
@@ -394,6 +321,75 @@ class CasperEpaper extends PolymerElement {
     } catch (error) {
 
     }
+  }
+
+  /**
+   * Open server document
+
+   * @param {Object} documentModel An object that specifies the layout and data of the document.
+   */
+  async open (documentModel) {
+    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT);
+    this.__enableOrDisablePageButtons();
+    this.__enableOrDisableZoomButtons();
+
+    return this.$.serverDocument.open(documentModel);
+  }
+
+  /**
+   * Open a new image.
+   *
+   * @param {String} imageSource The image's source URL.
+   */
+  openImage (imageSource) {
+    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.IMAGE);
+    this.__enableOrDisablePageButtons();
+    this.__enableOrDisableZoomButtons();
+
+    this.$.image.source = imageSource;
+  }
+
+  /**
+   * Open an iframe.
+   *
+   * @param {String} iframeSource The iframe's source URL.
+   */
+  openIframe (contentType, source, title) {
+    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.IFRAME);
+    this.__disablePageButtons();
+    this.__disableZoomButtons();
+
+    this.$.iframe.source = source;
+    this.$.iframe.title = title;
+    this.$.iframe.contentType = contentType;
+    this.$.iframe.open();
+  }
+
+  /**
+   * Open a PDF file.
+   *
+   * @param {String} iframeSource The PDF's source URL.
+   */
+  openPDF (pdfSource) {
+    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.PDF);
+    this.__enableOrDisablePageButtons();
+    this.__enableOrDisableZoomButtons();
+
+    this.$.pdf.source = pdfSource;
+    this.$.pdf.openPDF();
+  }
+
+  /**
+   * Open a new uplaod page.
+   *
+   * @param {Object} options
+   */
+  openUploadPage (options) {
+    Object.keys(options).forEach(option => this.$.upload[option] = options[option]);
+
+    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.UPLOAD);
+    this.__disablePageButtons();
+    this.__disableZoomButtons();
   }
 
   /**
@@ -441,6 +437,14 @@ class CasperEpaper extends PolymerElement {
     }
   }
 
+  clearUploadedFiles () {
+    this.$.upload.clearUploadedFiles();
+  }
+
+  download () {
+    this.__epaperActiveComponent.download();
+  }
+
   /**
    * Open specified chapter, page can also be specified.
    *
@@ -448,7 +452,7 @@ class CasperEpaper extends PolymerElement {
    * @param {number} pageNumber page to open, 1 for 1st page
    */
   gotoChapter (chapterIndex, pageNumber) {
-    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.DOCUMENT);
+    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT);
 
     if ( this._document && this._document.chapters && this._document.chapters.length >= 1 ) {
       this._chapterIndex = chapterIndex;
@@ -468,9 +472,9 @@ class CasperEpaper extends PolymerElement {
    * @param {string} rowIndex undefined to highlight a parameter or the rowIndex to highligth a field
    */
   openAndGotoParamOrField (documentModel, chapterReport, fieldName, rowIndex) {
-    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.DOCUMENT);
+    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT);
 
-    this.$.document.openAndGotoParamOrField(documentModel, chapterReport, fieldName, rowIndex);
+    this.$.serverDocument.openAndGotoParamOrField(documentModel, chapterReport, fieldName, rowIndex);
   }
 
   /**
@@ -481,9 +485,9 @@ class CasperEpaper extends PolymerElement {
    * @param {string} rowIndex undefined to highlight a parameter or the rowIndex to highligth a field
    */
   gotoParamOrField (chapterReport, fieldName, rowIndex) {
-    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.DOCUMENT);
+    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT);
 
-    this.$.document.gotoParamOrField(chapterReport, fieldName, rowIndex);
+    this.$.serverDocument.gotoParamOrField(chapterReport, fieldName, rowIndex);
   }
 
   previousChapter () {
@@ -540,9 +544,7 @@ class CasperEpaper extends PolymerElement {
     let name  = 'TESTE'; ///*this.i18n.apply(this, */this._document.filename_template;
     let title = name
 
-    if ( this.isPrintableDocument() ) { // ??? reverted logic WTF?
-      return undefined;
-    }
+    if (!this.isPrintableDocument()) return;
 
     let job = {
       tube: 'casper-print-queue',
@@ -592,9 +594,7 @@ class CasperEpaper extends PolymerElement {
     name = name || this.i18n.apply(this, this._document.filename_template);
     title = title || name
 
-    if ( this.isPrintableDocument() ) {
-      return undefined;
-    }
+    if (this.isPrintableDocument()) return undefined;
 
     let job = {
       tube: 'casper-print-queue',
@@ -689,7 +689,7 @@ class CasperEpaper extends PolymerElement {
   }
 
   __enableOrDisablePageButtons () {
-    if ([CasperEpaper.EPAPER_TYPES.PDF, CasperEpaper.EPAPER_TYPES.DOCUMENT].includes(this.__epaperType)) {
+    if ([CasperEpaper.EPAPER_TYPES.PDF, CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT].includes(this.__epaperType)) {
       this.$.previousPage.disabled = this.__currentPage === 1;
       this.$.nextPage.disabled = this.__currentPage === this.__totalPageCount;
     } else {
@@ -705,14 +705,15 @@ class CasperEpaper extends PolymerElement {
 
   __toggleBetweenEpaperTypes (epaperType) {
     this.__epaperType = epaperType;
+    this.__epaperActiveComponent = this.$[epaperType.toLowerCase().replace(/([-_][a-z])/ig, (lowercase) => lowercase.toUpperCase().replace('_', ''))];
 
     this.$.image.style.display = epaperType === CasperEpaper.EPAPER_TYPES.IMAGE ? '' : 'none';
     this.$.upload.style.display = epaperType === CasperEpaper.EPAPER_TYPES.UPLOAD ? '' : 'none';
     this.$.iframe.style.display = epaperType === CasperEpaper.EPAPER_TYPES.IFRAME ? '' : 'none';
-    this.$.epaperCanvas.style.display = epaperType === CasperEpaper.EPAPER_TYPES.PDF || epaperType === CasperEpaper.EPAPER_TYPES.DOCUMENT ? '' : 'none';
+    this.$.epaperCanvas.style.display = epaperType === CasperEpaper.EPAPER_TYPES.PDF || epaperType === CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT ? '' : 'none';
 
     this.$.pdf.ignoreEvents = epaperType !== CasperEpaper.EPAPER_TYPES.PDF;
-    this.$.document.ignoreEvents = epaperType !== CasperEpaper.EPAPER_TYPES.DOCUMENT;
+    this.$.serverDocument.ignoreEvents = epaperType !== CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT;
   }
 }
 

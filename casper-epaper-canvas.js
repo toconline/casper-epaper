@@ -9,6 +9,10 @@ class CasperEpaperCanvas extends PolymerElement {
   static get template () {
     return html`
       <style>
+        :host {
+          margin-top: 62px;
+        }
+
         canvas {
           outline: none;
           box-shadow: rgba(0, 0, 0, 0.24) 0px 5px 12px 0px,
@@ -42,8 +46,8 @@ class CasperEpaperCanvas extends PolymerElement {
     this.__gridMajor       = 0.0;
     this.__gridMinor       = 0.0;
     this.__backgroundColor = '#FFF';
-    this.__pageWidth       = 595.0;
-    this.__pageHeight      = 842.0;
+    this.pageWidth         = 595.0;
+    this.pageHeight        = 842.0;
     this.canvas            = this.$.canvas;
     this.canvasContext     = this.canvas.getContext('2d', { alpha: false });
     this.__canvasWidth     = this.canvas.width;
@@ -87,8 +91,8 @@ class CasperEpaperCanvas extends PolymerElement {
     this.canvas.style.width  = `${this.__canvasWidth}px`;
     this.canvas.style.height = `${this.__canvasHeight}px`;
 
-    this.sx = parseFloat((this.canvas.width  / this.__pageWidth).toFixed(2));
-    this.scalePxToServer = this.__pageWidth * this.ratio / this.canvas.width;
+    this.sx = parseFloat((this.canvas.width  / this.pageWidth).toFixed(2));
+    this.scalePxToServer = this.pageWidth * this.ratio / this.canvas.width;
   }
 
   /**
@@ -120,8 +124,8 @@ class CasperEpaperCanvas extends PolymerElement {
     if (!this.canvas) return;
 
     this.__setSize(
-      Math.round((this.__pageWidth  || this.width) * this.zoom),
-      Math.round((this.__pageHeight || this.height) * this.zoom)
+      Math.round((this.pageWidth  || this.width) * this.zoom),
+      Math.round((this.pageHeight || this.height) * this.zoom)
     );
 
     // This is used to avoid the blinking black background when resizing a canvas.

@@ -36,19 +36,30 @@ class CasperEpaperIframe extends PolymerElement {
         }
       </style>
       <h3>[[__title]]</h3>
-      <iframe id="iframe" srcdoc="[[__srcdoc]]"></iframe>
+      <iframe id="iframe" srcdoc="[[__srcdoc]]" sandbox></iframe>
     `;
   }
 
-  async open (contentType, source, title) {
-    const fileRequest = await fetch(source);
+  download () {
+    const downloadLink = document.createElement('a');
+    downloadLink.setAttribute('href', this.source);
+    downloadLink.setAttribute('download', true);
+    downloadLink.setAttribute('target', '_blank');
+    downloadLink.style.display = 'none';
+    this.shadowRoot.appendChild(downloadLink);
+    downloadLink.click();
+    this.shadowRoot.removeChild(downloadLink);
+  }
+
+  async open () {
+    const fileRequest = await fetch(this.source);
 
     if (fileRequest.ok) {
       const fileContents = await fileRequest.text();
 
-      this.__title = title;
+      this.__title = this.title;
 
-      switch (contentType) {
+      switch (this.contentType) {
         case 'file/htm':
         case 'file/html':
           this.__srcdoc = fileContents;

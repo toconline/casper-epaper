@@ -27,9 +27,9 @@ export class CasperEpaperDocument extends PolymerElement {
 
   static get template () {
     return html`
-      <casper-epaper-input id="input"></casper-epaper-input>
-      <casper-epaper-tooltip id="tooltip"></casper-epaper-tooltip>
-      <casper-epaper-servertip-helper id="servertip"></casper-epaper-servertip-helper>
+    <casper-epaper-tooltip id="tooltip"></casper-epaper-tooltip>
+      <casper-epaper-input id="input" epaper-document="[[__epaperDocument]]"></casper-epaper-input>
+      <casper-epaper-servertip-helper id="servertip" epaper-document="[[__epaperDocument]]"></casper-epaper-servertip-helper>
       <iron-icon id="line_add_button" on-tap="__addDocumentLine" icon="casper-icons:add-circle"></iron-icon>
       <iron-icon id="line_del_button" on-tap="__removeDocumentLine" icon="casper-icons:remove-circle"></iron-icon>
     `;
@@ -58,11 +58,12 @@ export class CasperEpaperDocument extends PolymerElement {
   ready () {
     super.ready();
 
+    this.__epaperDocument   = this;
     this._scrollContainer   = document.getElementById(this.scroller);
     this._message           = '';
     this._r_idx             = 0.0;
     this.__bands             = undefined;
-    this.__documentId        = undefined;
+    this.documentId        = undefined;
     this.__images            = {};
     this.__focusedBandId   = undefined;
     this._redraw_timer_key  = '_epaper_redraw_timer_key';
@@ -101,10 +102,10 @@ export class CasperEpaperDocument extends PolymerElement {
       this.epaperCanvas.canvasContext.save();
       this.epaperCanvas.canvasContext.fillStyle = '#F0F0F0'
       this.epaperCanvas.canvasContext.textAlign = 'center';
-      this.__fontSpec[CasperEpaperDocument.SIZE_INDEX] = 20;
+      this.fontSpec[CasperEpaperDocument.SIZE_INDEX] = 20;
       for (let i = 0; i < styles.length; i++) {
-        this.__fontSpec[CasperEpaperDocument.BOLD_INDEX] = styles[i];
-        this.epaperCanvas.canvasContext.font = this.__fontSpec.join('');
+        this.fontSpec[CasperEpaperDocument.BOLD_INDEX] = styles[i];
+        this.epaperCanvas.canvasContext.font = this.fontSpec.join('');
         this.epaperCanvas.canvasContext.fillText('Powered by CASPER ePaper', this.epaperCanvas.canvas.width / 2, y);
         y += 35;
       }
@@ -143,8 +144,8 @@ export class CasperEpaperDocument extends PolymerElement {
    * Re-opens the last document that was open
    */
   async reOpen () {
-    if ( this._document !== undefined ) {
-      const cloned_command = JSON.parse(JSON.stringify(this._document));
+    if ( this.__document !== undefined ) {
+      const cloned_command = JSON.parse(JSON.stringify(this.__document));
       this.__clear();
       await this.open(cloned_command);
     } else {
@@ -166,7 +167,7 @@ export class CasperEpaperDocument extends PolymerElement {
         ? `document highlight parameter "${fieldName}";`
         : `document highlight field "${fieldName}",${rowIndex};`;
 
-      this._sendCommand(command);
+      this.__sendCommand(command);
     };
 
     if ( this.__jrxml !== undefined ) {
@@ -181,9 +182,9 @@ export class CasperEpaperDocument extends PolymerElement {
     }
 
     if ( this.chapterIndex === undefined ) {
-      if ( this._document && this._document.chapters ) {
-        for ( let i = 0; i < this._document.chapters.length; i++ ) {
-          reportName = this._document.chapters[i].jrxml;
+      if ( this.__document && this.__document.chapters ) {
+        for ( let i = 0; i < this.__document.chapters.length; i++ ) {
+          reportName = this.__document.chapters[i].jrxml;
           j = reportName.lastIndexOf('/');
           reportName = reportName.substring(j === -1 ? 0 : j +1, reportName.length);
           if ( reportName === chapterReport ) {
@@ -197,7 +198,7 @@ export class CasperEpaperDocument extends PolymerElement {
     if (chapterIndex !== undefined) {
       if (chapterIndex !== this.__chapterIndex) {
         this.__chapterIndex = chapterIndex;
-        this.__chapter      = this._document.chapters[chapterIndex];
+        this.__chapter      = this.__document.chapters[chapterIndex];
         this.__openChapter(1, highlightAfterLoad);
 
       } else {
@@ -220,11 +221,11 @@ export class CasperEpaperDocument extends PolymerElement {
   _resetRenderState () {
     this._fill_color      = '#FFFFFF';
     this._text_color      = '#000000';
-    this.__fontSpec       = ['', '', 10, 'px ', 'DejaVu Sans Condensed'];
+    this.fontSpec       = ['', '', 10, 'px ', 'DejaVu Sans Condensed'];
     this._font_mask       = 0;
     this.epaperCanvas.canvasContext.strokeStyle = '#000000';
     this.epaperCanvas.canvasContext.lineWidth   = 1.0;
-    this.epaperCanvas.canvasContext.font        = this.__fontSpec.join('');
+    this.epaperCanvas.canvasContext.font        = this.fontSpec.join('');
   }
 
   /**
@@ -253,8 +254,8 @@ export class CasperEpaperDocument extends PolymerElement {
   __zoomChanged () {
     if (this.ignoreEvents) return;
 
-    if (this.__documentId !== undefined && this.__documentScale !== this.epaperCanvas.sx) {
-      this.socket.setScale(this.__documentId, 1.0 * this.epaperCanvas.sx.toFixed(2));
+    if (this.documentId !== undefined && this.__documentScale !== this.epaperCanvas.sx) {
+      this.socket.setScale(this.documentId, 1.0 * this.epaperCanvas.sx.toFixed(2));
       this.__documentScale = this.epaperCanvas.sx;
     }
   }
@@ -278,18 +279,18 @@ export class CasperEpaperDocument extends PolymerElement {
    * @param {Object} documentModel the document model
    */
   __prepareOpenCommand (documentModel) {
-    this._document      = JSON.parse(JSON.stringify(documentModel));
-    this.__chapterCount = this._document.chapters.length;
+    this.__document      = JSON.parse(JSON.stringify(documentModel));
+    this.__chapterCount = this.__document.chapters.length;
     this.totalPageCount = 0;
 
     for (let idx = 0; idx < this.__chapterCount; idx++) {
-      this._document.chapters[idx].locale    = this._document.chapters[idx].locale    || 'pt_PT';
-      this._document.chapters[idx].editable  = this._document.chapters[idx].editable  || false;
-      this._document.chapters[idx].pageCount = this._document.pageCount               || 1;
-      this.totalPageCount += this._document.chapters[idx].pageCount;
+      this.__document.chapters[idx].locale    = this.__document.chapters[idx].locale    || 'pt_PT';
+      this.__document.chapters[idx].editable  = this.__document.chapters[idx].editable  || false;
+      this.__document.chapters[idx].pageCount = this.__document.pageCount               || 1;
+      this.totalPageCount += this.__document.chapters[idx].pageCount;
     }
     this.__chapterIndex = 0;
-    this.__chapter      = this._document.chapters[0];
+    this.__chapter      = this.__document.chapters[0];
     this.__edition      = false;
   }
 
@@ -326,8 +327,8 @@ export class CasperEpaperDocument extends PolymerElement {
         throw new Error(response.errors);
       }
 
-      this.__documentId  = response.id;
-      this.socket.registerDocumentHandler(this.__documentId, (message) => this.documentHandler(message));
+      this.documentId  = response.id;
+      this.socket.registerDocumentHandler(this.documentId, (message) => this.documentHandler(message));
       this.pageWidth  = response.page.width;
       this.pageHeight = response.page.height;
 
@@ -339,7 +340,7 @@ export class CasperEpaperDocument extends PolymerElement {
       this.__jrxml        = this.__chapter.jrxml;
       this.__locale       = this.__chapter.locale;
     }
-    this.__chapter.id = this.__documentId;
+    this.__chapter.id = this.documentId;
 
     this.socket._showOverlay({
       message: 'A carregar dados do documento',
@@ -349,7 +350,7 @@ export class CasperEpaperDocument extends PolymerElement {
     });
 
     response = await this.socket.loadDocument({
-      id:       this.__documentId,
+      id:       this.documentId,
       editable: this.__chapter.editable,
       path:     this.__chapter.path,
       scale:    this.epaperCanvas.sx,
@@ -389,19 +390,19 @@ export class CasperEpaperDocument extends PolymerElement {
    */
   async __currentPageChanged (pageNumber) {
 
-    if ( this._document && this._document.chapters && this._document.chapters.length >= 1 ) {
+    if ( this.__document && this.__document.chapters && this.__document.chapters.length >= 1 ) {
       let currentPage = 1;
 
       pageNumber = parseInt(pageNumber);
-      for ( let i = 0;  i < this._document.chapters.length; i++ ) {
-        if ( pageNumber >= currentPage && pageNumber < (currentPage + this._document.chapters[i].pageCount) ) {
+      for ( let i = 0;  i < this.__document.chapters.length; i++ ) {
+        if ( pageNumber >= currentPage && pageNumber < (currentPage + this.__document.chapters[i].pageCount) ) {
           let newPageNumber;
 
           newPageNumber = 1 + pageNumber - currentPage;
           if ( i === this.__chapterIndex ) {
             if ( this.__chapterPageNumber !== newPageNumber ) {
               this.__resetScroll();
-              await this.socket.gotoPage(this.__documentId, newPageNumber);
+              await this.socket.gotoPage(this.documentId, newPageNumber);
               return pageNumber;
             }
           } else {
@@ -410,7 +411,7 @@ export class CasperEpaperDocument extends PolymerElement {
           }
           this.__chapterPageNumber = newPageNumber;
         }
-        currentPage += this._document.chapters[i].pageCount;
+        currentPage += this.__document.chapters[i].pageCount;
       }
     }
   }
@@ -424,7 +425,7 @@ export class CasperEpaperDocument extends PolymerElement {
   _removeDocumentLine () {
     if (this.__contextMenuIndex !== - 1) {
       this.socket.deleteBand(
-        this.__documentId,
+        this.documentId,
         this.__bands[this.__contextMenuIndex]._type,
         this.__bands[this.__contextMenuIndex]._id,
         this.__removeDocumentLineResponse.bind(this)
@@ -442,7 +443,7 @@ export class CasperEpaperDocument extends PolymerElement {
   __addDocumentLine () {
     if (this.__contextMenuIndex !== - 1) {
       this.socket.addBand(
-        this.__documentId,
+        this.documentId,
         this.__bands[this.__contextMenuIndex]._type,
         this.__bands[this.__contextMenuIndex]._id,
         this.__addDocumentLineResponse.bind(this)
@@ -542,11 +543,11 @@ export class CasperEpaperDocument extends PolymerElement {
    */
   _updatePageNumber (pageNumber) {
 
-    if ( this._document && this._document.chapters ) {
+    if ( this.__document && this.__document.chapters ) {
       let page = pageNumber;
 
       for ( let idx = 0; idx < (this.__chapterIndex || 0); idx++ ) {
-        page += ( this._document.chapters[idx].pageCount || 1);
+        page += ( this.__document.chapters[idx].pageCount || 1);
       }
       if ( this.__loading === false ) {
         this._fireEvent('casper-epaper-notification', { message: 'update:variable,PAGE_NUMBER,' + page + ';' });
@@ -569,9 +570,9 @@ export class CasperEpaperDocument extends PolymerElement {
   _updatePageCount (chapterIndex, pageCount) {
     let previousTotalPages = this.totalPageCount;
 
-    if ( this._document && this._document.chapters && chapterIndex >= 0 && chapterIndex < this._document.chapters.length) {
-      this.totalPageCount -= ( this._document.chapters[chapterIndex].pageCount || 1);
-      this._document.chapters[chapterIndex].pageCount  = pageCount;
+    if ( this.__document && this.__document.chapters && chapterIndex >= 0 && chapterIndex < this.__document.chapters.length) {
+      this.totalPageCount -= ( this.__document.chapters[chapterIndex].pageCount || 1);
+      this.__document.chapters[chapterIndex].pageCount  = pageCount;
       this.totalPageCount += pageCount;
       if ( this.totalPageCount !== previousTotalPages && this.__loading === false ) {
         this._fireEvent('casper-epaper-notification', { message: 'update:variable,PAGE_COUNT,' + this.totalPageCount + ';' });
@@ -1643,8 +1644,8 @@ export class CasperEpaperDocument extends PolymerElement {
           w = this.__getDouble();
           this._t = this._message.substring(this._r_idx, this._r_idx + w);
           this._r_idx += w + 1;
-          this.__fontSpec[CasperEpaperDocument.FONT_NAME_INDEX] = this._t;
-          this.epaperCanvas.canvasContext.font = this.__fontSpec.join('');
+          this.fontSpec[CasperEpaperDocument.FONT_NAME_INDEX] = this._t;
+          this.epaperCanvas.canvasContext.font = this.fontSpec.join('');
           break;
 
         /*
@@ -1666,10 +1667,10 @@ export class CasperEpaperDocument extends PolymerElement {
               this.$.input._f_underline_position  = this.__getDouble();
           } else {
               this._font_mask = this.__getDouble();
-              this.__fontSpec[CasperEpaperDocument.SIZE_INDEX]   = Math.round(this.__getDouble());
-              this.__fontSpec[CasperEpaperDocument.BOLD_INDEX]   = (this._font_mask & CasperEpaperDocument.BOLD_MASK)   ? 'bold '   : '';
-              this.__fontSpec[CasperEpaperDocument.ITALIC_INDEX] = (this._font_mask & CasperEpaperDocument.ITALIC_MASK) ? 'italic ' : '';
-              this.epaperCanvas.canvasContext.font = this.__fontSpec.join('');
+              this.fontSpec[CasperEpaperDocument.SIZE_INDEX]   = Math.round(this.__getDouble());
+              this.fontSpec[CasperEpaperDocument.BOLD_INDEX]   = (this._font_mask & CasperEpaperDocument.BOLD_MASK)   ? 'bold '   : '';
+              this.fontSpec[CasperEpaperDocument.ITALIC_INDEX] = (this._font_mask & CasperEpaperDocument.ITALIC_MASK) ? 'italic ' : '';
+              this.epaperCanvas.canvasContext.font = this.fontSpec.join('');
           }
           break;
 
@@ -1940,7 +1941,7 @@ export class CasperEpaperDocument extends PolymerElement {
 
   _mouseUpHandler (a_event) {
     this.socket.sendClick(
-      this.__documentId,
+      this.documentId,
       parseFloat((a_event.offsetX * this.epaperCanvas.scalePxToServer).toFixed(2)),
       parseFloat((a_event.offsetY * this.epaperCanvas.scalePxToServer).toFixed(2))
     );

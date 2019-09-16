@@ -153,10 +153,12 @@ class CasperEpaperServertipHelper extends PolymerElement {
   _onOverHandler () {
     if ( Math.abs(this._center_x - this._last_x) <= this.threshold &&
          Math.abs(this._center_y - this._last_y) <= this.threshold ) {
-      this.epaper.socket.getHint(this.epaper._documentId,
-                                  this._scalePxToServer * this._center_x,
-                                  this._scalePxToServer * this._center_y,
-                                  this._getHintResponse.bind(this));
+      this.epaperDocument.socket.getHint(
+        this.epaperDocument.documentId,
+        this._scalePxToServer * this._center_x,
+        this._scalePxToServer * this._center_y,
+        this._getHintResponse.bind(this)
+      );
       this._resetTimer();
     } else {
       this._updateCenter(this._last_x, this._last_y);

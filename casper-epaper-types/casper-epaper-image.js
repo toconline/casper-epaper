@@ -47,6 +47,17 @@ class CasperEpaperImage extends PolymerElement {
     });
   }
 
+  download () {
+    const downloadLink = document.createElement('a');
+    downloadLink.setAttribute('href', this.source);
+    downloadLink.setAttribute('download', true);
+    downloadLink.setAttribute('target', '_blank');
+    downloadLink.style.display = 'none';
+    this.shadowRoot.appendChild(downloadLink);
+    downloadLink.click();
+    this.shadowRoot.removeChild(downloadLink);
+  }
+
   /**
    * Observer that gets fired when the image's source url changes.
    *
@@ -56,7 +67,7 @@ class CasperEpaperImage extends PolymerElement {
     const imageToLoad = new Image();
     imageToLoad.onload = event => {
       const imageLoaded = event.path.shift();
-      
+
       this._aspectRatio = parseFloat((imageLoaded.width / imageLoaded.height).toFixed(2));
 
       // This means it's a horizontal image.

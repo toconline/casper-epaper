@@ -44,27 +44,24 @@ class CasperEpaperTabs extends PolymerElement {
   ready () {
     super.ready();
 
-    afterNextRender(this, () => {
-      this.__epaperTabs = this.shadowRoot.querySelector('slot').assignedElements();
+    this.__epaperTabs = this.shadowRoot.querySelector('slot').assignedElements();
+    this.__epaperTabs.forEach((tab, tabIndex) => {
+      // Check if there is a tab already active.
+      if (tab.active) this.selectedIndex = tabIndex;
 
-      this.__epaperTabs.forEach((tab, tabIndex) => {
-        // Check if there is a tab already active.
-        if (tab.active) this.selectedIndex = tabIndex;
+      tab.addEventListener('active-changed', () => {
+        if (!tab.active) return;
 
-        tab.addEventListener('active-changed', () => {
-          if (!tab.active) return;
+        this.selectedIndex = tabIndex;
+        this.__epaperTabs
+          .filter(epaperTab => epaperTab !== tab)
+          .forEach(epaperTab => epaperTab.active = false);
+      });
 
-          this.selectedIndex = tabIndex;
-          this.__epaperTabs
-            .filter(epaperTab => epaperTab !== tab)
-            .forEach(epaperTab => epaperTab.active = false);
-        });
-
-        tab.addEventListener('disabled-changed', () => {
-          if (!tab.disabled && tabIndex === this.selectedIndex) {
-            tab.active = true;
-          }
-        });
+      tab.addEventListener('disabled-changed', () => {
+        if (!tab.disabled && tabIndex === this.selectedIndex) {
+          tab.active = true;
+        }
       });
     });
   }
