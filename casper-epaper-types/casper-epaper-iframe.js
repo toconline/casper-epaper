@@ -16,16 +16,18 @@ class CasperEpaperIframe extends PolymerElement {
     return html`
       <style>
         :host {
+          width: 100%;
+          height: 100%;
           display: flex;
           flex-direction: column;
-          width: calc(100% - 120px);
-          height: calc(100% - 120px);
         }
 
         h3 {
           margin: 0;
           text-align: center;
-          margin-bottom: 10px;
+          padding: 15px;
+          background-color: #EEEEEE;
+          color: var(--primary-color);
         }
 
         iframe {

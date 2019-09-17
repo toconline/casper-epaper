@@ -9,14 +9,8 @@ class CasperEpaperCanvas extends PolymerElement {
   static get template () {
     return html`
       <style>
-        :host {
-          margin-top: 62px;
-        }
-
         canvas {
           outline: none;
-          box-shadow: rgba(0, 0, 0, 0.24) 0px 5px 12px 0px,
-                      rgba(0, 0, 0, 0.12) 0px 0px 12px 0px;
         }
       </style>
       <canvas id="canvas"></canvas>

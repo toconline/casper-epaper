@@ -21,7 +21,7 @@ class CasperEpaperImage extends PolymerElement {
        */
       zoom: {
         type: Number,
-        observer: '__zoomChanged'
+        observer: '__recalculateImageDimensions'
       }
     }
   }
@@ -29,22 +29,18 @@ class CasperEpaperImage extends PolymerElement {
   static get template () {
     return html`
       <style>
-        img {
-          box-shadow: rgba(0, 0, 0, 0.24) 0px 5px 12px 0px, 
-                      rgba(0, 0, 0, 0.12) 0px 0px 12px 0px;
+        :host {
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
       </style>
-      <img src="[[__source]]" width="[[__width]]" height="[[__height]]"/>
+      <img
+        src="[[__source]]"
+        width="[[__width]]"
+        height="[[__height]]"/>
     `;
-  }
-
-  ready() {
-    super.ready();
-
-    afterNextRender(this, () => {
-      this.__availableWidth = this.parentElement.offsetWidth;
-      this.__availableHeight = this.parentElement.offsetHeight;
-    });
   }
 
   download () {
@@ -66,22 +62,9 @@ class CasperEpaperImage extends PolymerElement {
   __sourceChanged (source) {
     const imageToLoad = new Image();
     imageToLoad.onload = event => {
-      const imageLoaded = event.path.shift();
+      this.__loadedImage = event.path.shift();
 
-      this._aspectRatio = parseFloat((imageLoaded.width / imageLoaded.height).toFixed(2));
-
-      // This means it's a horizontal image.
-      if (imageLoaded.width > imageLoaded.height) {
-        // Check if the original image fits within the available horizontal space, otherwise adjust its size.
-        this.__width = Math.min(this.__availableWidth - 120, imageLoaded.width);
-        this.__height = this.__width / this._aspectRatio;
-      } else {
-        // Check if the original image fits within the available vertical space, otherwise adjust its size.
-        this.__height = Math.min(this.__availableHeight - 120, imageLoaded.height);
-        this.__width = this.__height * this._aspectRatio;
-      }
-
-      this.__zoomChanged();
+      this.__recalculateImageDimensions();
       this.__source = source;
     };
 
@@ -89,12 +72,25 @@ class CasperEpaperImage extends PolymerElement {
     imageToLoad.src = source;
   }
 
-  /**
-   * Observer that gets fired when the epaper's zoom changes and the image
-   * is scaled accordingly.
-   */
-  __zoomChanged (zoom) {
-    this.shadowRoot.querySelector('img').style.transform = `scale(${zoom})`;
+  __recalculateImageDimensions () {
+    afterNextRender(this, () => {
+      const availableWidth = this.parentElement.offsetWidth - 30;
+      const availableHeight = this.parentElement.offsetHeight - 30;
+
+      const widthRatio = parseFloat(this.__loadedImage.width / availableWidth);
+      const heightRatio = parseFloat(this.__loadedImage.height / availableHeight);
+
+      // This means it's a horizontal image.
+      if (widthRatio > heightRatio) {
+        // Check if the original image fits within the available horizontal space, otherwise adjust its size.
+        this.__width = Math.min(availableWidth, this.__loadedImage.width);
+        this.__height = Math.min(this.__loadedImage.height / widthRatio, this.__loadedImage.height);
+      } else {
+        // Check if the original image fits within the available vertical space, otherwise adjust its size.
+        this.__height = Math.min(availableHeight, this.__loadedImage.height);
+        this.__width = Math.min(this.__loadedImage.width / heightRatio, this.__loadedImage.width);
+      }
+    });
   }
 }
 

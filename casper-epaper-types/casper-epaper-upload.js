@@ -27,10 +27,12 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
     return html`
       <style>
         :host {
-          width: 50%;
-          height: 80%;
-          padding: 50px;
+          width: 100%;
+          height: 100%;
+          display: block;
           overflow: auto;
+          padding: 50px;
+          box-sizing: border-box;
           background-color: white;
         }
 
@@ -103,9 +105,6 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
   ready () {
     super.ready();
 
-    this.__uploadContainerWidth  = 595.0;
-    this.__uploadContainerHeight = 842.0;
-
     this.i18nUpdateUpload(this.$.upload);
     this.$.upload.addEventListener('upload-request', this.__uploadRequest);
     this.$.upload.addEventListener('upload-success', this.__uploadSuccess);
@@ -135,10 +134,6 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
         }
       }));
     }
-  }
-
-  __zoomChanged (zoom) {
-    this.$.uploadContainer
   }
 }
 
