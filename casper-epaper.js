@@ -156,7 +156,7 @@ class CasperEpaper extends PolymerElement {
           background-size: cover;
           flex-direction: column;
           background-repeat: no-repeat;
-          background-image: url('/node_modules/@casper2020/casper-epaper/static/epaper-post-it.svg');
+          background-image: url('/node_modules/@casper2020/casper-epaper/static/epaper-sticky.svg');
         }
 
         #epaper-component-sticky:hover {
