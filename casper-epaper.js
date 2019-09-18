@@ -460,12 +460,12 @@ class CasperEpaper extends PolymerElement {
     }
 
     // Archived when.
-    if (this.__currentAttachment.sticky.archived_when) {
-      const archivedWhen = document.createElement('span');
-      archivedWhen.innerText = this.__currentAttachment.sticky.archived_when;
-      archivedWhen.style.marginTop = '10px';
+    if (this.__currentAttachment.sticky.archived_at) {
+      const archivedAt = document.createElement('span');
+      archivedAt.innerText = this.__currentAttachment.sticky.archived_at;
+      archivedAt.style.marginTop = '10px';
 
-      this.__epaperComponentSticky.appendChild(archivedWhen);
+      this.__epaperComponentSticky.appendChild(archivedAt);
     }
 
     // Archived by.
