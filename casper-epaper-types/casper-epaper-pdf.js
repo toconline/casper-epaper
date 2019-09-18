@@ -16,7 +16,7 @@ class CasperEpaperPdf extends PolymerElement {
       ratio: Number,
       zoom: {
         type: Number,
-        observer: 'openPDF'
+        observer: 'open'
       },
       landscape: {
         type: Boolean,
@@ -41,7 +41,7 @@ class CasperEpaperPdf extends PolymerElement {
        */
       currentPage: {
         type: Number,
-        observer: 'openPDF'
+        observer: 'open'
       },
       /**
        * The total number of pages that the document has.
@@ -68,7 +68,7 @@ class CasperEpaperPdf extends PolymerElement {
   /**
    * Open a PDF document specified in the source property.
    */
-  openPDF () {
+  open () {
     if (this.ignoreEvents || !this.source) return;
 
     // Debounce the all render operation to avoid multiple calls to the render method.

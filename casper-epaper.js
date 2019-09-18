@@ -21,6 +21,7 @@
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
 import { afterNextRender } from '@polymer/polymer/lib/utils/render-status.js';
 
+import moment from 'moment/src/moment.js';
 import '@polymer/iron-icon/iron-icon.js';
 import '@casper2020/casper-icons/casper-icons.js';
 import './casper-epaper-canvas.js';
@@ -377,6 +378,7 @@ class CasperEpaper extends PolymerElement {
           this.__landscape = false;
           return this.__openImage();
         case 'epaper':
+          this.__landscape = false;
           return this.__openServerDocument();
       }
     } catch (error) {
@@ -432,7 +434,7 @@ class CasperEpaper extends PolymerElement {
     this.__enableOrDisableZoomButtons();
 
     this.$.pdf.source = `/file/${this.__currentAttachment.id}`;
-    this.$.pdf.openPDF();
+    this.$.pdf.open();
   }
 
   __displayOrHideSticky () {
@@ -462,7 +464,7 @@ class CasperEpaper extends PolymerElement {
     // Archived when.
     if (this.__currentAttachment.sticky.archived_at) {
       const archivedAt = document.createElement('span');
-      archivedAt.innerText = this.__currentAttachment.sticky.archived_at;
+      archivedAt.innerText = `Arquivado em ${moment.unix(this.__currentAttachment.sticky.archived_at).format('DD-MM-YYYY // HH:mm[h]')}`;
       archivedAt.style.marginTop = '10px';
 
       this.__epaperComponentSticky.appendChild(archivedAt);
@@ -471,7 +473,7 @@ class CasperEpaper extends PolymerElement {
     // Archived by.
     if (this.__currentAttachment.sticky.archived_by) {
       const archivedBy = document.createElement('span');
-      archivedBy.innerText = this.__currentAttachment.sticky.archived_by;
+      archivedBy.innerText = `por ${this.__currentAttachment.sticky.archived_by}`;
       archivedBy.style.marginTop = '10px';
       archivedBy.style.color = 'var(--primary-color)';
 
@@ -486,6 +488,7 @@ class CasperEpaper extends PolymerElement {
    */
   openUploadPage (options) {
     Object.keys(options).forEach(option => this.$.upload[option] = options[option]);
+    this.__landscape = false;
 
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.UPLOAD);
     this.__enableOrDisableZoomButtons();
