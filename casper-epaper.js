@@ -139,9 +139,29 @@ class CasperEpaper extends PolymerElement {
 
         #epaper-component-container {
           margin-top: 62px;
+          position: relative;
           background-color: white;
           box-shadow: rgba(0, 0, 0, 0.24) 0px 5px 12px 0px,
                       rgba(0, 0, 0, 0.12) 0px 0px 12px 0px;
+        }
+
+        #epaper-component-sticky {
+          opacity: 0.2;
+          overflow: auto;
+          display: none;
+          transition: height 100ms linear,
+                      opacity 100ms linear;
+          position: absolute;
+          box-sizing: border-box;
+          background-size: cover;
+          flex-direction: column;
+          background-repeat: no-repeat;
+          background-image: url('/node_modules/@casper2020/casper-epaper/static/epaper-post-it.svg');
+        }
+
+        #epaper-component-sticky:hover {
+          opacity: 1;
+          cursor: pointer;
         }
       </style>
       <div class="toolbar">
@@ -170,6 +190,9 @@ class CasperEpaper extends PolymerElement {
         <div class="spacer"></div>
 
         <div id="epaper-component-container">
+          <!--Sticky that will be used to display information about the component-->
+          <div id="epaper-component-sticky"></div>
+
           <!--Canvas that will be shared between the document and PDF-->
           <casper-epaper-canvas id="epaperCanvas" zoom="[[__zoom]]"></casper-epaper-canvas>
 
@@ -251,6 +274,20 @@ class CasperEpaper extends PolymerElement {
         type: Number,
         value: 842.0
       },
+      __epaperComponentStickyStyle: {
+        type: Object,
+        value: {
+          top: -19,
+          right: 15,
+          width: 150,
+          height: 90,
+          fontSize: 10,
+          fullHeight: 180,
+          paddingTop: 45,
+          paddingLeft: 10,
+          paddingRight: 10,
+        }
+      },
       /** zoom factor when zoom is 1 one pt in report is one px in the screen */
       __zoom: {
         type: Number,
@@ -292,6 +329,16 @@ class CasperEpaper extends PolymerElement {
         this.__enableOrDisableZoomButtons();
       });
     });
+
+    this.__epaperComponentContainer = this.shadowRoot.querySelector('#epaper-component-container');
+    this.__epaperComponentSticky = this.shadowRoot.querySelector('#epaper-component-sticky');
+    this.__epaperComponentSticky.addEventListener('mouseover', () => {
+      this.__epaperComponentSticky.style.height = `${parseInt(this.__epaperComponentStickyStyle.fullHeight * this.__zoom)}px`;
+    });
+
+    this.__epaperComponentSticky.addEventListener('mouseleave', () => {
+      this.__epaperComponentSticky.style.height = `${parseInt(this.__epaperComponentStickyStyle.height * this.__zoom)}px`;
+    });
   }
 
   //***************************************************************************************//
@@ -308,19 +355,24 @@ class CasperEpaper extends PolymerElement {
    */
 
   async openAttachment (attachment) {
+    this.__currentAttachment = attachment;
+    this.__displayOrHideSticky();
+
     try {
       switch (attachment.type) {
         case 'file/pdf':
-          return this.openPDF(`/file/${attachment.id}`);
+          return this.__openPDF();
         case 'file/xml':
         case 'file/txt':
         case 'file/htm':
         case 'file/html':
-          return this.openIframe(attachment.type, `/file/${attachment.id}`, attachment.name);
+          return this.__openIframe();
         case 'file/png':
         case 'file/jpg':
         case 'file/jpeg':
-          return this.openImage(`/file/${attachment.id}`);
+          return this.__openImage();
+        case 'epaper':
+          return this.__openServerDocument();
       }
     } catch (error) {
 
@@ -329,28 +381,25 @@ class CasperEpaper extends PolymerElement {
 
   /**
    * Open server document
-
-   * @param {Object} documentModel An object that specifies the layout and data of the document.
    */
-  async open (documentModel) {
+  __openServerDocument () {
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT);
     this.__enableOrDisablePageButtons();
     this.__enableOrDisableZoomButtons();
 
-    return this.$.serverDocument.open(documentModel);
+    return this.$.serverDocument.open(this.__currentAttachment);
   }
 
   /**
    * Open a new image.
-   *
-   * @param {String} imageSource The image's source URL.
    */
-  openImage (imageSource) {
+  __openImage () {
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.IMAGE);
     this.__enableOrDisablePageButtons();
     this.__enableOrDisableZoomButtons();
 
-    this.$.image.source = imageSource;
+    this.$.image.source = `/file/${this.__currentAttachment.id}`;
+    this.$.image.open();
   }
 
   /**
@@ -358,29 +407,71 @@ class CasperEpaper extends PolymerElement {
    *
    * @param {String} iframeSource The iframe's source URL.
    */
-  openIframe (contentType, source, title) {
+  __openIframe () {
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.IFRAME);
     this.__enableOrDisableZoomButtons();
     this.__disablePageButtons();
 
-    this.$.iframe.source = source;
-    this.$.iframe.title = title;
-    this.$.iframe.contentType = contentType;
+    this.$.iframe.source = `/file/${this.__currentAttachment.id}`;
+    this.$.iframe.title = this.__currentAttachment.name;
+    this.$.iframe.contentType = this.__currentAttachment.type;
     this.$.iframe.open();
   }
 
   /**
    * Open a PDF file.
-   *
-   * @param {String} iframeSource The PDF's source URL.
    */
-  openPDF (pdfSource) {
+  __openPDF () {
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.PDF);
     this.__enableOrDisablePageButtons();
     this.__enableOrDisableZoomButtons();
 
-    this.$.pdf.source = pdfSource;
+    this.$.pdf.source = `/file/${this.__currentAttachment.id}`;
     this.$.pdf.openPDF();
+  }
+
+  __displayOrHideSticky () {
+    this.__epaperComponentSticky.innerHTML = '';
+
+    if (!Object.keys(this.__currentAttachment).includes('sticky')) {
+      this.__epaperComponentSticky.style.display =  'none';
+      return;
+    }
+
+    this.__epaperComponentSticky.style.display =  'flex';
+    // Print the text lines.
+    if (this.__currentAttachment.sticky.text_lines && this.__currentAttachment.sticky.text_lines.length > 0) {
+      this.__currentAttachment.sticky.text_lines.forEach(textLine => {
+        const textLineContainer = document.createElement('span');
+        const key = document.createElement('strong');
+        const value = document.createTextNode(textLine.value)
+
+        key.innerText = `${textLine.key}: `;
+        textLineContainer.appendChild(key);
+        textLineContainer.appendChild(value);
+
+        this.__epaperComponentSticky.appendChild(textLineContainer);
+      });
+    }
+
+    // Archived when.
+    if (this.__currentAttachment.sticky.archived_when) {
+      const archivedWhen = document.createElement('span');
+      archivedWhen.innerText = this.__currentAttachment.sticky.archived_when;
+      archivedWhen.style.marginTop = '10px';
+
+      this.__epaperComponentSticky.appendChild(archivedWhen);
+    }
+
+    // Archived by.
+    if (this.__currentAttachment.sticky.archived_by) {
+      const archivedBy = document.createElement('span');
+      archivedBy.innerText = this.__currentAttachment.sticky.archived_by;
+      archivedBy.style.marginTop = '10px';
+      archivedBy.style.color = 'var(--primary-color)';
+
+      this.__epaperComponentSticky.appendChild(archivedBy);
+    }
   }
 
   /**
@@ -429,7 +520,6 @@ class CasperEpaper extends PolymerElement {
   zoomOut () {
     if (this.__zoom > CasperEpaper.EPAPER_MIN_ZOOM) {
       this.__zoom *= 0.8;
-
     }
   }
 
@@ -443,10 +533,21 @@ class CasperEpaper extends PolymerElement {
   }
 
   __zoomChanged () {
-    this.__epaperComponentContainer = this.__epaperComponentContainer || this.shadowRoot.querySelector('#epaper-component-container');
+    afterNextRender(this, () => {
+      // Scale the epaper component container.
+      this.__epaperComponentContainer.style.width = `${parseInt(this.__epaperComponentWidth * this.__zoom)}px`;
+      this.__epaperComponentContainer.style.height = `${parseInt(this.__epaperComponentHeight * this.__zoom)}px`;
 
-    this.__epaperComponentContainer.style.width = `${parseInt(this.__epaperComponentWidth * this.__zoom)}px`;
-    this.__epaperComponentContainer.style.height = `${parseInt(this.__epaperComponentHeight * this.__zoom)}px`;
+      // Scale the post-it dimensions and position.
+      this.__epaperComponentSticky.style.top        = `${parseInt(this.__epaperComponentStickyStyle.top * this.__zoom)}px`;
+      this.__epaperComponentSticky.style.right      = `${parseInt(this.__epaperComponentStickyStyle.right * this.__zoom)}px`;
+      this.__epaperComponentSticky.style.width      = `${parseInt(this.__epaperComponentStickyStyle.width * this.__zoom)}px`;
+      this.__epaperComponentSticky.style.height     = `${parseInt(this.__epaperComponentStickyStyle.height * this.__zoom)}px`;
+      this.__epaperComponentSticky.style.fontSize   = `${parseInt(this.__epaperComponentStickyStyle.fontSize * this.__zoom)}px`;
+      this.__epaperComponentSticky.style.paddingTop = `${parseInt(this.__epaperComponentStickyStyle.paddingTop * this.__zoom)}px`;
+      this.__epaperComponentSticky.style.paddingLeft = `${parseInt(this.__epaperComponentStickyStyle.paddingLeft * this.__zoom)}px`;
+      this.__epaperComponentSticky.style.paddingRight = `${parseInt(this.__epaperComponentStickyStyle.paddingRight * this.__zoom)}px`;
+    });
   }
 
   clearUploadedFiles () {

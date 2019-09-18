@@ -14,7 +14,6 @@ class CasperEpaperImage extends PolymerElement {
        */
       source: {
         type: String,
-        observer: '__sourceChanged'
       },
       /**
        * The epaper's zoom that will resize the image accordingly.
@@ -54,25 +53,22 @@ class CasperEpaperImage extends PolymerElement {
     this.shadowRoot.removeChild(downloadLink);
   }
 
-  /**
-   * Observer that gets fired when the image's source url changes.
-   *
-   * @param {String} source The image's source url.
-   */
-  __sourceChanged (source) {
+  open () {
     const imageToLoad = new Image();
     imageToLoad.onload = event => {
       this.__loadedImage = event.path.shift();
 
       this.__recalculateImageDimensions();
-      this.__source = source;
+      this.__source = this.source;
     };
 
     // Trigger the image load.
-    imageToLoad.src = source;
+    imageToLoad.src = this.source;
   }
 
   __recalculateImageDimensions () {
+    if (!this.__loadedImage) return;
+
     afterNextRender(this, () => {
       const availableWidth = this.parentElement.offsetWidth - 30;
       const availableHeight = this.parentElement.offsetHeight - 30;

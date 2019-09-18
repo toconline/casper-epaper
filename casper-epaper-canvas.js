@@ -8,11 +8,6 @@ class CasperEpaperCanvas extends PolymerElement {
 
   static get template () {
     return html`
-      <style>
-        canvas {
-          outline: none;
-        }
-      </style>
       <canvas id="canvas"></canvas>
     `;
   }

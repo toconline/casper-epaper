@@ -29,6 +29,7 @@ class CasperEpaperTab extends PolymerElement {
         :host {
           height: 32px;
           display: flex;
+          user-select: none;
           align-items: center;
           justify-content: center;
           background-color: white;
