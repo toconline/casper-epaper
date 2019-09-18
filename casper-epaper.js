@@ -119,8 +119,8 @@ class CasperEpaper extends PolymerElement {
           --iron-icon-height: 100%;
           --iron-icon-fill-color: white;
           -webkit-box-shadow: 0px 2px 12px -1px rgba(0, 0, 0, 0.61);
-          -moz-box-shadow: 0px 2px 12px -1px rgba(0, 0, 0, 0.61);
-          box-shadow: 0px 2px 12px -1px rgba(0, 0, 0, 0.61);
+          -moz-box-shadow:    0px 2px 12px -1px rgba(0, 0, 0, 0.61);
+          box-shadow:         0px 2px 12px -1px rgba(0, 0, 0, 0.61);
         }
 
         .toolbar-button[disabled] {
@@ -149,12 +149,11 @@ class CasperEpaper extends PolymerElement {
           opacity: 0.2;
           overflow: auto;
           display: none;
-          transition: height 100ms linear,
-                      opacity 100ms linear;
+          transition: height 100ms linear, opacity 100ms linear;
           position: absolute;
           box-sizing: border-box;
-          background-size: cover;
           flex-direction: column;
+          background-size: cover;
           background-repeat: no-repeat;
           background-image: url('/node_modules/@casper2020/casper-epaper/static/epaper-sticky.svg');
         }
@@ -180,8 +179,10 @@ class CasperEpaper extends PolymerElement {
 
           <paper-icon-button on-click="print"    id="print"    tooltip="Imprimir"        icon="casper-icons:print"        class="toolbar-button"></paper-icon-button>
           <paper-icon-button on-click="download" id="download" tooltip="Descarregar PDF" icon="casper-icons:download-pdf" class="toolbar-button"></paper-icon-button>
+
+          <!--Context menu-->
           <template is="dom-if" if="[[__hasContextMenu]]">
-            <paper-icon-button icon="casper-icons:bars" class="toolbar-button toolbar-white"></paper-icon-button>
+            <paper-icon-button icon="casper-icons:bars" class="toolbar-button toolbar-white" id="context-menu-trigger"></paper-icon-button>
           </template>
         </div>
 
@@ -194,7 +195,10 @@ class CasperEpaper extends PolymerElement {
           <div id="epaper-component-sticky"></div>
 
           <!--Canvas that will be shared between the document and PDF-->
-          <casper-epaper-canvas id="epaperCanvas" zoom="[[__zoom]]"></casper-epaper-canvas>
+          <casper-epaper-canvas
+            id="epaperCanvas"
+            zoom="[[__zoom]]"
+            landscape="[[__landscape]]"></casper-epaper-canvas>
 
           <!--Document Epaper-->
           <casper-epaper-document
@@ -211,6 +215,7 @@ class CasperEpaper extends PolymerElement {
             <casper-epaper-pdf
               id="pdf"
               zoom="[[__zoom]]"
+              landscape="{{__landscape}}"
               current-page="[[__currentPage]]"
               epaper-canvas="[[__epaperCanvas]]"
               total-page-count="{{__totalPageCount}}">
@@ -249,22 +254,20 @@ class CasperEpaper extends PolymerElement {
 
   static get properties () {
     return {
-      /** The casper application  */
+      /**
+       * The casper application.
+       *
+       * @type {Object}
+       */
       app: Object,
-      /** component width in px */
-      width: {
-        type: Number,
-        value: 595
-      },
-      /** component height in px */
-      height: {
-        type: Number,
-        value: 842
-      },
       /** id of the containing element that can be scrolled */
       scroller: {
         type: String,
         value: undefined
+      },
+      __landscape: {
+        type: Boolean,
+        observer: '__recalculateEpaperDimensions'
       },
       __epaperComponentWidth: {
         type: Number,
@@ -292,7 +295,7 @@ class CasperEpaper extends PolymerElement {
       __zoom: {
         type: Number,
         value: 1,
-        observer: '__zoomChanged'
+        observer: '__recalculateEpaperDimensions'
       },
       __totalPageCount: {
         type: Number,
@@ -366,10 +369,12 @@ class CasperEpaper extends PolymerElement {
         case 'file/txt':
         case 'file/htm':
         case 'file/html':
+          this.__landscape = false;
           return this.__openIframe();
         case 'file/png':
         case 'file/jpg':
         case 'file/jpeg':
+          this.__landscape = false;
           return this.__openImage();
         case 'epaper':
           return this.__openServerDocument();
@@ -532,11 +537,11 @@ class CasperEpaper extends PolymerElement {
     }
   }
 
-  __zoomChanged () {
+  __recalculateEpaperDimensions () {
     afterNextRender(this, () => {
       // Scale the epaper component container.
-      this.__epaperComponentContainer.style.width = `${parseInt(this.__epaperComponentWidth * this.__zoom)}px`;
-      this.__epaperComponentContainer.style.height = `${parseInt(this.__epaperComponentHeight * this.__zoom)}px`;
+      this.__epaperComponentContainer.style.width =  `${parseInt((this.__landscape ? this.__epaperComponentHeight : this.__epaperComponentWidth) * this.__zoom)}px`;
+      this.__epaperComponentContainer.style.height = `${parseInt((this.__landscape ? this.__epaperComponentWidth : this.__epaperComponentHeight) * this.__zoom)}px`;
 
       // Scale the post-it dimensions and position.
       this.__epaperComponentSticky.style.top        = `${parseInt(this.__epaperComponentStickyStyle.top * this.__zoom)}px`;
@@ -736,12 +741,18 @@ class CasperEpaper extends PolymerElement {
 
     if (this.__hasContextMenu) {
       afterNextRender(this, () => {
-        const contextMenuTrigger = this.shadowRoot.querySelector('.toolbar paper-icon-button:last-of-type');
+        const contextMenuTrigger = this.shadowRoot.querySelector('#context-menu-trigger');
         contextMenu.positionTarget = contextMenuTrigger;
         contextMenu.verticalAlign = 'top';
         contextMenu.horizontalAlign = 'right';
         contextMenu.verticalOffset = contextMenuTrigger.offsetHeight + 10;
+
         contextMenuTrigger.addEventListener('click', () => contextMenu.toggle());
+        contextMenu.addEventListener('iron-overlay-canceled', event => {
+          if (event.detail.path.includes(contextMenuTrigger)) {
+            event.preventDefault();
+          }
+        })
       });
     }
   }

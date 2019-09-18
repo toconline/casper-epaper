@@ -18,6 +18,10 @@ class CasperEpaperPdf extends PolymerElement {
         type: Number,
         observer: 'openPDF'
       },
+      landscape: {
+        type: Boolean,
+        notify: true
+      },
       /**
        * The canvas element that is shared in the epaper component
        *
@@ -76,9 +80,11 @@ class CasperEpaperPdf extends PolymerElement {
       const filePage = await file.getPage(this.currentPage);
       const fileViewport = filePage.getViewport({ scale: this.epaperCanvas.ratio });
 
+      this.landscape = fileViewport.height < fileViewport.width;
       this.epaperCanvas.canvas.width = fileViewport.width;
       this.epaperCanvas.canvas.height = fileViewport.height;
       this.epaperCanvas.clearPage();
+
 
       this.totalPageCount = file._pdfInfo.numPages;
 

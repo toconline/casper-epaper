@@ -18,6 +18,10 @@ class CasperEpaperCanvas extends PolymerElement {
         type: Number,
         observer: '__zoomChanged'
       },
+      landscape: {
+        type: Boolean,
+        observer: '__setupScale'
+      },
       canvas: {
         type: Object,
         notify: true,
@@ -75,10 +79,10 @@ class CasperEpaperCanvas extends PolymerElement {
    * Adjust the canvas dimension taking into account the pixel ratio and also calculates the scale the server should use.
    */
   __setupScale () {
-    this.canvas.width        = this.__canvasWidth  * this.ratio;
-    this.canvas.height       = this.__canvasHeight * this.ratio;
-    this.canvas.style.width  = `${this.__canvasWidth}px`;
-    this.canvas.style.height = `${this.__canvasHeight}px`;
+    this.canvas.width         = (this.landscape ? this.__canvasHeight : this.__canvasWidth) * this.ratio;
+    this.canvas.height        = (this.landscape ? this.__canvasWidth : this.__canvasHeight) * this.ratio;
+    this.canvas.style.width   = `${this.landscape ? this.__canvasHeight : this.__canvasWidth}px`;
+    this.canvas.style.height  = `${this.landscape ? this.__canvasWidth : this.__canvasHeight}px`;
 
     this.sx = parseFloat((this.canvas.width  / this.pageWidth).toFixed(2));
     this.scalePxToServer = this.pageWidth * this.ratio / this.canvas.width;
