@@ -180,11 +180,11 @@ class CasperEpaper extends PolymerElement {
 
           <paper-icon-button on-click="print"    id="print"    tooltip="Imprimir"        icon="casper-icons:print"        class="toolbar-button"></paper-icon-button>
           <paper-icon-button on-click="download" id="download" tooltip="Descarregar PDF" icon="casper-icons:download-pdf" class="toolbar-button"></paper-icon-button>
+          <template is="dom-if" if="[[__hasContextMenu]]">
+            <paper-icon-button icon="casper-icons:bars" class="toolbar-button toolbar-white"></paper-icon-button>
+          </template>
         </div>
 
-        <template is="dom-if" if="[[__hasContextMenu]]">
-          <paper-icon-button icon="casper-icons:bars" class="toolbar-button toolbar-white"></paper-icon-button>
-        </template>
       </div>
       <div id="desktop" class="desktop">
         <div class="spacer"></div>
