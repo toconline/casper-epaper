@@ -52,23 +52,28 @@ export class CasperEpaperDocument extends PolymerElement {
       totalPageCount: {
         type: Number,
         notify: true
-      },
+      }
     };
   }
 
   ready () {
     super.ready();
 
-    this.__epaperDocument   = this;
-    this._scrollContainer   = document.getElementById(this.scroller);
-    this._message           = '';
-    this._r_idx             = 0.0;
-    this.__bands             = undefined;
-    this.documentId        = undefined;
-    this.__images            = {};
-    this.__focusedBandId   = undefined;
-    this._redraw_timer_key  = '_epaper_redraw_timer_key';
-    this._uploaded_assets_url = '';
+    this.__epaperDocument     = this;
+    this._scrollContainer     = document.getElementById(this.scroller);
+    this._message             = '';
+    this._r_idx               = 0.0;
+    this.__bands              = undefined;
+    this.documentId           = undefined;
+    this.__images             = {};
+    this.__focusedBandId      = undefined;
+    this._redraw_timer_key    = '_epaper_redraw_timer_key';
+    try {
+      // TODO temporary hack until epaper instance goes to app somehow
+      this._uploaded_assets_url = this.app.session_data.app.config.public_assets_url;
+    } catch (e) {
+      this._uploaded_assets_url = '';
+    }
 
     afterNextRender(this, () => {
       this._resetRenderState();
