@@ -69,7 +69,7 @@ export class CasperEpaperDocument extends PolymerElement {
     this.__focusedBandId      = undefined;
     this._redraw_timer_key    = '_epaper_redraw_timer_key';
     try {
-      // TODO temporary hack until epaper instance goes to app somehow
+      // TODO temporary hack until epaper instance goes to app somehow TODO with tallboy
       this._uploaded_assets_url = this.app.session_data.app.config.public_assets_url;
     } catch (e) {
       this._uploaded_assets_url = '';

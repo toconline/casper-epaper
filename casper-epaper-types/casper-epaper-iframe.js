@@ -22,14 +22,6 @@ class CasperEpaperIframe extends PolymerElement {
           flex-direction: column;
         }
 
-        h3 {
-          margin: 0;
-          text-align: center;
-          padding: 15px;
-          background-color: #EEEEEE;
-          color: var(--primary-color);
-        }
-
         iframe {
           border: none;
           width: 100%;
@@ -37,7 +29,6 @@ class CasperEpaperIframe extends PolymerElement {
           background-color: white;
         }
       </style>
-      <h3>[[__title]]</h3>
       <iframe id="iframe" srcdoc="[[__srcdoc]]" sandbox></iframe>
     `;
   }
@@ -58,8 +49,6 @@ class CasperEpaperIframe extends PolymerElement {
 
     if (fileRequest.ok) {
       const fileContents = await fileRequest.text();
-
-      this.__title = this.title;
 
       switch (this.contentType) {
         case 'file/htm':
