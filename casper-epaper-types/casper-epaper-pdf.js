@@ -73,10 +73,13 @@ class CasperEpaperPdf extends PolymerElement {
 
     // Debounce the all render operation to avoid multiple calls to the render method.
     this.__openPDFDebouncer = Debouncer.debounce(this.__openPDFDebouncer, timeOut.after(150), async () => {
+      // Memoize the pdf.js worker.
+      this.__pdfJSWorker = this.__pdfJSWorker || new this.__pdfJS.PDFWorker();
+
       // Throw an event to disable the previous / next page buttons to avoid concurrent draws.
       this.dispatchEvent(new CustomEvent('pdf-render-started', { bubbles: true }));
 
-      const file = await this.__pdfJS.getDocument(this.source).promise;
+      const file = await this.__pdfJS.getDocument({ url: this.source, worker: this.__pdfJSWorker }).promise;
       const filePage = await file.getPage(this.currentPage);
       const fileViewport = filePage.getViewport({ scale: this.epaperCanvas.ratio });
 
