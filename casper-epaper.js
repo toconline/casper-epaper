@@ -134,19 +134,40 @@ class CasperEpaper extends PolymerElement {
           background-color: white;
         }
 
-        .spacer {
-          flex-grow: 1.0;
+        .epaper {
+          display: flex;
+          overflow: auto;
+          height: 100%;
+          padding-top: 60px;
         }
 
-        #epaper-component-container {
-          margin-top: 62px;
+        .epaper .spacer {
+          flex-grow: 1;
+        }
+
+        .epaper .epaper-container {
+          display: flex;
+          height: fit-content;
+          flex-direction: column;
+        }
+
+        .epaper .epaper-container h3 {
+          margin: 0;
+          margin-bottom: 15px;
+          height: 30px;
+          line-height: 30px;
+          text-align: center;
+          color: var(--primary-color);
+        }
+
+        .epaper .epaper-container #epaper-component-container {
           position: relative;
           background-color: white;
           box-shadow: rgba(0, 0, 0, 0.24) 0px 5px 12px 0px,
                       rgba(0, 0, 0, 0.12) 0px 0px 12px 0px;
         }
 
-        #epaper-component-sticky {
+        .epaper .epaper-container #epaper-component-container #epaper-component-sticky {
           opacity: 0.2;
           overflow: auto;
           display: none;
@@ -159,7 +180,7 @@ class CasperEpaper extends PolymerElement {
           background-image: url('/node_modules/@casper2020/casper-epaper/static/epaper-sticky.svg');
         }
 
-        #epaper-component-sticky:hover {
+        .epaper .epaper-container #epaper-component-container #epaper-component-sticky:hover {
           opacity: 1;
           cursor: pointer;
         }
@@ -188,51 +209,57 @@ class CasperEpaper extends PolymerElement {
         </div>
 
       </div>
-      <div id="desktop" class="desktop">
+      <div class="epaper">
         <div class="spacer"></div>
 
-        <div id="epaper-component-container">
-          <!--Sticky that will be used to display information about the component-->
-          <div id="epaper-component-sticky"></div>
+        <div class="epaper-container">
+        <!--Epaper title-->
+          <h3 class="epaper-title">[[__currentAttachmentName]]</h3>
 
-          <!--Canvas that will be shared between the document and PDF-->
-          <casper-epaper-canvas
-            id="epaperCanvas"
-            zoom="[[__zoom]]"
-            landscape="[[__landscape]]"></casper-epaper-canvas>
+          <div id="epaper-component-container">
 
-          <!--Document Epaper-->
-          <casper-epaper-document
-            id="serverDocument"
-            app="[[app]]"
-            zoom="[[__zoom]]"
-            socket="[[__socket]]"
-            scroller="[[scroller]]"
-            current-page="{{__currentPage}}"
-            epaper-canvas="[[__epaperCanvas]]"
-            total-page-count="{{__totalPageCount}}"></casper-epaper-document>
+            <!--Sticky that will be used to display information about the component-->
+            <div id="epaper-component-sticky"></div>
 
-            <!--PDF Epaper-->
-            <casper-epaper-pdf
-              id="pdf"
+            <!--Canvas that will be shared between the document and PDF-->
+            <casper-epaper-canvas
+              id="epaperCanvas"
               zoom="[[__zoom]]"
-              landscape="{{__landscape}}"
-              current-page="[[__currentPage]]"
+              landscape="[[__landscape]]"></casper-epaper-canvas>
+
+            <!--Document Epaper-->
+            <casper-epaper-document
+              id="serverDocument"
+              app="[[app]]"
+              zoom="[[__zoom]]"
+              socket="[[__socket]]"
+              scroller="[[scroller]]"
+              current-page="{{__currentPage}}"
               epaper-canvas="[[__epaperCanvas]]"
-              total-page-count="{{__totalPageCount}}">
-            </casper-epaper-pdf>
+              total-page-count="{{__totalPageCount}}"></casper-epaper-document>
 
-            <!--Iframe Epaper-->
-            <casper-epaper-iframe id="iframe"></casper-epaper-iframe>
+              <!--PDF Epaper-->
+              <casper-epaper-pdf
+                id="pdf"
+                zoom="[[__zoom]]"
+                landscape="{{__landscape}}"
+                current-page="[[__currentPage]]"
+                epaper-canvas="[[__epaperCanvas]]"
+                total-page-count="{{__totalPageCount}}">
+              </casper-epaper-pdf>
 
-            <!--Image Epaper-->
-            <casper-epaper-image id="image" zoom="[[__zoom]]"></casper-epaper-image>
+              <!--Iframe Epaper-->
+              <casper-epaper-iframe id="iframe"></casper-epaper-iframe>
 
-            <!--Upload Epaper-->
-          <casper-epaper-upload id="upload"></casper-epaper-upload>
-        </div>
-        <div class="spacer"></div>
+              <!--Image Epaper-->
+              <casper-epaper-image id="image" zoom="[[__zoom]]"></casper-epaper-image>
 
+              <!--Upload Epaper-->
+            <casper-epaper-upload id="upload"></casper-epaper-upload>
+
+            </div>
+            </div>
+            <div class="spacer"></div>
       </div>
       <div class="shadow"></div>
       <slot name="casper-epaper-context-menu"></slot>
@@ -360,6 +387,7 @@ class CasperEpaper extends PolymerElement {
 
   async openAttachment (attachment) {
     this.__currentAttachment = attachment;
+    this.__currentAttachmentName = attachment.name;
     this.__displayOrHideSticky();
 
     try {
@@ -420,7 +448,6 @@ class CasperEpaper extends PolymerElement {
     this.__disablePageButtons();
 
     this.$.iframe.source = `/file/${this.__currentAttachment.id}`;
-    this.$.iframe.title = this.__currentAttachment.name;
     this.$.iframe.contentType = this.__currentAttachment.type;
     this.$.iframe.open();
   }
