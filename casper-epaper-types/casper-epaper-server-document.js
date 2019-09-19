@@ -357,7 +357,7 @@ export class CasperEpaperDocument extends PolymerElement {
     this.__hideWidgets(true);
     this.__resetScroll();
     this.__nextPage  = pageNumber || 1;
-    this.__openFocus = this.__nextPage > 0 ? 'start' : 'end';
+    this.__openFocus = this.__chapter.editable ? (this.__nextPage > 0 ? 'start' : 'end') : 'none';
     this.__loading = true;
     this.epaperCanvas.resetCanvasDimensions();
 
