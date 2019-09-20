@@ -41,12 +41,12 @@ class CasperEpaper extends PolymerElement {
     return html`
       <style>
         :host {
-          display: flex;
-          flex-direction: column;
-          background-color: var(--casper-moac-paper-background-color, #DDD);
-          position: relative;
           width: 100%;
           height: 100%;
+          display: flex;
+          position: relative;
+          flex-direction: column;
+          background-color: var(--casper-moac-paper-background-color, #DDD);
         }
 
         iron-icon {
@@ -66,14 +66,6 @@ class CasperEpaper extends PolymerElement {
 
         #line_del_button:hover {
           fill: #B94F4F;
-        }
-
-        .desktop {
-          width: 100%;
-          height: 100%;
-          overflow: auto;
-          display: flex;
-          position: relative ;
         }
 
         .shadow {
@@ -151,13 +143,14 @@ class CasperEpaper extends PolymerElement {
           flex-direction: column;
         }
 
-        .epaper .epaper-container h3 {
+        .epaper .epaper-container #epaper-component-title {
           margin: 0;
-          margin-bottom: 15px;
+          margin-bottom: 5px;
           height: 30px;
           line-height: 30px;
-          text-align: center;
-          color: var(--primary-color);
+          color: #4D4D4D;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         .epaper .epaper-container #epaper-component-container {
@@ -214,7 +207,7 @@ class CasperEpaper extends PolymerElement {
 
         <div class="epaper-container">
         <!--Epaper title-->
-          <h3 class="epaper-title">[[__currentAttachmentName]]</h3>
+          <h4 id="epaper-component-title">[[__currentAttachmentName]]</h4>
 
           <div id="epaper-component-container">
 
@@ -222,44 +215,25 @@ class CasperEpaper extends PolymerElement {
             <div id="epaper-component-sticky"></div>
 
             <!--Canvas that will be shared between the document and PDF-->
-            <casper-epaper-canvas
-              id="epaperCanvas"
-              zoom="[[__zoom]]"
-              landscape="[[__landscape]]"></casper-epaper-canvas>
+            <casper-epaper-canvas id="sharedCanvas" epaper="[[__epaper]]"></casper-epaper-canvas>
 
-            <!--Document Epaper-->
-            <casper-epaper-document
-              id="serverDocument"
-              app="[[app]]"
-              zoom="[[__zoom]]"
-              socket="[[__socket]]"
-              scroller="[[scroller]]"
-              current-page="{{__currentPage}}"
-              epaper-canvas="[[__epaperCanvas]]"
-              total-page-count="{{__totalPageCount}}"></casper-epaper-document>
+            <!--Server Document Epaper-->
+            <casper-epaper-server-document id="serverDocument" epaper="[[__epaper]]"></casper-epaper-server-document>
 
-              <!--PDF Epaper-->
-              <casper-epaper-pdf
-                id="pdf"
-                zoom="[[__zoom]]"
-                landscape="{{__landscape}}"
-                current-page="[[__currentPage]]"
-                epaper-canvas="[[__epaperCanvas]]"
-                total-page-count="{{__totalPageCount}}">
-              </casper-epaper-pdf>
+            <!--PDF Epaper-->
+            <casper-epaper-pdf id="pdf" epaper="[[__epaper]]"></casper-epaper-pdf>
 
-              <!--Iframe Epaper-->
-              <casper-epaper-iframe id="iframe"></casper-epaper-iframe>
+            <!--Iframe Epaper-->
+            <casper-epaper-iframe id="iframe" epaper="[[__epaper]]"></casper-epaper-iframe>
 
-              <!--Image Epaper-->
-              <casper-epaper-image id="image" zoom="[[__zoom]]"></casper-epaper-image>
+            <!--Image Epaper-->
+            <casper-epaper-image id="image" epaper="[[__epaper]]"></casper-epaper-image>
 
-              <!--Upload Epaper-->
+            <!--Upload Epaper-->
             <casper-epaper-upload id="upload"></casper-epaper-upload>
-
-            </div>
-            </div>
-            <div class="spacer"></div>
+          </div>
+        </div>
+        <div class="spacer"></div>
       </div>
       <div class="shadow"></div>
       <slot name="casper-epaper-context-menu"></slot>
@@ -272,11 +246,11 @@ class CasperEpaper extends PolymerElement {
 
   static get EPAPER_TYPES () {
     return {
-      PDF: 'PDF',
-      IMAGE: 'IMAGE',
-      UPLOAD: 'UPLOAD',
-      IFRAME: 'IFRAME',
-      SERVER_DOCUMENT: 'SERVER_DOCUMENT'
+      PDF: 'pdf',
+      IMAGE: 'image',
+      UPLOAD: 'upload',
+      IFRAME: 'iframe',
+      SERVER_DOCUMENT: 'server-document'
     }
   }
 
@@ -339,30 +313,26 @@ class CasperEpaper extends PolymerElement {
   ready () {
     super.ready();
 
-    this.__epaperCanvas = this.$.epaperCanvas;
-    this.__currentPage      = 1;
-    this.__totalPageCount   = 0;
-    this._pageNumber        = 1;
-    this._chapterPageCount  = 0;
-    this._chapterPageNumber = 1;
-    this.__socket           = this.app.socket;
+    this.__epaper = this;
+    this.__epaperComponentTitle = this.shadowRoot.querySelector('#epaper-component-title');
+    this.__epaperComponentSticky = this.shadowRoot.querySelector('#epaper-component-sticky');
+    this.__epaperComponentContainer = this.shadowRoot.querySelector('#epaper-component-container');
+
+    this.__epaperComponents = [
+      this.$.pdf,
+      this.$.image,
+      this.$.iframe,
+      this.$.upload,
+      this.$.serverDocument
+    ];
+
+    this.__socket         = this.app.socket;
+    this.__currentPage    = 1;
+    this.__totalPageCount = 0;
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT);
 
-    afterNextRender(this, () => {
-      this.__handleContextMenu();
-      this.$.pdf.addEventListener('pdf-render-started', () => {
-        this.__disablePageButtons();
-        this.__disableZoomButtons();
-      });
+    afterNextRender(this, () => { this.__handleContextMenu(); });
 
-      this.$.pdf.addEventListener('pdf-render-ended', () => {
-        this.__enableOrDisablePageButtons();
-        this.__enableOrDisableZoomButtons();
-      });
-    });
-
-    this.__epaperComponentContainer = this.shadowRoot.querySelector('#epaper-component-container');
-    this.__epaperComponentSticky = this.shadowRoot.querySelector('#epaper-component-sticky');
     this.__epaperComponentSticky.addEventListener('mouseover', () => {
       this.__epaperComponentSticky.style.height = `${parseInt(this.__epaperComponentStickyStyle.fullHeight * this.__zoom)}px`;
     });
@@ -386,82 +356,34 @@ class CasperEpaper extends PolymerElement {
    */
 
   async openAttachment (attachment) {
-    this.__currentAttachment = attachment;
-    this.__currentAttachmentName = attachment.name;
-    this.__displayOrHideSticky();
+    afterNextRender(this, () => {
+      this.__currentAttachment = attachment;
+      this.__currentAttachmentName = attachment.name;
+      this.__displayOrHideSticky();
 
-    try {
-      switch (attachment.type) {
-        case 'file/pdf':
-          return this.__openPDF();
-        case 'file/xml':
-        case 'file/txt':
-        case 'file/htm':
-        case 'file/html':
-          this.__landscape = false;
-          return this.__openIframe();
-        case 'file/png':
-        case 'file/jpg':
-        case 'file/jpeg':
-          this.__landscape = false;
-          return this.__openImage();
-        case 'epaper':
-          this.__landscape = false;
-          return this.__openServerDocument();
+      try {
+        switch (attachment.type) {
+          case 'file/pdf':
+            return this.__openPDF();
+          case 'file/xml':
+          case 'file/txt':
+          case 'file/htm':
+          case 'file/html':
+            this.__landscape = false;
+            return this.__openIframe();
+          case 'file/png':
+          case 'file/jpg':
+          case 'file/jpeg':
+            this.__landscape = false;
+            return this.__openImage();
+          case 'epaper':
+            this.__landscape = false;
+            return this.__openServerDocument();
+        }
+      } catch (error) {
+
       }
-    } catch (error) {
-
-    }
-  }
-
-  /**
-   * Open server document
-   */
-  __openServerDocument () {
-    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT);
-    this.__enableOrDisablePageButtons();
-    this.__enableOrDisableZoomButtons();
-
-    return this.$.serverDocument.open(this.__currentAttachment);
-  }
-
-  /**
-   * Open a new image.
-   */
-  __openImage () {
-    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.IMAGE);
-    this.__enableOrDisablePageButtons();
-    this.__enableOrDisableZoomButtons();
-
-    this.$.image.source = `/file/${this.__currentAttachment.id}`;
-    this.$.image.open();
-  }
-
-  /**
-   * Open an iframe.
-   *
-   * @param {String} iframeSource The iframe's source URL.
-   */
-  __openIframe () {
-    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.IFRAME);
-    this.__enableOrDisableZoomButtons();
-    this.__disablePageButtons();
-
-    this.$.iframe.source = `/file/${this.__currentAttachment.id}`;
-    this.$.iframe.contentType = this.__currentAttachment.type;
-    this.$.iframe.open();
-  }
-
-  /**
-   * Open a PDF file.
-   */
-  __openPDF () {
-    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.PDF);
-    this.__enableOrDisablePageButtons();
-    this.__enableOrDisableZoomButtons();
-
-    this.$.pdf.source = `/file/${this.__currentAttachment.id}`;
-    this.$.pdf.open();
+    });
   }
 
   __displayOrHideSticky () {
@@ -514,8 +436,11 @@ class CasperEpaper extends PolymerElement {
    * @param {Object} options
    */
   openUploadPage (options) {
-    Object.keys(options).forEach(option => this.$.upload[option] = options[option]);
     this.__landscape = false;
+    this.__currentAttachment = {};
+    this.__currentAttachmentName = '';
+
+    Object.keys(options).forEach(option => this.$.upload[option] = options[option]);
 
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.UPLOAD);
     this.__enableOrDisableZoomButtons();
@@ -572,6 +497,7 @@ class CasperEpaper extends PolymerElement {
       // Scale the epaper component container.
       this.__epaperComponentContainer.style.width =  `${parseInt((this.__landscape ? this.__epaperComponentHeight : this.__epaperComponentWidth) * this.__zoom)}px`;
       this.__epaperComponentContainer.style.height = `${parseInt((this.__landscape ? this.__epaperComponentWidth : this.__epaperComponentHeight) * this.__zoom)}px`;
+      this.__epaperComponentTitle.style.maxWidth = this.__epaperComponentContainer.style.width;
 
       // Scale the post-it dimensions and position.
       this.__epaperComponentSticky.style.top        = `${parseInt(this.__epaperComponentStickyStyle.top * this.__zoom)}px`;
@@ -582,6 +508,12 @@ class CasperEpaper extends PolymerElement {
       this.__epaperComponentSticky.style.paddingTop = `${parseInt(this.__epaperComponentStickyStyle.paddingTop * this.__zoom)}px`;
       this.__epaperComponentSticky.style.paddingLeft = `${parseInt(this.__epaperComponentStickyStyle.paddingLeft * this.__zoom)}px`;
       this.__epaperComponentSticky.style.paddingRight = `${parseInt(this.__epaperComponentStickyStyle.paddingRight * this.__zoom)}px`;
+
+      this.$.sharedCanvas.__zoomChanged();
+
+      if (this.__epaperActiveComponent && this.__epaperActiveComponent.__reactWhenZoomChanges) {
+        this.__epaperActiveComponent.open();
+      }
     });
   }
 
@@ -632,9 +564,9 @@ class CasperEpaper extends PolymerElement {
   /**
    * Highlight field or parameter on the specified chapter
    *
-   * @param {string} chaperReport name of the chapter's JRXML report
-   * @param {string} fieldName name field or parameter to highlight
-   * @param {string} rowIndex undefined to highlight a parameter or the rowIndex to highligth a field
+   * @param {string} chaperReport name of the chapter's JRXML report.
+   * @param {string} fieldName name field or parameter to highlight.
+   * @param {string} rowIndex undefined to highlight a parameter or the rowIndex to highlight a field.
    */
   gotoParamOrField (chapterReport, fieldName, rowIndex) {
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT);
@@ -752,6 +684,55 @@ class CasperEpaper extends PolymerElement {
   //                                                                                       //
   //***************************************************************************************//
 
+  /**
+   * Open server document.
+   */
+  __openServerDocument () {
+    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT);
+    this.__enableOrDisablePageButtons();
+    this.__enableOrDisableZoomButtons();
+
+    this.$.serverDocument.source = this.__currentAttachment;
+    return this.$.serverDocument.open();
+  }
+
+  /**
+   * Open a new image.
+   */
+  __openImage () {
+    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.IMAGE);
+    this.__enableOrDisablePageButtons();
+    this.__enableOrDisableZoomButtons();
+
+    this.$.image.source = `/file/${this.__currentAttachment.id}`;
+    this.$.image.open();
+  }
+
+  /**
+   * Open an iframe.
+   */
+  __openIframe () {
+    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.IFRAME);
+    this.__enableOrDisableZoomButtons();
+    this.__disablePageButtons();
+
+    this.$.iframe.source = `/file/${this.__currentAttachment.id}`;
+    this.$.iframe.contentType = this.__currentAttachment.type;
+    this.$.iframe.open();
+  }
+
+  /**
+   * Open a PDF file.
+   */
+  __openPDF () {
+    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.PDF);
+    this.__enableOrDisablePageButtons();
+    this.__enableOrDisableZoomButtons();
+
+    this.$.pdf.source = `/file/${this.__currentAttachment.id}`;
+    this.$.pdf.open();
+  }
+
   __handleContextMenu () {
     let contextMenu;
     const contextMenuSlot = this.shadowRoot.querySelector('slot[name="casper-epaper-context-menu"]');
@@ -813,18 +794,79 @@ class CasperEpaper extends PolymerElement {
   }
 
   __toggleBetweenEpaperTypes (epaperType) {
-    this.__epaperType = epaperType;
-    this.__epaperActiveComponent = this.$[epaperType.toLowerCase().replace(/([-_][a-z])/ig, (lowercase) => lowercase.toUpperCase().replace('_', ''))];
+    this.__epaperComponents.forEach(component => {
+      if (component.nodeName.toLowerCase() === `casper-epaper-${epaperType}`) {
+        component.style.display = '';
+        this.__epaperActiveComponent = component;
+      } else {
+        component.style.display = 'none';
+      }
 
-    this.$.pdf.style.display = epaperType === CasperEpaper.EPAPER_TYPES.PDF ? '' : 'none';
-    this.$.image.style.display = epaperType === CasperEpaper.EPAPER_TYPES.IMAGE ? '' : 'none';
-    this.$.upload.style.display = epaperType === CasperEpaper.EPAPER_TYPES.UPLOAD ? '' : 'none';
-    this.$.iframe.style.display = epaperType === CasperEpaper.EPAPER_TYPES.IFRAME ? '' : 'none';
-    this.$.serverDocument.style.display = epaperType === CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT ? '' : 'none';
-    this.$.epaperCanvas.style.display = epaperType === CasperEpaper.EPAPER_TYPES.PDF || epaperType === CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT ? '' : 'none';
+      // Display / hide the canvas that is shared between the server-document and the pdf.
+      this.$.sharedCanvas.style.display = ['server-document', 'pdf'].includes(epaperType) ? '' : 'none';
+    });
+  }
 
-    this.$.pdf.ignoreEvents = epaperType !== CasperEpaper.EPAPER_TYPES.PDF;
-    this.$.serverDocument.ignoreEvents = epaperType !== CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT;
+  /**
+   * Paints blank page
+   */
+  __clearPage () {
+    const savedFill = this.__canvasContext.fillStyle;
+
+    this.__canvasContext.fillStyle = this.__backgroundColor;
+    this.__canvasContext.fillRect(0, 0, this.__canvas.width, this.__canvas.height);
+
+    if (this.__gridMajor !== 0.0) {
+      this.__paintGrid(this.__gridMajor, this.__gridMinor);
+    }
+    this.__canvasContext.fillStyle = savedFill;
+  }
+
+  __paintGrid (gridMajor, gridMinor) {
+    let x      = 0;
+    let y      = 0;
+    const width  = this.__canvas.width;
+    const height = this.__canvas.height;
+
+    this.__canvasContext.beginPath();
+    this.__canvasContext.strokeStyle = '#C0C0C0';
+    this.__canvasContext.lineWidth   = 0.15;
+
+    for (x = 0; x < width; x += gridMinor) {
+      if ((x % gridMajor) !== 0) {
+        this.__canvasContext.moveTo(x, 0);
+        this.__canvasContext.lineTo(x, height);
+      }
+    }
+
+    for (y = 0; y < height; y += gridMinor) {
+      if ((y % gridMajor) !== 0) {
+        this.__canvasContext.moveTo(0, y);
+        this.__canvasContext.lineTo(width, y);
+      }
+    }
+
+    this.__canvasContext.stroke();
+    this.__canvasContext.beginPath();
+    this.__canvasContext.strokeStyle = '#C0C0C0';
+    this.__canvasContext.lineWidth   = 0.5;
+
+    for (x = 0; x < width; x += gridMinor) {
+      if ((x % gridMajor) === 0) {
+        this.__canvasContext.moveTo(x, 0);
+        this.__canvasContext.lineTo(x, height);
+      }
+    }
+
+    for (y = 0; y < height; y += gridMinor) {
+      if ((y % gridMajor) === 0) {
+        this.__canvasContext.moveTo(0, y);
+        this.__canvasContext.lineTo(width, y);
+      }
+    }
+
+    this.__canvasContext.stroke();
+    this.__canvasContext.strokeStyle = '#000000';
   }
 }
 

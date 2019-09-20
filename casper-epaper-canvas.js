@@ -1,4 +1,5 @@
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
+import { afterNextRender } from '@polymer/polymer/lib/utils/render-status';
 
 class CasperEpaperCanvas extends PolymerElement {
 
@@ -36,22 +37,26 @@ class CasperEpaperCanvas extends PolymerElement {
   ready () {
     super.ready();
 
-    this.__gridMajor       = 0.0;
-    this.__gridMinor       = 0.0;
-    this.__backgroundColor = '#FFF';
-    this.pageWidth         = 595.0;
-    this.pageHeight        = 842.0;
-    this.canvas            = this.$.canvas;
-    this.canvasContext     = this.canvas.getContext('2d', { alpha: false });
-    this.__canvasWidth     = this.canvas.width;
-    this.__canvasHeight    = this.canvas.height;
-    this.__initiaPointer   = this.canvas.style.cursor;
-    this.canvasContext.globalCompositeOperation = 'copy';
+    afterNextRender(this, ()  => {
 
-    this.__setupPixelRatio();
-    this.__setupScale();
-    this.__zoomChanged();
-    this.clearPage();
+      this.__gridMajor       = 0.0;
+      this.__gridMinor       = 0.0;
+      this.__backgroundColor = '#FFF';
+      this.pageWidth         = 595.0;
+      this.pageHeight        = 842.0;
+      this.epaper.__canvas            = this.$.canvas;
+      this.epaper.__canvasContext     = this.epaper.__canvas.getContext('2d', { alpha: false });
+      this.epaper.__canvasContext.globalCompositeOperation = 'copy';
+
+      this.__canvasWidth   = this.epaper.__canvas.width;
+      this.__canvasHeight  = this.epaper.__canvas.height;
+      this.__initiaPointer = this.epaper.__canvas.style.cursor;
+
+      this.__setupPixelRatio();
+      this.__setupScale();
+      this.__zoomChanged();
+      this.epaper.__clearPage();
+    });
   }
 
   /**
@@ -66,26 +71,26 @@ class CasperEpaperCanvas extends PolymerElement {
     }
 
     const backingStoreRatio =
-      this.canvasContext.webkitBackingStorePixelRatio ||
-      this.canvasContext.mozBackingStorePixelRatio ||
-      this.canvasContext.msBackingStorePixelRatio ||
-      this.canvasContext.oBackingStorePixelRatio ||
-      this.canvasContext.backingStorePixelRatio || 1;
+      this.epaper.__canvasContext.webkitBackingStorePixelRatio ||
+      this.epaper.__canvasContext.mozBackingStorePixelRatio ||
+      this.epaper.__canvasContext.msBackingStorePixelRatio ||
+      this.epaper.__canvasContext.oBackingStorePixelRatio ||
+      this.epaper.__canvasContext.backingStorePixelRatio || 1;
 
-    this.ratio = devicePixelRatio / backingStoreRatio;
+    this.epaper.__ratio = devicePixelRatio / backingStoreRatio;
   }
 
   /**
    * Adjust the canvas dimension taking into account the pixel ratio and also calculates the scale the server should use.
    */
   __setupScale () {
-    this.canvas.width         = (this.landscape ? this.__canvasHeight : this.__canvasWidth) * this.ratio;
-    this.canvas.height        = (this.landscape ? this.__canvasWidth : this.__canvasHeight) * this.ratio;
-    this.canvas.style.width   = `${this.landscape ? this.__canvasHeight : this.__canvasWidth}px`;
-    this.canvas.style.height  = `${this.landscape ? this.__canvasWidth : this.__canvasHeight}px`;
+    this.epaper.__canvas.width        = (this.epaper.__landscape ? this.__canvasHeight : this.__canvasWidth) * this.epaper.__ratio;
+    this.epaper.__canvas.height       = (this.epaper.__landscape ? this.__canvasWidth : this.__canvasHeight) * this.epaper.__ratio;
+    this.epaper.__canvas.style.width  = `${this.epaper.__landscape ? this.__canvasHeight : this.__canvasWidth}px`;
+    this.epaper.__canvas.style.height = `${this.epaper.__landscape ? this.__canvasWidth : this.__canvasHeight}px`;
 
-    this.sx = parseFloat((this.canvas.width  / this.pageWidth).toFixed(2));
-    this.scalePxToServer = this.pageWidth * this.ratio / this.canvas.width;
+    this.sx = parseFloat((this.epaper.__canvas.width  / this.pageWidth).toFixed(2));
+    this.epaper.__scalePxToServer = this.pageWidth * this.epaper.__ratio / this.epaper.__canvas.width;
   }
 
   /**
@@ -114,83 +119,21 @@ class CasperEpaperCanvas extends PolymerElement {
    * Set the zoom factor (document pt to screen px ratio)
    */
   __zoomChanged () {
-    if (!this.canvas) return;
+    if (!this.epaper.__canvas) return;
 
     this.__setSize(
-      Math.round((this.pageWidth  || this.width) * this.zoom),
-      Math.round((this.pageHeight || this.height) * this.zoom)
+      Math.round((this.pageWidth  || this.width) * this.epaper.__zoom),
+      Math.round((this.pageHeight || this.height) * this.epaper.__zoom)
     );
 
     // This is used to avoid the blinking black background when resizing a canvas.
-    this.clearPage();
-  }
-
-  /**
-   * Paints blank page
-   */
-  clearPage () {
-    const savedFill = this.canvasContext.fillStyle;
-
-    this.canvasContext.fillStyle = this.__backgroundColor;
-    this.canvasContext.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
-    if (this.__gridMajor !== 0.0) {
-      this.__paintGrid(this.__gridMajor, this.__gridMinor);
-    }
-    this.canvasContext.fillStyle = savedFill;
+    this.epaper.__clearPage();
   }
 
   resetCanvasDimensions () {
-    this.canvas.width  = this.__canvasWidth  * this.ratio;
-    this.canvas.height = this.__canvasHeight * this.ratio;
-    this.clearPage();
-  }
-
-  paintGrid (gridMajor, gridMinor) {
-    let x      = 0;
-    let y      = 0;
-    const width  = this.canvas.width;
-    const height = this.canvas.height;
-
-    this.canvasContext.beginPath();
-    this.canvasContext.strokeStyle = '#C0C0C0';
-    this.canvasContext.lineWidth   = 0.15;
-
-    for (x = 0; x < width; x += gridMinor) {
-      if ((x % gridMajor) !== 0) {
-        this.canvasContext.moveTo(x, 0);
-        this.canvasContext.lineTo(x, height);
-      }
-    }
-
-    for (y = 0; y < height; y += gridMinor) {
-      if ((y % gridMajor) !== 0) {
-        this.canvasContext.moveTo(0, y);
-        this.canvasContext.lineTo(width, y);
-      }
-    }
-
-    this.canvasContext.stroke();
-    this.canvasContext.beginPath();
-    this.canvasContext.strokeStyle = '#C0C0C0';
-    this.canvasContext.lineWidth   = 0.5;
-
-    for (x = 0; x < width; x += gridMinor) {
-      if ((x % gridMajor) === 0) {
-        this.canvasContext.moveTo(x, 0);
-        this.canvasContext.lineTo(x, height);
-      }
-    }
-
-    for (y = 0; y < height; y += gridMinor) {
-      if ((y % gridMajor) === 0) {
-        this.canvasContext.moveTo(0, y);
-        this.canvasContext.lineTo(width, y);
-      }
-    }
-
-    this.canvasContext.stroke();
-    this.canvasContext.strokeStyle = '#000000';
+    this.epaper.__canvas.width  = this.__canvasWidth  * this.epaper.__ratio;
+    this.epaper.__canvas.height = this.__canvasHeight * this.epaper.__ratio;
+    this.epaper.__clearPage();
   }
 }
 

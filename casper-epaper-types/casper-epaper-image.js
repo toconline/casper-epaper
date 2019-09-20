@@ -9,18 +9,12 @@ class CasperEpaperImage extends PolymerElement {
 
   static get properties () {
     return {
-      /**
-       * The image's source url.
-       */
-      source: {
-        type: String,
+      epaper: {
+        type: Object
       },
-      /**
-       * The epaper's zoom that will resize the image accordingly.
-       */
-      zoom: {
-        type: Number,
-        observer: '__recalculateImageDimensions'
+      __reactWhenZoomChanges: {
+        type: Boolean,
+        value: true
       }
     }
   }
@@ -42,28 +36,17 @@ class CasperEpaperImage extends PolymerElement {
     `;
   }
 
-  download () {
-    const downloadLink = document.createElement('a');
-    downloadLink.setAttribute('href', this.source);
-    downloadLink.setAttribute('download', true);
-    downloadLink.setAttribute('target', '_blank');
-    downloadLink.style.display = 'none';
-    this.shadowRoot.appendChild(downloadLink);
-    downloadLink.click();
-    this.shadowRoot.removeChild(downloadLink);
-  }
-
   open () {
     const imageToLoad = new Image();
     imageToLoad.onload = event => {
       this.__loadedImage = event.path.shift();
 
       this.__recalculateImageDimensions();
-      this.__source = this.source;
+      this.__source = `/file/${this.epaper.__currentAttachment.id}`;
     };
 
     // Trigger the image load.
-    imageToLoad.src = this.source;
+    imageToLoad.src = `/file/${this.epaper.__currentAttachment.id}`;
   }
 
   __recalculateImageDimensions () {

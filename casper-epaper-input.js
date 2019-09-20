@@ -19,7 +19,7 @@
  */
 
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
-import { CasperEpaperDocument } from './casper-epaper-types/casper-epaper-server-document.js';
+import { CasperEpaperServerDocument } from './casper-epaper-types/casper-epaper-server-document.js';
 import '@polymer/iron-input/iron-input.js';
 import '@polymer/iron-icon/iron-icon.js';
 import '@casper2020/casper-icons/casper-icons.js';
@@ -224,7 +224,7 @@ class CasperEpaperInput extends PolymerElement {
   alignStyle (a_text_left, a_baseline) {
 
     // Make baseline and edge relative to input pox
-    var ratio = this.epaperDocument.epaperCanvas.ratio;
+    var ratio = this.epaper.__ratio;
     var tl    = a_text_left / ratio - this._x;
     var bl    = a_baseline  / ratio - this._y;
       var top   = this._f_top / ratio;
@@ -236,8 +236,8 @@ class CasperEpaperInput extends PolymerElement {
     this._textArea.style.marginLeft  = Math.max(tl,1) + 'px';
     this._textArea.style.marginRight = Math.max(tl,1) + 'px';
     //this._textArea.style.marginTop   = Math.max(bl + top, 1) + 'px';
-    this._textArea.style.fontFamily  = this.epaperDocument.fontSpec[CasperEpaperDocument.FONT_NAME_INDEX];
-    this._textArea.style.fontSize    = this.epaperDocument.fontSpec[CasperEpaperDocument.SIZE_INDEX] / ratio + 'px';
+    this._textArea.style.fontFamily  = this.epaperServerDocument.fontSpec[CasperEpaperServerDocument.FONT_NAME_INDEX];
+    this._textArea.style.fontSize    = this.epaperServerDocument.fontSpec[CasperEpaperServerDocument.SIZE_INDEX] / ratio + 'px';
     this._textArea.style.color       = this.epaper._text_color;
   }
 
@@ -317,7 +317,7 @@ class CasperEpaperInput extends PolymerElement {
       break;
     }
 
-    btn_size = Math.floor(12 * this.epaperDocument.zoom);
+    btn_size = Math.floor(12 * this.epaperServerDocument.zoom);
     width    = parseInt(this.style.width);
     height   = parseInt(this.style.height);
 
@@ -335,7 +335,7 @@ class CasperEpaperInput extends PolymerElement {
     this.$.clear_btn.style.top     = ((height - btn_size) / 2) + 'px';
     this.$.clear_btn.style.left    = (width - btn_size) + 'px';
 
-    edit_btn_size = Math.floor(18 * this.epaperDocument.zoom);
+    edit_btn_size = Math.floor(18 * this.epaperServerDocument.zoom);
     this.$.edit_btn.style.display = 'none'; // 'inline';
     this.$.edit_btn.style.padding = '0px';
     this.$.edit_btn.style.height  = edit_btn_size + 'px';
@@ -439,7 +439,7 @@ class CasperEpaperInput extends PolymerElement {
     //      this.epaper._getData(this._comboListQuery, function(response) {
     //        this.onGetDataResponse(response);
     //      }.bind(this));
-    //      //this.epaperDocument.__sendCommand('get data "'+this._comboListQuery+'";');
+    //      //this.epaperServerDocument.__sendCommand('get data "'+this._comboListQuery+'";');
     //    }
     //  }
     //  this.overlayVisible = this._overlay.isVisible();
@@ -455,8 +455,8 @@ class CasperEpaperInput extends PolymerElement {
    * @param {Object} event the click event
    */
   _clearField (event) {
-    this.epaperDocument.__sendCommand('set list item "";');
-    this.epaperDocument.__sendCommand('set key "save";');
+    this.epaperServerDocument.__sendCommand('set list item "";');
+    this.epaperServerDocument.__sendCommand('set key "save";');
     if ( event !== undefined ) {
       event.stopPropagation();
     }
@@ -466,17 +466,17 @@ class CasperEpaperInput extends PolymerElement {
    * Show the combo box list
    */
   _layoutComboList () {
-    var sc = this.epaperDocument.epaperCanvas.ratio;
-    var page_margin = 40 * this.epaperDocument.epaperCanvas.ratio;
+    var sc = this.epaper.__ratio;
+    var page_margin = 40 * this.epaper.__ratio;
     var max_width, max_height;
 
     var left  = parseInt(this.style.left);
     var width = parseInt(this.style.width);
 
-    if ( (left / this.epaperDocument.epaperCanvas.sx) > this.epaperDocument.epaperCanvas.pageWidth / 2 ) {
+    if ( (left / this.epaper.__sx) > this.epaper.__pageWidth / 2 ) {
       max_width = left + width /*+ this._open_combo_button._bb_w*/ - page_margin;
     } else {
-      max_width = this.epaperDocument.epaperCanvas.pageWidth * this.epaperDocument.epaperCanvas.sx - page_margin - left;
+      max_width = this.epaper.__pageWidth * this.epaper.__sx - page_margin - left;
     }
 
     /* TODO
@@ -578,16 +578,16 @@ class CasperEpaperInput extends PolymerElement {
 
     if ( this._initialSelection === true || this._textArea.value.length === 0 ) {
       if ( ['down', 'up', 'left', 'right'].indexOf(vkey) > -1 ) {
-        this.epaperDocument.socket.moveCursor(this.epaperDocument.documentId, vkey);
+        this.epaperServerDocument.socket.moveCursor(this.epaperServerDocument.documentId, vkey);
         event.preventDefault();
         return;
       } else if ( ['tab', 'shift+tab'].indexOf(vkey) > -1 ) {
         if ( this._initialSelection === true ) {
           this._initialSelection = false;
           if ( vkey === 'shift+tab') {
-            this.epaperDocument.socket.sendKey(this.epaperDocument.documentId, vkey, 'shift');
+            this.epaperServerDocument.socket.sendKey(this.epaperServerDocument.documentId, vkey, 'shift');
           } else {
-            this.epaperDocument.socket.sendKey(this.epaperDocument.documentId, vkey);
+            this.epaperServerDocument.socket.sendKey(this.epaperServerDocument.documentId, vkey);
           }
           event.preventDefault();
           return;
@@ -606,7 +606,7 @@ class CasperEpaperInput extends PolymerElement {
     }
 
     if ( ['enter', 'tab', 'shift+tab'].indexOf(vkey) > -1 ) {
-      this.epaperDocument.socket.setText(this.epaperDocument.documentId,
+      this.epaperServerDocument.socket.setText(this.epaperServerDocument.documentId,
                                   this._textArea.value,
                                   vkey === 'shift+tab' ? 'left' : 'right');
                                  // this._setTextResponse.bind(this)); TODO WE HAVE A PROMISE NOW
@@ -652,7 +652,7 @@ class CasperEpaperInput extends PolymerElement {
     /*if ( this.overlayVisible === false ) {
       if ( this._comboListQuery !== undefined && this._overlay === this.$.combo ) {
         if ( !this.$.combo.items || !!this.$.combo.items.length ) {
-          this.epaperDocument.__sendCommand('get data "'+this._comboListQuery+'";');
+          this.epaperServerDocument.__sendCommand('get data "'+this._comboListQuery+'";');
         }
       }
       //this._toggleOverlay();
@@ -677,19 +677,19 @@ class CasperEpaperInput extends PolymerElement {
         if ( this._comboFilter.length !== 0 && ['down', 'up'].indexOf(vkey) > -1) {
           /* TODO this.$.combo.moveSelection(vkey); */
         } else {
-          this.epaperDocument.socket.moveCursor(this.epaperDocument.documentId, vkey);
+          this.epaperServerDocument.socket.moveCursor(this.epaperServerDocument.documentId, vkey);
         }
         event.preventDefault();
       } else if ( ['tab', 'shift+tab', 'enter'].indexOf(vkey) > -1 ) {
         /*
         TODO
         if ( this.$.combo.getSelectedId() && this.$.combo.getSelectedId() !== this.$.combo.getInitialId() ) {
-        //  this.epaperDocument.__sendCommand('set list item "' + this.$.combo.getSelectedId()  + '";');
+        //  this.epaperServerDocument.__sendCommand('set list item "' + this.$.combo.getSelectedId()  + '";');
         }*/
-        //this.epaperDocument.socket.setText();
-        this.epaperDocument.socket.setText(this.epaperDocument.documentId, this.$.combo.getSelectedId(), 'right', true);
+        //this.epaperServerDocument.socket.setText();
+        this.epaperServerDocument.socket.setText(this.epaperServerDocument.documentId, this.$.combo.getSelectedId(), 'right', true);
 
-        //this.epaperDocument.__sendCommand('set key "'+vkey.replace(/\+/g, '"+"')+'";');
+        //this.epaperServerDocument.__sendCommand('set key "'+vkey.replace(/\+/g, '"+"')+'";');
         event.preventDefault();
       } else if ( vkey === 'alt' || vkey === 'shift+down' ) {
         //this._comboFilter = event.key;
@@ -727,19 +727,19 @@ class CasperEpaperInput extends PolymerElement {
 
     key = event.detail.closingKey;
     if ( event.detail.selectedId !== undefined && event.detail.selectedId !== event.detail.previousId ) {
-      this.epaperDocument.__sendCommand('set list item "' + event.detail.selectedId  + '";');
+      this.epaperServerDocument.__sendCommand('set list item "' + event.detail.selectedId  + '";');
       if ( key === 'shift+tab' ) {
-        this.epaperDocument.__sendCommand('set key "shift"+"tab";');
+        this.epaperServerDocument.__sendCommand('set key "shift"+"tab";');
       } else if ( key === 'enter' || key === 'tab' ) {
-        this.epaperDocument.__sendCommand('set key "tab";');
+        this.epaperServerDocument.__sendCommand('set key "tab";');
       } else {
-        this.epaperDocument.__sendCommand('set key "save";');
+        this.epaperServerDocument.__sendCommand('set key "save";');
       }
     } else {
       if ( key === 'shift+tab' ) {
-        this.epaperDocument.__sendCommand('set key "focus_left";');
+        this.epaperServerDocument.__sendCommand('set key "focus_left";');
       } else if ( key === 'enter' || key === 'tab' ) {
-        this.epaperDocument.__sendCommand('set key "focus_right";');
+        this.epaperServerDocument.__sendCommand('set key "focus_right";');
       }
     }
     this._textArea.focus();
@@ -772,7 +772,7 @@ class CasperEpaperInput extends PolymerElement {
       cmd += 'set key "'+vkey.replace(/\+/g, '"+"')+'";';
     }
     if ( cmd.length ) {
-      this.epaperDocument.__sendCommand(cmd);
+      this.epaperServerDocument.__sendCommand(cmd);
     }
   }
 
@@ -789,17 +789,17 @@ class CasperEpaperInput extends PolymerElement {
   _onKeyDownR (event) {
     if ( event.keyCode === 32 || (event.keyCode === 88 && this._textArea.value.length === 0) ) {
       // TODO debouncer this.debounce('casper-toggle', function () {
-        this.epaperDocument.socket.sendKey(this.epaperDocument.documentId, 'toggle');
+        this.epaperServerDocument.socket.sendKey(this.epaperServerDocument.documentId, 'toggle');
       //}.bind(this), 300);
     } else {
       var vkey = this._keycodeToVkey(event);
 
       if ( ['down', 'up', 'left', 'right'].indexOf(vkey) > -1 ) {
-        this.epaperDocument.socket.moveCursor(this.epaperDocument.documentId, vkey);
+        this.epaperServerDocument.socket.moveCursor(this.epaperServerDocument.documentId, vkey);
       } else if ( vkey === 'shift+tab' ) {
-        this.epaperDocument.socket.moveCursor(this.epaperDocument.documentId, 'left');
+        this.epaperServerDocument.socket.moveCursor(this.epaperServerDocument.documentId, 'left');
       } else if ( vkey === 'enter' || vkey === 'tab' ) {
-        this.epaperDocument.socket.moveCursor(this.epaperDocument.documentId, 'right');
+        this.epaperServerDocument.socket.moveCursor(this.epaperServerDocument.documentId, 'right');
       }
     }
     event.preventDefault();
@@ -897,7 +897,7 @@ class CasperEpaperInput extends PolymerElement {
   _onMouseDown (event) {
     if ( this._mode === 'R' ) {
       event.preventDefault();
-      this.epaperDocument.socket.sendKey(this.epaperDocument.documentId, 'toggle');
+      this.epaperServerDocument.socket.sendKey(this.epaperServerDocument.documentId, 'toggle');
     } else if ( this._mode === 'c' ) {
       if ( this._select.opened ) {
         event.stopPropagation();
@@ -961,10 +961,7 @@ class CasperEpaperInput extends PolymerElement {
   }
 
   hideTooltip () {
-    if ( this.epaper.$.tooltip.hide !== undefined ) {
-      console.log('Hide tooltip:'); // TODO port to casper-app
-      //this.epaper.$.tooltip.hide();
-    }
+
   }
 }
 

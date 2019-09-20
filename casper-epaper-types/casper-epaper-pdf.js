@@ -13,44 +13,12 @@ class CasperEpaperPdf extends PolymerElement {
 
   static get properties () {
     return {
-      ratio: Number,
-      zoom: {
-        type: Number,
-        observer: 'open'
+      epaper: {
+        type: Object
       },
-      landscape: {
+      __reactWhenZoomChanges: {
         type: Boolean,
-        notify: true
-      },
-      /**
-       * The canvas element that is shared in the epaper component
-       *
-       * @type {Object}
-       */
-      epaperCanvas: Object,
-      /**
-       * The PDF document source url.
-       *
-       * @type {String}
-       */
-      source: String,
-      /**
-       * The PDF document's current page.
-       *
-       * @type {Number}
-       */
-      currentPage: {
-        type: Number,
-        observer: 'open'
-      },
-      /**
-       * The total number of pages that the document has.
-       *
-       * @type {Number}
-       */
-      totalPageCount: {
-        type: Number,
-        notify: true
+        value: true
       }
     }
   }
@@ -69,31 +37,26 @@ class CasperEpaperPdf extends PolymerElement {
    * Open a PDF document specified in the source property.
    */
   open () {
-    if (this.ignoreEvents || !this.source) return;
+    if (!this.source) return;
 
     // Debounce the all render operation to avoid multiple calls to the render method.
     this.__openPDFDebouncer = Debouncer.debounce(this.__openPDFDebouncer, timeOut.after(150), async () => {
       // Memoize the pdf.js worker.
       this.__pdfJSWorker = this.__pdfJSWorker || new this.__pdfJS.PDFWorker();
 
-      // Throw an event to disable the previous / next page buttons to avoid concurrent draws.
-      this.dispatchEvent(new CustomEvent('pdf-render-started', { bubbles: true }));
-
       const file = await this.__pdfJS.getDocument({ url: this.source, worker: this.__pdfJSWorker }).promise;
-      const filePage = await file.getPage(this.currentPage);
-      const fileViewport = filePage.getViewport({ scale: this.epaperCanvas.ratio });
+      const filePage = await file.getPage(this.epaper.__currentPage);
 
-      this.landscape = fileViewport.height < fileViewport.width;
-      this.epaperCanvas.canvas.width = fileViewport.width;
-      this.epaperCanvas.canvas.height = fileViewport.height;
-      this.epaperCanvas.clearPage();
+      const fileViewport = filePage.getViewport({ scale: this.epaper.__ratio });
+      this.epaper.__landscape = fileViewport.height < fileViewport.width;
+      this.epaper.__canvas.width = fileViewport.width;
+      this.epaper.__canvas.height = fileViewport.height;
 
-
-      this.totalPageCount = file._pdfInfo.numPages;
+      this.epaper.__totalPageCount = file._pdfInfo.numPages;
 
       this.__pdfRenderTask = filePage.render({
         viewport: fileViewport,
-        canvasContext: this.epaperCanvas.canvasContext
+        canvasContext: this.epaper.__canvasContext
       });
 
 
@@ -107,17 +70,6 @@ class CasperEpaperPdf extends PolymerElement {
         });
       }
     );
-  }
-
-  download () {
-    const downloadLink = document.createElement('a');
-    downloadLink.setAttribute('href', this.source);
-    downloadLink.setAttribute('download', true);
-    downloadLink.setAttribute('target', '_blank');
-    downloadLink.style.display = 'none';
-    this.shadowRoot.appendChild(downloadLink);
-    downloadLink.click();
-    this.shadowRoot.removeChild(downloadLink);
   }
 
   /**
