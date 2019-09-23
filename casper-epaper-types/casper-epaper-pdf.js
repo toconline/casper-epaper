@@ -29,8 +29,6 @@ class CasperEpaperPdf extends PolymerElement {
 
   ready () {
     super.ready();
-
-    this.__loadScript();
   }
 
   /**
@@ -38,6 +36,8 @@ class CasperEpaperPdf extends PolymerElement {
    */
   open () {
     if (!this.source) return;
+
+    if (!this.__scriptAlreadyLoaded) return this.__loadScript();
 
     // Debounce the all render operation to avoid multiple calls to the render method.
     this.__openPDFDebouncer = Debouncer.debounce(this.__openPDFDebouncer, timeOut.after(150), async () => {
@@ -76,18 +76,17 @@ class CasperEpaperPdf extends PolymerElement {
    * Load the PDF.js script.
    */
   __loadScript () {
-    if (!this.__scriptAlreadyLoaded) {
-      const script = document.createElement('script');
-      script.onload = () => {
-        this.__pdfJS = window['pdfjs-dist/build/pdf'];
-        this.__pdfJS.GlobalWorkerOptions.workerSrc = CasperEpaperPdf.PDF_JS_WORKER_SOURCE;
+    const script = document.createElement('script');
+    script.onload = () => {
+      this.__pdfJS = window['pdfjs-dist/build/pdf'];
+      this.__pdfJS.GlobalWorkerOptions.workerSrc = CasperEpaperPdf.PDF_JS_WORKER_SOURCE;
 
-        this.__scriptAlreadyLoaded = true;
-      };
+      this.__scriptAlreadyLoaded = true;
+      this.open();
+    };
 
-      script.src = CasperEpaperPdf.PDF_JS_SOURCE;
-      this.shadowRoot.appendChild(script);
-    }
+    script.src = CasperEpaperPdf.PDF_JS_SOURCE;
+    this.shadowRoot.appendChild(script);
   }
 }
 
