@@ -22,7 +22,7 @@
     "@polymer/paper-spinner": "^3.0.0",
     "@polymer/polymer": "^3.0.0",
     "@polymer/promise-polyfill": "^3.0.0-pre.18",
-    "@vaadin/vaadin-date-picker": "^3.3.3"
+    "@vaadin/vaadin-date-picker": "^4.0.3"
   },
   "devDependencies": {
     "@polymer/iron-demo-helpers": "^3.0.0",
