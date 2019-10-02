@@ -137,6 +137,11 @@ export class CasperEpaperDocument extends PolymerElement {
    */
   async open (documentModel) {
     this.currentPage = 1; // # TODO goto page on open /
+    if ( documentModel.backgroundColor ) {
+      this.epaperCanvas.__setBackground(documentModel.backgroundColor);
+    } else {
+      this.epaperCanvas.__setBackground('#FFF');
+    }
     this.__prepareOpenCommand(documentModel);
     return this.__openChapter();
   }
