@@ -225,41 +225,43 @@ class CasperEpaper extends PolymerElement {
             <casper-epaper-canvas
               id="epaperCanvas"
               zoom="[[__zoom]]"
-              landscape="[[__landscape]]"></casper-epaper-canvas>
+              landscape="[[__landscape]]">
+            </casper-epaper-canvas>
 
-            <!--Document Epaper-->
-            <casper-epaper-document
+            <!--Server Document Epaper-->
+            <casper-epaper-server-document
               id="serverDocument"
               app="[[app]]"
-              zoom="[[__zoom]]"
+              epaper="[[__epaper]]"
               socket="[[__socket]]"
               scroller="[[scroller]]"
               current-page="{{__currentPage}}"
               epaper-canvas="[[__epaperCanvas]]"
-              total-page-count="{{__totalPageCount}}"></casper-epaper-document>
+              total-page-count="{{__totalPageCount}}">
+            </casper-epaper-server-document>
 
-              <!--PDF Epaper-->
-              <casper-epaper-pdf
-                id="pdf"
-                zoom="[[__zoom]]"
-                landscape="{{__landscape}}"
-                current-page="[[__currentPage]]"
-                epaper-canvas="[[__epaperCanvas]]"
-                total-page-count="{{__totalPageCount}}">
-              </casper-epaper-pdf>
+            <!--PDF Epaper-->
+            <casper-epaper-pdf
+              id="pdf"
+              epaper="[[__epaper]]"
+              landscape="{{__landscape}}"
+              current-page="[[__currentPage]]"
+              epaper-canvas="[[__epaperCanvas]]"
+              total-page-count="{{__totalPageCount}}">
+            </casper-epaper-pdf>
 
-              <!--Iframe Epaper-->
-              <casper-epaper-iframe id="iframe"></casper-epaper-iframe>
+            <!--Iframe Epaper-->
+            <casper-epaper-iframe id="iframe"></casper-epaper-iframe>
 
-              <!--Image Epaper-->
-              <casper-epaper-image id="image" zoom="[[__zoom]]"></casper-epaper-image>
+            <!--Image Epaper-->
+            <casper-epaper-image id="image" zoom="[[__zoom]]" epaper="[[__epaper]]"></casper-epaper-image>
 
-              <!--Upload Epaper-->
+            <!--Upload Epaper-->
             <casper-epaper-upload id="upload"></casper-epaper-upload>
 
-            </div>
-            </div>
-            <div class="spacer"></div>
+          </div>
+        </div>
+        <div class="spacer"></div>
       </div>
       <div class="shadow"></div>
       <slot name="casper-epaper-context-menu"></slot>
@@ -323,7 +325,7 @@ class CasperEpaper extends PolymerElement {
       __zoom: {
         type: Number,
         value: 1,
-        observer: '__recalculateEpaperDimensions'
+        observer: '__zoomChanged'
       },
       __totalPageCount: {
         type: Number,
@@ -332,12 +334,21 @@ class CasperEpaper extends PolymerElement {
       __currentPage: {
         type: Number,
         observer: '__enableOrDisablePageButtons'
+      },
+      __loadingOverlayDefaultOptions: {
+        type: Object,
+        value: {
+          text: 'A carregar',
+          backgroundColor: 'rgba(0, 0, 0, 0.5)'
+        }
       }
     };
   }
 
   ready () {
     super.ready();
+
+    this.__epaper = this;
 
     this.__epaperCanvas = this.$.epaperCanvas;
     this.__currentPage      = 1;
@@ -348,19 +359,9 @@ class CasperEpaper extends PolymerElement {
     this.__socket           = this.app.socket;
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT);
 
-    afterNextRender(this, () => {
-      this.__handleContextMenu();
-      this.$.pdf.addEventListener('pdf-render-started', () => {
-        this.__disablePageButtons();
-        this.__disableZoomButtons();
-      });
+    afterNextRender(this, () => this.__handleContextMenu());
 
-      this.$.pdf.addEventListener('pdf-render-ended', () => {
-        this.__enableOrDisablePageButtons();
-        this.__enableOrDisableZoomButtons();
-      });
-    });
-
+    this.__epaperComponentLoadingOverlay = this.shadowRoot.querySelector('#epaper-component-loading-overlay');
     this.__epaperComponentContainer = this.shadowRoot.querySelector('#epaper-component-container');
     this.__epaperComponentSticky = this.shadowRoot.querySelector('#epaper-component-sticky');
     this.__epaperComponentSticky.addEventListener('mouseover', () => {
@@ -379,12 +380,27 @@ class CasperEpaper extends PolymerElement {
   //***************************************************************************************//
 
   /**
+   * Open a new uplaod page.
+   *
+   * @param {Object} options
+   */
+  openUploadPage (options) {
+    Object.keys(options).forEach(option => this.$.upload[option] = options[option]);
+    this.__landscape = false;
+    this.__currentAttachmentName = '';
+    this.__currentAttachment = undefined;
+
+    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.UPLOAD);
+    this.__enableOrDisableZoomButtons();
+    this.__disablePageButtons();
+  }
+
+  /**
    * Opens an attachment with the correct "type" of epaper.
    *
-   * @param {Object} attachment The attachment's metadata. This object should contain property
-   * that contains the attachment's type so the component can react accordingly.
+   * @param {Object} attachment The attachment's metadata. This object should contain the attachment's identifier,
+   * type and name.
    */
-
   async openAttachment (attachment) {
     this.__currentAttachment = attachment;
     this.__currentAttachmentName = attachment.name;
@@ -412,114 +428,6 @@ class CasperEpaper extends PolymerElement {
     } catch (error) {
 
     }
-  }
-
-  /**
-   * Open server document
-   */
-  __openServerDocument () {
-    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT);
-    this.__enableOrDisablePageButtons();
-    this.__enableOrDisableZoomButtons();
-
-    return this.$.serverDocument.open(this.__currentAttachment);
-  }
-
-  /**
-   * Open a new image.
-   */
-  __openImage () {
-    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.IMAGE);
-    this.__enableOrDisablePageButtons();
-    this.__enableOrDisableZoomButtons();
-
-    this.$.image.source = `/file/${this.__currentAttachment.id}`;
-    this.$.image.open();
-  }
-
-  /**
-   * Open an iframe.
-   *
-   * @param {String} iframeSource The iframe's source URL.
-   */
-  __openIframe () {
-    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.IFRAME);
-    this.__enableOrDisableZoomButtons();
-    this.__disablePageButtons();
-
-    this.$.iframe.source = `/file/${this.__currentAttachment.id}`;
-    this.$.iframe.contentType = this.__currentAttachment.type;
-    this.$.iframe.open();
-  }
-
-  /**
-   * Open a PDF file.
-   */
-  __openPDF () {
-    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.PDF);
-    this.__enableOrDisablePageButtons();
-    this.__enableOrDisableZoomButtons();
-
-    this.$.pdf.source = `/file/${this.__currentAttachment.id}`;
-    this.$.pdf.open();
-  }
-
-  __displayOrHideSticky () {
-    this.__epaperComponentSticky.innerHTML = '';
-
-    if (!Object.keys(this.__currentAttachment).includes('sticky')) {
-      this.__epaperComponentSticky.style.display =  'none';
-      return;
-    }
-
-    this.__epaperComponentSticky.style.display =  'flex';
-    // Print the text lines.
-    if (this.__currentAttachment.sticky.text_lines && this.__currentAttachment.sticky.text_lines.length > 0) {
-      this.__currentAttachment.sticky.text_lines.forEach(textLine => {
-        const textLineContainer = document.createElement('span');
-        const key = document.createElement('strong');
-        const value = document.createTextNode(textLine.value)
-
-        key.innerText = `${textLine.key}: `;
-        textLineContainer.appendChild(key);
-        textLineContainer.appendChild(value);
-
-        this.__epaperComponentSticky.appendChild(textLineContainer);
-      });
-    }
-
-    // Archived when.
-    if (this.__currentAttachment.sticky.archived_at) {
-      const archivedAt = document.createElement('span');
-      archivedAt.innerText = `Arquivado em ${moment.unix(this.__currentAttachment.sticky.archived_at).format('DD-MM-YYYY // HH:mm[h]')}`;
-      archivedAt.style.marginTop = '10px';
-
-      this.__epaperComponentSticky.appendChild(archivedAt);
-    }
-
-    // Archived by.
-    if (this.__currentAttachment.sticky.archived_by) {
-      const archivedBy = document.createElement('span');
-      archivedBy.innerText = `por ${this.__currentAttachment.sticky.archived_by}`;
-      archivedBy.style.marginTop = '10px';
-      archivedBy.style.color = 'var(--primary-color)';
-
-      this.__epaperComponentSticky.appendChild(archivedBy);
-    }
-  }
-
-  /**
-   * Open a new uplaod page.
-   *
-   * @param {Object} options
-   */
-  openUploadPage (options) {
-    Object.keys(options).forEach(option => this.$.upload[option] = options[option]);
-    this.__landscape = false;
-
-    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.UPLOAD);
-    this.__enableOrDisableZoomButtons();
-    this.__disablePageButtons();
   }
 
   /**
@@ -567,24 +475,6 @@ class CasperEpaper extends PolymerElement {
     }
   }
 
-  __recalculateEpaperDimensions () {
-    afterNextRender(this, () => {
-      // Scale the epaper component container.
-      this.__epaperComponentContainer.style.width =  `${parseInt((this.__landscape ? this.__epaperComponentHeight : this.__epaperComponentWidth) * this.__zoom)}px`;
-      this.__epaperComponentContainer.style.height = `${parseInt((this.__landscape ? this.__epaperComponentWidth : this.__epaperComponentHeight) * this.__zoom)}px`;
-
-      // Scale the post-it dimensions and position.
-      this.__epaperComponentSticky.style.top        = `${parseInt(this.__epaperComponentStickyStyle.top * this.__zoom)}px`;
-      this.__epaperComponentSticky.style.right      = `${parseInt(this.__epaperComponentStickyStyle.right * this.__zoom)}px`;
-      this.__epaperComponentSticky.style.width      = `${parseInt(this.__epaperComponentStickyStyle.width * this.__zoom)}px`;
-      this.__epaperComponentSticky.style.height     = `${parseInt(this.__epaperComponentStickyStyle.height * this.__zoom)}px`;
-      this.__epaperComponentSticky.style.fontSize   = `${parseInt(this.__epaperComponentStickyStyle.fontSize * this.__zoom)}px`;
-      this.__epaperComponentSticky.style.paddingTop = `${parseInt(this.__epaperComponentStickyStyle.paddingTop * this.__zoom)}px`;
-      this.__epaperComponentSticky.style.paddingLeft = `${parseInt(this.__epaperComponentStickyStyle.paddingLeft * this.__zoom)}px`;
-      this.__epaperComponentSticky.style.paddingRight = `${parseInt(this.__epaperComponentStickyStyle.paddingRight * this.__zoom)}px`;
-    });
-  }
-
   clearUploadedFiles () {
     this.$.upload.clearUploadedFiles();
   }
@@ -594,7 +484,19 @@ class CasperEpaper extends PolymerElement {
   }
 
   download () {
-    this.__epaperActiveComponent.download();
+    // Check if the current component has a specific download function.
+    if (typeof this.__epaperActiveComponent['download'] === 'function') {
+      this.__epaperActiveComponent.download();
+    } else {
+      const downloadLink = document.createElement('a');
+      downloadLink.setAttribute('href', `/file/${this.__currentAttachment.id}`);
+      downloadLink.setAttribute('download', true);
+      downloadLink.setAttribute('target', '_blank');
+      downloadLink.style.display = 'none';
+      this.shadowRoot.appendChild(downloadLink);
+      downloadLink.click();
+      this.shadowRoot.removeChild(downloadLink);
+    }
   }
 
   /**
@@ -752,6 +654,56 @@ class CasperEpaper extends PolymerElement {
   //                                                                                       //
   //***************************************************************************************//
 
+  /**
+   * Open server document
+   */
+  __openServerDocument () {
+    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT);
+    this.__enableOrDisablePageButtons();
+    this.__enableOrDisableZoomButtons();
+
+    return this.$.serverDocument.open(this.__currentAttachment);
+  }
+
+  /**
+   * Open a new image.
+   */
+  __openImage () {
+    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.IMAGE);
+    this.__disablePageButtons();
+    this.__enableOrDisableZoomButtons();
+
+    this.$.image.source = `/file/${this.__currentAttachment.id}`;
+    this.$.image.open();
+  }
+
+  /**
+   * Open an iframe.
+   *
+   * @param {String} iframeSource The iframe's source URL.
+   */
+  __openIframe () {
+    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.IFRAME);
+    this.__disablePageButtons();
+    this.__enableOrDisableZoomButtons();
+
+    this.$.iframe.source = `/file/${this.__currentAttachment.id}`;
+    this.$.iframe.contentType = this.__currentAttachment.type;
+    this.$.iframe.open();
+  }
+
+  /**
+   * Open a PDF file.
+   */
+  __openPDF () {
+    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.PDF);
+    this.__enableOrDisablePageButtons();
+    this.__enableOrDisableZoomButtons();
+
+    this.$.pdf.source = `/file/${this.__currentAttachment.id}`;
+    this.$.pdf.open();
+  }
+
   __handleContextMenu () {
     let contextMenu;
     const contextMenuSlot = this.shadowRoot.querySelector('slot[name="casper-epaper-context-menu"]');
@@ -825,6 +777,76 @@ class CasperEpaper extends PolymerElement {
 
     this.$.pdf.ignoreEvents = epaperType !== CasperEpaper.EPAPER_TYPES.PDF;
     this.$.serverDocument.ignoreEvents = epaperType !== CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT;
+  }
+
+  __zoomChanged () {
+    this.__recalculateEpaperDimensions();
+
+    if (this.__epaperActiveComponent && typeof this.__epaperActiveComponent.__zoomChanged === 'function') {
+      this.__epaperActiveComponent.__zoomChanged();
+    }
+  }
+
+  __recalculateEpaperDimensions () {
+    afterNextRender(this, () => {
+      // Scale the epaper component container.
+      this.__epaperComponentContainer.style.width = `${parseInt((this.__landscape ? this.__epaperComponentHeight : this.__epaperComponentWidth) * this.__zoom)}px`;
+      this.__epaperComponentContainer.style.height = `${parseInt((this.__landscape ? this.__epaperComponentWidth : this.__epaperComponentHeight) * this.__zoom)}px`;
+
+      // Scale the post-it dimensions and position.
+      this.__epaperComponentSticky.style.top        = `${parseInt(this.__epaperComponentStickyStyle.top * this.__zoom)}px`;
+      this.__epaperComponentSticky.style.right      = `${parseInt(this.__epaperComponentStickyStyle.right * this.__zoom)}px`;
+      this.__epaperComponentSticky.style.width      = `${parseInt(this.__epaperComponentStickyStyle.width * this.__zoom)}px`;
+      this.__epaperComponentSticky.style.height     = `${parseInt(this.__epaperComponentStickyStyle.height * this.__zoom)}px`;
+      this.__epaperComponentSticky.style.fontSize   = `${parseInt(this.__epaperComponentStickyStyle.fontSize * this.__zoom)}px`;
+      this.__epaperComponentSticky.style.paddingTop = `${parseInt(this.__epaperComponentStickyStyle.paddingTop * this.__zoom)}px`;
+      this.__epaperComponentSticky.style.paddingLeft = `${parseInt(this.__epaperComponentStickyStyle.paddingLeft * this.__zoom)}px`;
+      this.__epaperComponentSticky.style.paddingRight = `${parseInt(this.__epaperComponentStickyStyle.paddingRight * this.__zoom)}px`;
+    });
+  }
+
+  __displayOrHideSticky () {
+    this.__epaperComponentSticky.innerHTML = '';
+
+    if (!Object.keys(this.__currentAttachment).includes('sticky')) {
+      this.__epaperComponentSticky.style.display =  'none';
+      return;
+    }
+
+    this.__epaperComponentSticky.style.display =  'flex';
+    // Print the text lines.
+    if (this.__currentAttachment.sticky.text_lines && this.__currentAttachment.sticky.text_lines.length > 0) {
+      this.__currentAttachment.sticky.text_lines.forEach(textLine => {
+        const textLineContainer = document.createElement('span');
+        const key = document.createElement('strong');
+        const value = document.createTextNode(textLine.value)
+
+        key.innerText = `${textLine.key}: `;
+        textLineContainer.appendChild(key);
+        textLineContainer.appendChild(value);
+
+        this.__epaperComponentSticky.appendChild(textLineContainer);
+      });
+    }
+
+    // Archived when.
+    if (this.__currentAttachment.sticky.archived_at) {
+      const archivedAt = document.createElement('span');
+      archivedAt.innerText = `Arquivado em ${moment.unix(this.__currentAttachment.sticky.archived_at).format('DD-MM-YYYY // HH:mm[h]')}`;
+      archivedAt.style.marginTop = '10px';
+
+      this.__epaperComponentSticky.appendChild(archivedAt);
+    }
+
+    // Archived by.
+    if (this.__currentAttachment.sticky.archived_by) {
+      const archivedBy = document.createElement('span');
+      archivedBy.innerText = `por ${this.__currentAttachment.sticky.archived_by}`;
+      archivedBy.style.marginTop = '10px';
+      archivedBy.style.color = 'var(--primary-color)';
+
+      this.__epaperComponentSticky.appendChild(archivedBy);
+    }
   }
 }
 

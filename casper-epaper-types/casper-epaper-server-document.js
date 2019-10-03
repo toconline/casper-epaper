@@ -5,7 +5,7 @@ import '@polymer/iron-icon/iron-icon.js';
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
 import { afterNextRender } from '@polymer/polymer/lib/utils/render-status.js';
 
-export class CasperEpaperDocument extends PolymerElement {
+export class CasperEpaperServerDocument extends PolymerElement {
 
   /*
    * Constants
@@ -22,7 +22,7 @@ export class CasperEpaperDocument extends PolymerElement {
   static get FONT_NAME_INDEX () { return 4;        }
 
   static get is () {
-    return 'casper-epaper-document';
+    return 'casper-epaper-server-document';
   }
 
   static get template () {
@@ -40,10 +40,6 @@ export class CasperEpaperDocument extends PolymerElement {
       app: Object,
       socket: Object,
       epaperCanvas: Object,
-      zoom: {
-        type: Number,
-        observer: '__zoomChanged'
-      },
       currentPage: {
         type: Number,
         observer: '__currentPageChanged',
@@ -103,9 +99,9 @@ export class CasperEpaperDocument extends PolymerElement {
       this.epaperCanvas.canvasContext.save();
       this.epaperCanvas.canvasContext.fillStyle = '#F0F0F0'
       this.epaperCanvas.canvasContext.textAlign = 'center';
-      this.fontSpec[CasperEpaperDocument.SIZE_INDEX] = 20;
+      this.fontSpec[CasperEpaperServerDocument.SIZE_INDEX] = 20;
       for (let i = 0; i < styles.length; i++) {
-        this.fontSpec[CasperEpaperDocument.BOLD_INDEX] = styles[i];
+        this.fontSpec[CasperEpaperServerDocument.BOLD_INDEX] = styles[i];
         this.epaperCanvas.canvasContext.font = this.fontSpec.join('');
         this.epaperCanvas.canvasContext.fillText('Powered by CASPER ePaper', this.epaperCanvas.canvas.width / 2, y);
         y += 35;
@@ -1601,8 +1597,8 @@ export class CasperEpaperDocument extends PolymerElement {
           y = this.__getDouble();
           w = this.__getDouble();
           h = this.__getDouble();
-          let ox = (w / 2) * CasperEpaperDocument.KAPPA,
-              oy = (h / 2) * CasperEpaperDocument.KAPPA,
+          let ox = (w / 2) * CasperEpaperServerDocument.KAPPA,
+              oy = (h / 2) * CasperEpaperServerDocument.KAPPA,
               xe = x + w,
               ye = y + h,
               xm = x + w / 2,
@@ -1695,7 +1691,7 @@ export class CasperEpaperDocument extends PolymerElement {
           w = this.__getDouble();
           this._t = this._message.substring(this._r_idx, this._r_idx + w);
           this._r_idx += w + 1;
-          this.fontSpec[CasperEpaperDocument.FONT_NAME_INDEX] = this._t;
+          this.fontSpec[CasperEpaperServerDocument.FONT_NAME_INDEX] = this._t;
           this.epaperCanvas.canvasContext.font = this.fontSpec.join('');
           break;
 
@@ -1718,9 +1714,9 @@ export class CasperEpaperDocument extends PolymerElement {
               this.$.input._f_underline_position  = this.__getDouble();
           } else {
               this._font_mask = this.__getDouble();
-              this.fontSpec[CasperEpaperDocument.SIZE_INDEX]   = Math.round(this.__getDouble());
-              this.fontSpec[CasperEpaperDocument.BOLD_INDEX]   = (this._font_mask & CasperEpaperDocument.BOLD_MASK)   ? 'bold '   : '';
-              this.fontSpec[CasperEpaperDocument.ITALIC_INDEX] = (this._font_mask & CasperEpaperDocument.ITALIC_MASK) ? 'italic ' : '';
+              this.fontSpec[CasperEpaperServerDocument.SIZE_INDEX]   = Math.round(this.__getDouble());
+              this.fontSpec[CasperEpaperServerDocument.BOLD_INDEX]   = (this._font_mask & CasperEpaperServerDocument.BOLD_MASK)   ? 'bold '   : '';
+              this.fontSpec[CasperEpaperServerDocument.ITALIC_INDEX] = (this._font_mask & CasperEpaperServerDocument.ITALIC_MASK) ? 'italic ' : '';
               this.epaperCanvas.canvasContext.font = this.fontSpec.join('');
           }
           break;
@@ -2023,4 +2019,4 @@ export class CasperEpaperDocument extends PolymerElement {
   }
 }
 
-customElements.define(CasperEpaperDocument.is, CasperEpaperDocument);
+customElements.define(CasperEpaperServerDocument.is, CasperEpaperServerDocument);

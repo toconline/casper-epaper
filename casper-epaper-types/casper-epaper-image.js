@@ -15,13 +15,6 @@ class CasperEpaperImage extends PolymerElement {
       source: {
         type: String,
       },
-      /**
-       * The epaper's zoom that will resize the image accordingly.
-       */
-      zoom: {
-        type: Number,
-        observer: '__recalculateImageDimensions'
-      }
     }
   }
 
@@ -40,17 +33,6 @@ class CasperEpaperImage extends PolymerElement {
         width="[[__width]]"
         height="[[__height]]"/>
     `;
-  }
-
-  download () {
-    const downloadLink = document.createElement('a');
-    downloadLink.setAttribute('href', this.source);
-    downloadLink.setAttribute('download', true);
-    downloadLink.setAttribute('target', '_blank');
-    downloadLink.style.display = 'none';
-    this.shadowRoot.appendChild(downloadLink);
-    downloadLink.click();
-    this.shadowRoot.removeChild(downloadLink);
   }
 
   open () {
@@ -87,6 +69,9 @@ class CasperEpaperImage extends PolymerElement {
         this.__width = Math.min(this.__loadedImage.width / heightRatio, this.__loadedImage.width);
       }
     });
+  }
+  __zoomChanged () {
+    this.__recalculateImageDimensions();
   }
 }
 

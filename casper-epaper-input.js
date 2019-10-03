@@ -19,7 +19,7 @@
  */
 
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
-import { CasperEpaperDocument } from './casper-epaper-types/casper-epaper-server-document.js';
+import { CasperEpaperServerDocument } from './casper-epaper-types/casper-epaper-server-document.js';
 import '@polymer/iron-input/iron-input.js';
 import '@polymer/iron-icon/iron-icon.js';
 import '@casper2020/casper-icons/casper-icons.js';
@@ -236,8 +236,8 @@ class CasperEpaperInput extends PolymerElement {
     this._textArea.style.marginLeft  = Math.max(tl,1) + 'px';
     this._textArea.style.marginRight = Math.max(tl,1) + 'px';
     //this._textArea.style.marginTop   = Math.max(bl + top, 1) + 'px';
-    this._textArea.style.fontFamily  = this.epaperDocument.fontSpec[CasperEpaperDocument.FONT_NAME_INDEX];
-    this._textArea.style.fontSize    = this.epaperDocument.fontSpec[CasperEpaperDocument.SIZE_INDEX] / ratio + 'px';
+    this._textArea.style.fontFamily  = this.epaperDocument.fontSpec[CasperEpaperServerDocument.FONT_NAME_INDEX];
+    this._textArea.style.fontSize    = this.epaperDocument.fontSpec[CasperEpaperServerDocument.SIZE_INDEX] / ratio + 'px';
     this._textArea.style.color       = this.epaper._text_color;
   }
 
