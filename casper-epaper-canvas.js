@@ -109,6 +109,14 @@ class CasperEpaperCanvas extends PolymerElement {
     }
   }
 
+  /**
+   * Changes the size of the epaper canvas.
+   *
+   * @param {string} color in #RRGGBB format.
+   */
+  __setBackground (color) {
+    this.__backgroundColor = color;
+  }
 
   /**
    * Set the zoom factor (document pt to screen px ratio)
