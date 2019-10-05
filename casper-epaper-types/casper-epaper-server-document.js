@@ -25,13 +25,29 @@ export class CasperEpaperServerDocument extends PolymerElement {
     return 'casper-epaper-server-document';
   }
 
+  // TODO remove tooltip!!!!
+
   static get template () {
     return html`
+    <style>
+      .context-menu {
+        display: flex;
+        position: absolute;
+        color: var(--primary-color);
+      }
+
+      .delete {
+        color: var(--status-red);
+      }
+
+    </style>
     <casper-epaper-tooltip id="tooltip"></casper-epaper-tooltip>
-      <casper-epaper-input id="input" epaper-document="[[__epaperDocument]]"></casper-epaper-input>
-      <casper-epaper-servertip-helper id="servertip" epaper-document="[[__epaperDocument]]"></casper-epaper-servertip-helper>
-      <iron-icon id="line_add_button" on-tap="__addDocumentLine" icon="casper-icons:add-circle"></iron-icon>
-      <iron-icon id="line_del_button" on-tap="__removeDocumentLine" icon="casper-icons:remove-circle"></iron-icon>
+    <casper-epaper-input id="input" epaper-document="[[__epaperDocument]]"></casper-epaper-input>
+    <casper-epaper-servertip-helper id="servertip" epaper-document="[[__epaperDocument]]"></casper-epaper-servertip-helper>
+    <div id="context-menu" class="context-menu" slot="context-menu">
+      <iron-icon on-tap="__addDocumentLine"    icon="casper-icons:add-circle"></iron-icon>
+      <iron-icon on-tap="__removeDocumentLine" class="delete" icon="casper-icons:remove-circle"></iron-icon>
+    </div>
     `;
   }
 
@@ -55,19 +71,22 @@ export class CasperEpaperServerDocument extends PolymerElement {
   ready () {
     super.ready();
 
-    this.__epaperDocument   = this;
-    this._scrollContainer   = document.getElementById(this.scroller);
-    this._message           = '';
-    this._r_idx             = 0.0;
-    this.__bands             = undefined;
-    this.documentId        = undefined;
-    this.__images            = {};
-    this.__focusedBandId   = undefined;
-    this._redraw_timer_key  = '_epaper_redraw_timer_key';
+    this.__epaperDocument     = this;
+    this._scrollContainer     = document.getElementById(this.scroller);
+    this._message             = '';
+    this._r_idx               = 0.0;
+    this.__bands              = undefined;
+    this.documentId           = undefined;
+    this.__images             = {};
+    this.__focusedBandId      = undefined;
+    this._redraw_timer_key    = '_epaper_redraw_timer_key';
     this._uploaded_assets_url = '';
 
+    this.__contextMenu        = this.$['context-menu'];
+    this.__contextMenuIndex   = -1;
+
     afterNextRender(this, () => {
-      this._resetRenderState();
+      this.__resetRenderState();
       this.__resetCommandData();
 
       this._is_socket_open = false;
@@ -117,7 +136,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
 
   connectedCallback () {
     super.connectedCallback();
-    this._deactivateLineContextMenu();
+    this._deactivateContextMenu();
   }
 
   //***************************************************************************************//
@@ -264,11 +283,11 @@ export class CasperEpaperServerDocument extends PolymerElement {
    *
    * After server and client align the render contexts the server uses diferential updates
    */
-  _resetRenderState () {
-    this._fill_color      = '#FFFFFF';
-    this._text_color      = '#000000';
-    this.fontSpec       = ['', '', 10, 'px ', 'DejaVu Sans Condensed'];
-    this._font_mask       = 0;
+  __resetRenderState () {
+    this._fill_color  = '#FFFFFF';
+    this._text_color  = '#000000';
+    this.fontSpec     = ['', '', 10, 'px ', 'DejaVu Sans Condensed'];
+    this._font_mask   = 0;
     this.epaperCanvas.canvasContext.strokeStyle = '#000000';
     this.epaperCanvas.canvasContext.lineWidth   = 1.0;
     this.epaperCanvas.canvasContext.font        = this.fontSpec.join('');
@@ -284,7 +303,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
     this.__path      = undefined;
     this.__params    = undefined;
     this.__jrxml     = undefined;
-    this.___locale    = undefined;
+    this.___locale   = undefined;
     this.__edit      = false;
     this.__loading   = false;
     this.__openFocus = undefined;
@@ -419,6 +438,8 @@ export class CasperEpaperServerDocument extends PolymerElement {
     this.__edition = this.__chapter.editable;
     this.documentScale  = this.epaperCanvas.sx;
     this.epaperCanvas.scalePxToServer = this.pageWidth * this.epaperCanvas.ratio / this.epaperCanvas.canvas.width;
+    this._ratio = this.epaperCanvas.ratio;
+
     this._repaintPage();
 
     this.__loading = false;
@@ -431,7 +452,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
    * Hides all canvas overlays
    */
   __hideWidgets (hideInputButtons) {
-    this._deactivateLineContextMenu();
+    this._deactivateContextMenu();
     this.$.input.hideOverlays(hideInputButtons);
   }
 
@@ -474,39 +495,25 @@ export class CasperEpaperServerDocument extends PolymerElement {
   //                                                                                       //
   //***************************************************************************************//
 
-  _removeDocumentLine () {
+  async __removeDocumentLine () {
+    // TODO spinner and errors
     if (this.__contextMenuIndex !== - 1) {
-      this.socket.deleteBand(
+      const response = await this.socket.deleteBand(
         this.documentId,
         this.__bands[this.__contextMenuIndex]._type,
-        this.__bands[this.__contextMenuIndex]._id,
-        this.__removeDocumentLineResponse.bind(this)
+        this.__bands[this.__contextMenuIndex]._id
       );
     }
   }
 
-  __removeDocumentLineResponse (x) {
-    if ( x.errors ) {
-      // @TODO error handling and cursors
-      console.log(x.errors[0].internal.why);
-    }
-  }
-
-  __addDocumentLine () {
+  async __addDocumentLine () {
+    // TODO spinner and errors
     if (this.__contextMenuIndex !== - 1) {
-      this.socket.addBand(
+      const response = await this.socket.addBand(
         this.documentId,
         this.__bands[this.__contextMenuIndex]._type,
-        this.__bands[this.__contextMenuIndex]._id,
-        this.__addDocumentLineResponse.bind(this)
+        this.__bands[this.__contextMenuIndex]._id
       );
-    }
-  }
-
-  __addDocumentLineResponse (x) {
-    if ( x.errors ) {
-      // @TODO error handling and cursors
-      console.log(x.errors[0].internal.why);
     }
   }
 
@@ -536,35 +543,35 @@ export class CasperEpaperServerDocument extends PolymerElement {
   }
 
   __updateContextMenu (a_y) {
-
     if ( this.__edition === false ) {
-      this._deactivateLineContextMenu();
+      this._deactivateContextMenu();
       return;
     } else {
       let idx = this.__binaryFindBandByY(a_y);
 
       if ( idx != -1 ) {
-        if ( this.__bands[idx]._type === 'DT' && this.__bands[idx].editable_ == true ) {
-          if ( this.__contextMenuIndex == idx ) {
+        if ( this.__bands[idx]._type === 'DT' /*&& this.__bands[idx]._editable == true */) {
+          console.log("Editable hacked!!!");
+          if ( this.__contextMenuIndex === idx ) {
             return;
           }
           if ( this.__contextMenuIndex !== -1 ) {
-            this._deactivateLineContextMenu(this.__bands[this.__contextMenuIndex]);
+            this._deactivateContextMenu(this.__bands[this.__contextMenuIndex]);
             this.__contextMenuIndex = -1;
           }
           this.__contextMenuIndex = idx;
-          this.__activateLineContextMenu(this.__bands[this.__contextMenuIndex]);
+          this.__activateContextMenu(this.__bands[this.__contextMenuIndex]);
 
         } else {
           if ( this.__contextMenuIndex !== -1 ) {
-            this._deactivateLineContextMenu(this.__bands[this.__contextMenuIndex]);
+            this._deactivateContextMenu(this.__bands[this.__contextMenuIndex]);
             this.__contextMenuIndex = -1;
           }
         }
       } else {
         if ( this.__contextMenuIndex !== -1 ) {
           if ( this.__bands !== undefined ) {
-            this._deactivateLineContextMenu(this.__bands[this.__contextMenuIndex]);
+            this._deactivateContextMenu(this.__bands[this.__contextMenuIndex]);
           }
           this.__contextMenuIndex = -1;
         }
@@ -572,20 +579,19 @@ export class CasperEpaperServerDocument extends PolymerElement {
     }
   }
 
-  __activateLineContextMenu (a_band) {
-    let button_y = a_band._ty + a_band._height / 2 - (CasperEpaper.BTN_SIZE * this.ratio) / 2;
-    let button_x = (this.pageWidth - this.__rightMmargin) * this.epaperCanvas.sx;
+  __activateContextMenu (a_band) {
+    const x = (this.pageWidth - this.__rightMmargin) * this.epaperCanvas.sx;
+    const y = a_band._ty + a_band._height / 2 - (CasperEpaperServerDocument.BTN_SIZE * this._ratio) / 2;
 
-    this.$.line_add_button.style.left = (button_x / this.ratio ) + 'px';
-    this.$.line_add_button.style.top  = (button_y / this.ratio ) + 'px';
-    button_x += CasperEpaper.BTN_SIZE * this.ratio * 0.9;
-    this.$.line_del_button.style.left = (button_x / this.ratio ) + 'px';
-    this.$.line_del_button.style.top  = (button_y / this.ratio ) + 'px';
-
+    this.__contextMenu.style.left = (x / this._ratio) + 'px';
+    this.__contextMenu.style.top  = (y / this._ratio) + 'px';
     if ( this.__edition /*&& this.is_focused()*/ ) {
-      this.$.line_add_button.style.display = 'inline-block';
-      this.$.line_del_button.style.display = 'inline-block';
+      this.__contextMenu.style.display = 'inline-block';
     }
+  }
+
+  _deactivateContextMenu() {
+    this.__contextMenu.style.display = 'none';
   }
 
   /**
@@ -606,11 +612,6 @@ export class CasperEpaperServerDocument extends PolymerElement {
       }
       this._pageNumber = page;
     }
-  }
-
-  _deactivateLineContextMenu () {
-    this.$.line_add_button.style.display = 'none';
-    this.$.line_del_button.style.display = 'none';
   }
 
   /**
@@ -759,28 +760,6 @@ export class CasperEpaperServerDocument extends PolymerElement {
       s_y = 0;
     }
     this.epaperCanvas.canvasContext.drawImage(img, s_x, s_y, s_w, s_h, x, y, t_w, t_h);
-
-    if ( false ) {  // Image scaling QA
-      let ie = document.getElementById(img_info._id);
-      ie.style.top      = (x + 150 / this.ratio) + 'px';
-      ie.style.left     = (y + 150 / this.ratio) + 'px';
-      ie.style.width    = t_w / this.ratio + 'px';
-      ie.style.height   = t_h / this.ratio + 'px';
-      ie.style.position = 'absolute';
-      ie.style.display = 'inline';
-    }
-
-    if ( false ) { // Bounding boxes debug
-      this.epaperCanvas.canvasContext.save();
-      this.epaperCanvas.canvasContext.strokeStyle = '#FF0000';
-      this.epaperCanvas.canvasContext.lineWidth   = 1.0;
-      this.epaperCanvas.canvasContext.strokeRect(img_info._l, img_info._t, img_info._r - img_info._l, img_info._b - img_info._t);
-      this.epaperCanvas.canvasContext.strokeStyle = '#00FF00';
-      this.epaperCanvas.canvasContext.strokeRect(s_x, s_y, s_w, s_h);
-      this.epaperCanvas.canvasContext.strokeStyle = '#0000FF';
-      this.epaperCanvas.canvasContext.strokeRect(x, y, t_w, t_h);
-      this.epaperCanvas.canvasContext.restore();
-    }
   }
 
   /**
@@ -789,7 +768,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
    * @param a_self The tooltip helper instance
    * @return the handler function
    */
-  __createRedrawTimerHandler (a_self) {
+  __createRedrawTimerHandler (a_self) {  // TODO modernize!!!
     return function () {
       a_self._repaintPage();
     }
@@ -914,10 +893,10 @@ export class CasperEpaperServerDocument extends PolymerElement {
     let sy         = 0.0;
     let sh         = 0.0;
     let sw         = 0.0;
-    let s          = this.ratio;
+    let s          = this._ratio;
     let t1,t2,t3;
 
-    this._resetRenderState();
+    this.__resetRenderState();
     while (this._r_idx < this._message.length) {
 
       switch ( this._message[this._r_idx++] ) {
@@ -928,7 +907,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
         case 'Z':
 
           if ( this._message[this._r_idx] === 'd' ) {
-            this._resetRenderState();
+            this.__resetRenderState();
             this._r_idx++;
           } else {
             this.epaperCanvas.clearPage();
@@ -974,7 +953,8 @@ export class CasperEpaperServerDocument extends PolymerElement {
           // ... store the current paint context on the band object
           band._type        = t1;
           band._id          = w;
-          band.editable_    = 't' == t2 ? true : false;
+          band._editable    = 't' == t2 ? true : false;
+          console.log("BD", band._id, band._editable);
           band._height      = h;
           band._tx          = x;
           band._ty          = y;
@@ -1017,13 +997,13 @@ export class CasperEpaperServerDocument extends PolymerElement {
 
             this.epaperCanvas.canvasContext.beginPath();
 
-            if ( x === x2 && this.ratio == 1 ) {
+            if ( x === x2 && this._ratio == 1 ) {
 
               w = Math.round(this.epaperCanvas.canvasContext.lineWidth) & 0x1 ? -0.5 : 0;
               this.epaperCanvas.canvasContext.moveTo(x  + w, y  + w);
               this.epaperCanvas.canvasContext.lineTo(x2 + w, y2 + w);
 
-            } else if ( y === y2 && this.ratio == 1 ) {
+            } else if ( y === y2 && this._ratio == 1 ) {
 
               w = Math.round(this.epaperCanvas.canvasContext.lineWidth) & 0x1 ? -0.5 : 0;
               this.epaperCanvas.canvasContext.moveTo(x  + w, y  + w)
@@ -1567,7 +1547,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
 
           w = this.__getDouble();
           if ( w <= 1 ) {
-            w = this.ratio;
+            w = this._ratio;
           }
           this.epaperCanvas.canvasContext.lineWidth = w;
           break;
@@ -2019,7 +1999,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
       this.$.servertip.onMouseMove(a_event.offsetX, a_event.offsetY, this.epaperCanvas.scalePxToServer);
     }
     if ( this.__edition ) {
-      this.__updateContextMenu(a_event.offsetY * this.ratio);
+      this.__updateContextMenu(a_event.offsetY * this._ratio);
     }
   }
 }
