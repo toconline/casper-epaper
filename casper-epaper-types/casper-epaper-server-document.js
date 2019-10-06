@@ -30,23 +30,35 @@ export class CasperEpaperServerDocument extends PolymerElement {
   static get template () {
     return html`
     <style>
-      .context-menu {
-        display: flex;
-        position: absolute;
-        color: var(--primary-color);
+
+      .line-menu-button {
+        padding: 4px;
+        margin-left: 4px;
+        max-width: 28px;
+        max-height: 28px;
+        border-radius: 50%;
+        background-color: var(--primary-color);
+        --iron-icon-width: 100%;
+        --iron-icon-height: 100%;
+        --iron-icon-fill-color: white;
+        -webkit-box-shadow: 0px 1px 6px -1px rgba(0, 0, 0, 0.61);
+        -moz-box-shadow:    0px 1px 6px -1px rgba(0, 0, 0, 0.61);
+        box-shadow:         0px 1px 6px -1px rgba(0, 0, 0, 0.61);
       }
 
       .delete {
-        color: var(--status-red);
+        background-color: var(--status-red);
       }
 
     </style>
     <casper-epaper-tooltip id="tooltip"></casper-epaper-tooltip>
     <casper-epaper-input id="input" epaper-document="[[__epaperDocument]]"></casper-epaper-input>
     <casper-epaper-servertip-helper id="servertip" epaper-document="[[__epaperDocument]]"></casper-epaper-servertip-helper>
-    <div id="context-menu" class="context-menu" slot="context-menu">
-      <iron-icon on-tap="__addDocumentLine"    icon="casper-icons:add-circle"></iron-icon>
-      <iron-icon on-tap="__removeDocumentLine" class="delete" icon="casper-icons:remove-circle"></iron-icon>
+    <slot name="casper-epaper-line-menu">
+    </slot>
+    <div id="default-context-menu" class="context-menu" style="display: none;">
+      <paper-icon-button icon="casper-icons:plus"     class="line-menu-button"        tooltip="Adicionar linha" on-click="__addDocumentLine"></paper-icon-button>
+      <paper-icon-button icon="casper-icons:calendar" class="line-menu-button delete" tooltip="Remover linha" on-click="__removeDocumentLine"></paper-icon-button>
     </div>
     `;
   }
@@ -82,10 +94,15 @@ export class CasperEpaperServerDocument extends PolymerElement {
     this._redraw_timer_key    = '_epaper_redraw_timer_key';
     this._uploaded_assets_url = '';
 
-    this.__contextMenu        = this.$['context-menu'];
-    this.__contextMenuIndex   = -1;
-
     afterNextRender(this, () => {
+
+      this.__contextMenuIndex = -1;
+      this.__contextMenu = this.shadowRoot
+                             .querySelector('slot[name="casper-epaper-line-menu"]')
+                             .assignedElements({flatten:true})
+                             .shift()
+                           || this.$['default-context-menu'];
+
       this.__resetRenderState();
       this.__resetCommandData();
 
@@ -260,12 +277,11 @@ export class CasperEpaperServerDocument extends PolymerElement {
       }
     }
 
-    if (chapterIndex !== undefined) {
-      if (chapterIndex !== this.__chapterIndex) {
+    if (  chapterIndex !== undefined ) {
+      if ( chapterIndex !== this.__chapterIndex ) {
         this.__chapterIndex = chapterIndex;
         this.__chapter      = this.document.chapters[chapterIndex];
         this.__openChapter(1, highlightAfterLoad);
-
       } else {
         highlightAfterLoad();
       }
@@ -586,12 +602,15 @@ export class CasperEpaperServerDocument extends PolymerElement {
     this.__contextMenu.style.left = (x / this._ratio) + 'px';
     this.__contextMenu.style.top  = (y / this._ratio) + 'px';
     if ( this.__edition /*&& this.is_focused()*/ ) {
-      this.__contextMenu.style.display = 'inline-block';
+      this.__contextMenu.style.position = 'absolute';
+      this.__contextMenu.style.display = 'flex';
     }
   }
 
   _deactivateContextMenu() {
-    this.__contextMenu.style.display = 'none';
+    if ( this.__contextMenu ) {
+      this.__contextMenu.style.display = 'none';
+    }
   }
 
   /**

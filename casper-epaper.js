@@ -238,6 +238,7 @@ class CasperEpaper extends PolymerElement {
               current-page="{{__currentPage}}"
               epaper-canvas="[[__epaperCanvas]]"
               total-page-count="{{__totalPageCount}}">
+              <slot name="casper-epaper-line-menu" slot="casper-epaper-line-menu"></slot>
             </casper-epaper-server-document>
 
             <!--PDF Epaper-->
@@ -358,6 +359,7 @@ class CasperEpaper extends PolymerElement {
     this._chapterPageNumber = 1;
     this.__socket           = this.app.socket;
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT);
+
 
     afterNextRender(this, () => this.__handleContextMenu());
 
