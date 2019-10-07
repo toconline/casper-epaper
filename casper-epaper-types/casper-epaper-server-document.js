@@ -58,7 +58,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
     </slot>
     <div id="default-context-menu" class="context-menu" style="display: none;">
       <paper-icon-button icon="casper-icons:plus"     class="line-menu-button"        tooltip="Adicionar linha" on-click="__addDocumentLine"></paper-icon-button>
-      <paper-icon-button icon="casper-icons:calendar" class="line-menu-button delete" tooltip="Remover linha" on-click="__removeDocumentLine"></paper-icon-button>
+      <paper-icon-button icon="casper-icons:calendar" class="line-menu-button delete" tooltip="Remover linha"   on-click="__removeDocumentLine"></paper-icon-button>
     </div>
     `;
   }
@@ -96,12 +96,12 @@ export class CasperEpaperServerDocument extends PolymerElement {
 
     afterNextRender(this, () => {
 
+      const contextMenuSlotElements = this.epaper.__fetchAssignedElementsRecursively(this.shadowRoot.querySelector('slot[name="casper-epaper-line-menu"]'));
+
       this.__contextMenuIndex = -1;
-      this.__contextMenu = this.shadowRoot
-                             .querySelector('slot[name="casper-epaper-line-menu"]')
-                             .assignedElements({flatten:true})
-                             .shift()
-                           || this.$['default-context-menu'];
+      this.__contextMenu = contextMenuSlotElements && contextMenuSlotElements.length > 0
+        ? contextMenuSlotElements.shift()
+        : this.$['default-context-menu'];
 
       this.__resetRenderState();
       this.__resetCommandData();

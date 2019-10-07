@@ -39,16 +39,12 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
         :host {
           width: 100%;
           height: 100%;
-          display: block;
-          overflow: auto;
           padding: 50px;
+          display: flex;
+          overflow: auto;
+          align-items: center;
           box-sizing: border-box;
           background-color: white;
-
-          display: flex;
-          align-content: center;
-          align-items: center;
-
         }
 
         #uploadContainer {
@@ -100,7 +96,7 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
         #uploadContainer[no-module] .icon-container {
           border: 0px solid var(--status-red);
         }
-        
+
         #uploadContainer[no-module] .icon-container iron-icon {
           width: 100%;
           height: 100%;
@@ -111,7 +107,6 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
         #uploadContainer[no-module] #sub-title-container a {
           color: var(--status-red);
         }
-       
       </style>
       <div id="uploadContainer" no-module$=[[disabled]]>
         <div class="icon-container">
@@ -122,8 +117,8 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
         <div id="sub-title-container"></div>
 
         <vaadin-upload
-          hidden$=[[disabled]]
           id="upload"
+          hidden$="[[disabled]]"
           target="[[uploadUrl]]"
           max-files="[[maxFiles]]"
           accept="[[acceptMimeTypes]]"
@@ -137,8 +132,8 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
   ready () {
     super.ready();
 
-    this.__titleContainer = this.shadowRoot.querySelector('#title-container');
-    this.__subTitleContainer = this.shadowRoot.querySelector('#sub-title-container');
+    this.__titleContainer = this.$['title-container'];
+    this.__subTitleContainer = this.$['sub-title-container'];
 
     this.i18nUpdateUpload(this.$.upload);
     this.$.upload.addEventListener('upload-request', this.__uploadRequest);
