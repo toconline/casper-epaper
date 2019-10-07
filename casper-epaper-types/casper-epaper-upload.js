@@ -15,8 +15,14 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
         type: Number,
         observer: '__zoomChanged'
       },
-      title: String,
-      subTitle: String,
+      title: {
+        type: String,
+        observer: '__titleChanged'
+      },
+      subTitle: {
+        type: String,
+        observer: '__subTitleChanged'
+      },
       maxFiles: Number,
       uploadUrl: String,
       acceptMimeTypes: String,
@@ -59,7 +65,7 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
           color: var(--primary-color);
         }
 
-        #uploadContainer .title-container {
+        #uploadContainer #title-container {
           font-size: 20px;
           font-weight: bold;
           text-align: center;
@@ -67,7 +73,7 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
           color: var(--primary-color);
         }
 
-        #uploadContainer .sub-title-container {
+        #uploadContainer #sub-title-container {
           color: darkgray;
           text-align: center;
           margin-bottom: 25px;
@@ -87,8 +93,8 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
           <iron-icon icon="casper-icons:question-solid"></iron-icon>
         </div>
 
-        <div class="title-container">[[title]]</div>
-        <div class="sub-title-container">[[subTitle]]</div>
+        <div id="title-container"></div>
+        <div id="sub-title-container"></div>
 
         <vaadin-upload
           id="upload"
@@ -104,6 +110,9 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
 
   ready () {
     super.ready();
+
+    this.__titleContainer = this.shadowRoot.querySelector('#title-container');
+    this.__subTitleContainer = this.shadowRoot.querySelector('#sub-title-container');
 
     this.i18nUpdateUpload(this.$.upload);
     this.$.upload.addEventListener('upload-request', this.__uploadRequest);
@@ -134,6 +143,14 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
         }
       }));
     }
+  }
+
+  __titleChanged (title) {
+    this.__titleContainer.innerHTML = title;
+  }
+
+  __subTitleChanged (subTitle) {
+    this.__subTitleContainer.innerHTML = subTitle;
   }
 }
 
