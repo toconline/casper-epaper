@@ -708,19 +708,11 @@ class CasperEpaper extends PolymerElement {
 
   __handleContextMenu () {
     let contextMenu;
-    const contextMenuSlot = this.shadowRoot.querySelector('slot[name="casper-epaper-context-menu"]');
-    const contextMenuSlotElement = contextMenuSlot.assignedElements().shift();
+    const contextMenuSlotElements = this.__fetchAssignedElementsRecursively(this.shadowRoot.querySelector('slot[name="casper-epaper-context-menu"]'));
 
-    if (contextMenuSlotElement) {
-      // This happens when the epaper is used inside a casper-moac element.
-      if (contextMenuSlotElement.nodeName.toLowerCase() === 'slot') {
-        contextMenu = contextMenuSlotElement.assignedElements().shift();
-        this.__hasContextMenu = contextMenu && contextMenu.nodeName.toLowerCase() === 'casper-context-menu';
-      } else if (contextMenuSlotElement.nodeName.toLowerCase() === 'casper-context-menu') {
-        // This is the normal situation when the casper-context-menu is not nested.
-        contextMenu = contextMenuSlotElement;
-        this.__hasContextMenu = true;
-      }
+    if (contextMenuSlotElements && contextMenuSlotElements.length > 0) {
+      contextMenu = contextMenuSlotElements[0];
+      this.__hasContextMenu = true;
     }
 
     if (this.__hasContextMenu) {
@@ -739,6 +731,16 @@ class CasperEpaper extends PolymerElement {
         })
       });
     }
+  }
+
+  __fetchAssignedElementsRecursively (slot) {
+    const assignedElements = slot.assignedElements();
+
+    if (assignedElements && assignedElements.length === 1 && assignedElements[0].nodeName.toLowerCase() === 'slot') {
+      return this.__fetchAssignedElementsRecursively(assignedElements[0]);
+    }
+
+    return assignedElements;
   }
 
   __disablePageButtons () {
