@@ -26,6 +26,10 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
       maxFiles: Number,
       uploadUrl: String,
       acceptMimeTypes: String,
+      icon: {
+        type: String,
+        value: 'casper-icons:question-solid'
+      }
     };
   }
 
@@ -40,6 +44,11 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
           padding: 50px;
           box-sizing: border-box;
           background-color: white;
+
+          display: flex;
+          align-content: center;
+          align-items: center;
+
         }
 
         #uploadContainer {
@@ -87,16 +96,33 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
         #uploadContainer vaadin-upload casper-button {
           margin: 0;
         }
+
+        #uploadContainer[no-module] .icon-container {
+          border: 0px solid var(--status-red);
+        }
+        
+        #uploadContainer[no-module] .icon-container iron-icon {
+          width: 100%;
+          height: 100%;
+        }
+
+        #uploadContainer[no-module] .icon-container iron-icon,
+        #uploadContainer[no-module] #title-container,
+        #uploadContainer[no-module] #sub-title-container a {
+          color: var(--status-red);
+        }
+       
       </style>
-      <div id="uploadContainer">
+      <div id="uploadContainer" no-module$=[[disabled]]>
         <div class="icon-container">
-          <iron-icon icon="casper-icons:question-solid"></iron-icon>
+          <iron-icon icon="[[icon]]"></iron-icon>
         </div>
 
         <div id="title-container"></div>
         <div id="sub-title-container"></div>
 
         <vaadin-upload
+          hidden$=[[disabled]]
           id="upload"
           target="[[uploadUrl]]"
           max-files="[[maxFiles]]"
