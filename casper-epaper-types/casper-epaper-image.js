@@ -67,9 +67,17 @@ class CasperEpaperImage extends PolymerElement {
       this.loading = false;
     };
 
+    imageToLoad.onerror = () => {
+      // Dispatch a custom error to display the epaper's error page.
+      this.dispatchEvent(new CustomEvent('casper-epaper-error-opening-attachment', {
+        bubbles: true,
+        composed: true
+      }));
+    }
+
     // Trigger the image load.
-    this.loading  = true;
-    imageToLoad.src = this.source;
+    this.loading = true;
+    imageToLoad.src = `${this.source}?v=${Date.now()}`;
   }
 
   /**
