@@ -9,9 +9,16 @@ class CasperEpaperIframe extends PolymerElement {
   static get properties () {
     return {
       /**
-       * The i
+       * The iframe's source URL.
+       *
+       * @type {String}
        */
       source: String,
+      /**
+       * The iframe's source content type.
+       *
+       * @type {String}
+       */
       contentType: String
     }
   }
@@ -37,6 +44,9 @@ class CasperEpaperIframe extends PolymerElement {
     `;
   }
 
+  /**
+   * Method that will fetch the remote source and render it in the iframe.
+   */
   async open () {
     const fileRequest = await fetch(this.source);
 
