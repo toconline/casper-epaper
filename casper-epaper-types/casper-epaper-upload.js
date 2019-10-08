@@ -11,21 +11,47 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
 
   static get properties () {
     return {
-      zoom: {
-        type: Number,
-        observer: '__zoomChanged'
-      },
+      /**
+       * The component's title.
+       *
+       * @type {String}
+       */
       title: {
         type: String,
         observer: '__titleChanged'
       },
+      /**
+       * The component's sub-title.
+       *
+       * @type {String}
+       */
       subTitle: {
         type: String,
         observer: '__subTitleChanged'
       },
+      /**
+       * The vaadin-uploads's maximum number of files.
+       *
+       * @type {Number}
+       */
       maxFiles: Number,
-      uploadUrl: String,
-      acceptMimeTypes: String,
+      /**
+       * The vaadin-uploads's maximum upload URL.
+       *
+       * @type {String}
+       */
+      target: String,
+      /**
+       * The list of MIME types accepted by the vaadin-upload component.
+       *
+       * @type {String}
+       */
+      accept: String,
+      /**
+       * The component's icon that appears in the top.
+       *
+       * @type {String}
+       */
       icon: {
         type: String,
         value: 'casper-icons:question-solid'
@@ -118,10 +144,10 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
 
         <vaadin-upload
           id="upload"
+          target="[[target]]"
+          accept="[[accept]]"
           hidden$="[[disabled]]"
-          target="[[uploadUrl]]"
           max-files="[[maxFiles]]"
-          accept="[[acceptMimeTypes]]"
           form-data-name="my-attachment">
           <casper-button slot="add-button">ABRIR</casper-button>
         </vaadin-upload>
@@ -140,10 +166,18 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
     this.$.upload.addEventListener('upload-success', this.__uploadSuccess);
   }
 
+  /**
+   * This method clears locally the files that were uploaded.
+   */
   clearUploadedFiles () {
     this.$.upload.files = [];
   }
 
+  /**
+   * Intercept the vaadin-upload's request event to add some additional information.
+   *
+   * @param {Object} event The event's object.
+   */
   __uploadRequest (event) {
     event.preventDefault();
     event.detail.xhr.setRequestHeader('Content-Type', 'application/octet-stream');
@@ -151,6 +185,12 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
     event.detail.xhr.send(event.detail.file);
   }
 
+  /**
+   * Intercept the vaadin-upload's successful request event and dispatch an event with information
+   * regarding the recently uploaded file.
+   *
+   * @param {Object} event The event's object.
+   */
   __uploadSuccess (event) {
     if (event.detail.xhr.status === 200) {
       const uploadedFile = JSON.parse(event.detail.xhr.response).file;
@@ -166,10 +206,20 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
     }
   }
 
+  /**
+   * Observer that gets fired when the component's title changes.
+   *
+   * @param {String} title The component's title.
+   */
   __titleChanged (title) {
     this.__titleContainer.innerHTML = title;
   }
 
+  /**
+   * Observer that gets fired when the component's sub-title changes.
+   *
+   * @param {String} title The component's sub-title.
+   */
   __subTitleChanged (subTitle) {
     this.__subTitleContainer.innerHTML = subTitle;
   }
