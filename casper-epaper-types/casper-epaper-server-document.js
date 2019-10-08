@@ -558,6 +558,23 @@ export class CasperEpaperServerDocument extends PolymerElement {
     return -1; // Not found!
   }
 
+  getDataModelIndex () {
+    if ( this.__contextMenuIndex === -1 ) {
+      return -1;
+    }
+    let idx = 0, dataIndex = 0;
+    
+    for (let band of this.__bands) {
+      if ( band._type === 'DT' /*&& this.__bands[idx]._editable == true */ ) {
+        if ( idx == this.__contextMenuIndex ) {
+          return dataIndex;
+        }
+        dataIndex++;
+      }
+      idx++;  
+    }
+  }
+
   __updateContextMenu (a_y) {
     if ( this.__edition === false ) {
       this._deactivateContextMenu();
@@ -567,7 +584,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
 
       if ( idx != -1 ) {
         if ( this.__bands[idx]._type === 'DT' /*&& this.__bands[idx]._editable == true */) {
-          console.log("Editable hacked!!!");
+          console.log("Editable hacked!!!", this.getDataModelIndex());
           if ( this.__contextMenuIndex === idx ) {
             return;
           }
