@@ -8,7 +8,11 @@ class CasperEpaperIframe extends PolymerElement {
 
   static get properties () {
     return {
+      /**
+       * The i
+       */
       source: String,
+      contentType: String
     }
   }
 
