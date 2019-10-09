@@ -563,15 +563,15 @@ export class CasperEpaperServerDocument extends PolymerElement {
       return -1;
     }
     let idx = 0, dataIndex = 0;
-    
+
     for (let band of this.__bands) {
-      if ( band._type === 'DT' /*&& this.__bands[idx]._editable == true */ ) {
+      if ( band._type === 'DT' && this.__bands[idx]._editable == true ) {
         if ( idx == this.__contextMenuIndex ) {
           return dataIndex;
         }
         dataIndex++;
       }
-      idx++;  
+      idx++;
     }
   }
 
@@ -583,8 +583,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
       let idx = this.__binaryFindBandByY(a_y);
 
       if ( idx != -1 ) {
-        if ( this.__bands[idx]._type === 'DT' /*&& this.__bands[idx]._editable == true */) {
-          console.log("Editable hacked!!!", this.getDataModelIndex());
+        if ( this.__bands[idx]._type === 'DT' && this.__bands[idx]._editable == true ) {
           if ( this.__contextMenuIndex === idx ) {
             return;
           }
