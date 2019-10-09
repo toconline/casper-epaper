@@ -1,6 +1,4 @@
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
-import { timeOut } from '@polymer/polymer/lib/utils/async.js';
-import { Debouncer } from '@polymer/polymer/lib/utils/debounce.js';
 
 class CasperEpaperPdf extends PolymerElement {
 
@@ -13,12 +11,21 @@ class CasperEpaperPdf extends PolymerElement {
 
   static get properties () {
     return {
-      ratio: Number,
-      zoom: {
-        type: Number,
-        observer: 'open'
-      },
+      /**
+       * This flag states if the epaper component is in landscape or not.
+       *
+       * @type {Boolean}
+       */
       landscape: {
+        type: Boolean,
+        notify: true
+      },
+      /**
+       * This flag states if the epaper component is currently loading or not.
+       *
+       * @type {Boolean}
+       */
+      loading: {
         type: Boolean,
         notify: true
       },
@@ -34,6 +41,15 @@ class CasperEpaperPdf extends PolymerElement {
        * @type {String}
        */
       source: String,
+      /**
+       * The current zoom being applied to the epaper container.
+       *
+       * @type {Number}
+       */
+      zoom: {
+        type: Number,
+        observer: 'open'
+      },
       /**
        * The PDF document's current page.
        *
@@ -59,27 +75,23 @@ class CasperEpaperPdf extends PolymerElement {
     return html``;
   }
 
-  ready () {
-    super.ready();
-  }
-
   /**
    * Open a PDF document specified in the source property.
    */
-  open () {
+  async open () {
     if (this.ignoreEvents || !this.source) return;
 
-    if (!this.__scriptAlreadyLoaded) return this.__loadScript();
+    try {
+      if (!this.__scriptAlreadyLoaded) await this.__loadScript();
 
-    // Debounce the all render operation to avoid multiple calls to the render method.
-    this.__openPDFDebouncer = Debouncer.debounce(this.__openPDFDebouncer, timeOut.after(150), async () => {
       // Memoize the pdf.js worker.
       this.__pdfJSWorker = this.__pdfJSWorker || new this.__pdfJS.PDFWorker();
 
-      // Throw an event to disable the previous / next page buttons to avoid concurrent draws.
-      this.dispatchEvent(new CustomEvent('pdf-render-started', { bubbles: true }));
+      const file = await this.__pdfJS.getDocument({
+        url: this.source,
+        worker: this.__pdfJSWorker
+      }).promise;
 
-      const file = await this.__pdfJS.getDocument({ url: this.source, worker: this.__pdfJSWorker }).promise;
       const filePage = await file.getPage(this.currentPage);
       const fileViewport = filePage.getViewport({ scale: this.epaperCanvas.ratio });
 
@@ -88,7 +100,6 @@ class CasperEpaperPdf extends PolymerElement {
       this.epaperCanvas.canvas.height = fileViewport.height;
       this.epaperCanvas.clearPage();
 
-
       this.totalPageCount = file._pdfInfo.numPages;
 
       this.__pdfRenderTask = filePage.render({
@@ -96,38 +107,37 @@ class CasperEpaperPdf extends PolymerElement {
         canvasContext: this.epaperCanvas.canvasContext
       });
 
+      this.loading = true;
+      await this.__pdfRenderTask.promise;
+      this.loading = false;
+    } catch (error) {
+      console.error(error);
 
-      this.__pdfRenderTask.promise
-        .then(() => this.dispatchEvent(new CustomEvent('pdf-render-ended', { bubbles: true })))
-        .catch(exception => {
-          // This means an error has occurred while displaying the PDF not caused by cancelling the render.
-          if (!exception instanceof this.__pdfJS.RenderingCancelledException) {
-            this.__openPDF();
-          }
-        });
-      }
-    );
+      // Dispatch a custom error to display the epaper's error page.
+      this.dispatchEvent(new CustomEvent('casper-epaper-error-opening-attachment', {
+        bubbles: true,
+        composed: true
+      }));
+    }
   }
 
   /**
    * Load the PDF.js script.
    */
   __loadScript () {
-    const script = document.createElement('script');
-    script.onload = () => {
-      this.__pdfJS = window['pdfjs-dist/build/pdf'];
-      this.__pdfJS.GlobalWorkerOptions.workerSrc = CasperEpaperPdf.PDF_JS_WORKER_SOURCE;
+    return new Promise(resolve => {
+      const script = document.createElement('script');
+      script.onload = async () => {
+        this.__pdfJS = window['pdfjs-dist/build/pdf'];
+        this.__pdfJS.GlobalWorkerOptions.workerSrc = CasperEpaperPdf.PDF_JS_WORKER_SOURCE;
 
-      this.__scriptAlreadyLoaded = true;
-      this.open();
-    };
+        this.__scriptAlreadyLoaded = true;
+        resolve();
+      };
 
-    script.src = CasperEpaperPdf.PDF_JS_SOURCE;
-    this.shadowRoot.appendChild(script);
-  }
-
-  __zoomChanged () {
-    this.open();
+      script.src = CasperEpaperPdf.PDF_JS_SOURCE;
+      this.shadowRoot.appendChild(script);
+    })
   }
 }
 

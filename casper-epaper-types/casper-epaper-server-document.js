@@ -58,7 +58,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
     </slot>
     <div id="default-context-menu" class="context-menu" style="display: none;">
       <paper-icon-button icon="casper-icons:plus"     class="line-menu-button"        tooltip="Adicionar linha" on-click="__addDocumentLine"></paper-icon-button>
-      <paper-icon-button icon="casper-icons:calendar" class="line-menu-button delete" tooltip="Remover linha" on-click="__removeDocumentLine"></paper-icon-button>
+      <paper-icon-button icon="casper-icons:calendar" class="line-menu-button delete" tooltip="Remover linha"   on-click="__removeDocumentLine"></paper-icon-button>
     </div>
     `;
   }
@@ -96,12 +96,12 @@ export class CasperEpaperServerDocument extends PolymerElement {
 
     afterNextRender(this, () => {
 
+      const contextMenuSlotElements = this.epaper.__fetchAssignedElementsRecursively(this.shadowRoot.querySelector('slot[name="casper-epaper-line-menu"]'));
+
       this.__contextMenuIndex = -1;
-      this.__contextMenu = this.shadowRoot
-                             .querySelector('slot[name="casper-epaper-line-menu"]')
-                             .assignedElements({flatten:true})
-                             .shift()
-                           || this.$['default-context-menu'];
+      this.__contextMenu = contextMenuSlotElements && contextMenuSlotElements.length > 0
+        ? contextMenuSlotElements.shift()
+        : this.$['default-context-menu'];
 
       this.__resetRenderState();
       this.__resetCommandData();
@@ -558,6 +558,23 @@ export class CasperEpaperServerDocument extends PolymerElement {
     return -1; // Not found!
   }
 
+  getDataModelIndex () {
+    if ( this.__contextMenuIndex === -1 ) {
+      return -1;
+    }
+    let idx = 0, dataIndex = 0;
+    
+    for (let band of this.__bands) {
+      if ( band._type === 'DT' /*&& this.__bands[idx]._editable == true */ ) {
+        if ( idx == this.__contextMenuIndex ) {
+          return dataIndex;
+        }
+        dataIndex++;
+      }
+      idx++;  
+    }
+  }
+
   __updateContextMenu (a_y) {
     if ( this.__edition === false ) {
       this._deactivateContextMenu();
@@ -567,7 +584,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
 
       if ( idx != -1 ) {
         if ( this.__bands[idx]._type === 'DT' /*&& this.__bands[idx]._editable == true */) {
-          console.log("Editable hacked!!!");
+          console.log("Editable hacked!!!", this.getDataModelIndex());
           if ( this.__contextMenuIndex === idx ) {
             return;
           }
