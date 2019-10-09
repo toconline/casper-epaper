@@ -42,12 +42,15 @@ class CasperEpaper extends PolymerElement {
     return html`
       <style>
         :host {
-          display: flex;
-          flex-direction: column;
-          background-color: var(--casper-moac-paper-background-color, #DDD);
-          position: relative;
           width: 100%;
           height: 100%;
+          display: flex;
+          position: relative;
+          flex-direction: column;
+          background-color: var(--casper-moac-paper-background-color, #DDD);
+          -moz-box-shadow:    inset 0 0 10px #00000080;
+          -webkit-box-shadow: inset 0 0 10px #00000080;
+          box-shadow:         inset 0 0 10px #00000080;
         }
 
         iron-icon {
@@ -75,18 +78,6 @@ class CasperEpaper extends PolymerElement {
           overflow: auto;
           display: flex;
           position: relative ;
-        }
-
-        .shadow {
-          top: 0px;
-          left: 0px;
-          position: absolute;
-          width: 100%;
-          height: 100%;
-          -moz-box-shadow:    inset 0 0 10px #00000080;
-          -webkit-box-shadow: inset 0 0 10px #00000080;
-          box-shadow:         inset 0 0 10px #00000080;
-          pointer-events:     none;
         }
 
         .toolbar {
@@ -201,7 +192,7 @@ class CasperEpaper extends PolymerElement {
           flex-direction: column;
           justify-content: center;
           transition: opacity 200ms linear;
-          background-color: rgba(0, 0, 0, 0.5);
+          background-color: rgba(0, 0, 0, 0.8);
         }
 
         .epaper #epaper-container #epaper-component-container #epaper-component-loading-overlay[visible] {
@@ -308,7 +299,6 @@ class CasperEpaper extends PolymerElement {
         </div>
         <div class="spacer"></div>
       </div>
-      <div class="shadow"></div>
       <slot name="casper-epaper-context-menu"></slot>
 
       <!-- Blank page template-->
