@@ -189,9 +189,9 @@ class CasperEpaper extends PolymerElement {
         .epaper .epaper-container #epaper-component-container #epaper-loading-overlay {
           top: 0;
           right: 0;
+          width: 0;
+          height: 0;
           opacity: 0;
-          width: 100%;
-          height: 100%;
           display: flex;
           color: white;
           position: absolute;
@@ -204,6 +204,8 @@ class CasperEpaper extends PolymerElement {
 
         .epaper .epaper-container #epaper-component-container #epaper-loading-overlay[visible] {
           opacity: 1;
+          width: 100%;
+          height: 100%;
         }
 
         .epaper .epaper-container #epaper-component-container #epaper-loading-overlay paper-spinner {
@@ -301,7 +303,7 @@ class CasperEpaper extends PolymerElement {
             <casper-epaper-generic-page id="genericPage"></casper-epaper-generic-page>
 
             <div id="epaper-loading-overlay" visible$="[[__loadingOverlayVisible]]">
-              <paper-spinner active></paper-spinner>
+              <paper-spinner active$="[[__loadingOverlayVisible]]"></paper-spinner>
               A carregar o documento
             </div>
           </div>
@@ -311,9 +313,10 @@ class CasperEpaper extends PolymerElement {
       <div class="shadow"></div>
       <slot name="casper-epaper-context-menu"></slot>
 
+      <!-- Blank page template-->
       <template id="blank-page-template">
         <style>
-          #blank-page-container {
+          #page-container {
             height: 100%;
             display: flex;
             align-items: center;
@@ -322,15 +325,41 @@ class CasperEpaper extends PolymerElement {
             color: var(--status-gray);
           }
 
-          #blank-page-container iron-icon {
+          #page-container iron-icon {
             width: 100px;
             height: 100px;
             margin-bottom: 10px;
           }
         </style>
-        <div id="blank-page-container">
+        <div id="page-container">
           <iron-icon icon="casper-icons:empty-data"></iron-icon>
           Sem resultado
+        </div>
+      </template>
+
+      <!--Error loading attachment template-->
+      <template id="error-opening-attachment-page-template">
+        <style>
+          #page-container {
+            height: 100%;
+            display: flex;
+            font-size: 20px;
+            font-weight: bold;
+            align-items: center;
+            flex-direction: column;
+            justify-content: center;
+            color: var(--status-red);
+          }
+
+          #page-container iron-icon {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 10px;
+          }
+        </style>
+        <div id="page-container">
+          <iron-icon icon="casper-icons:warning"></iron-icon>
+          Ocorreu um erro a carregar o documento pretendido
         </div>
       </template>
     `;
@@ -432,6 +461,10 @@ class CasperEpaper extends PolymerElement {
     this.__epaperComponentSticky = this.$['epaper-component-sticky'];
     this.__epaperComponentSticky.addEventListener('mouseleave', () => { this.__epaperComponentSticky.style.height = `${parseInt(this.__epaperComponentStickyStyle.height * this.__zoom)}px`; });
     this.__epaperComponentSticky.addEventListener('mouseover', () => { this.__epaperComponentSticky.style.height = `${parseInt(this.__epaperComponentStickyStyle.fullHeight * this.__zoom)}px`; });
+
+    [this.$.pdf, this.$.image, this.$.iframe].forEach(epaperComponent => {
+      epaperComponent.addEventListener('casper-epaper-error-opening-attachment', () => this.__displayErrorPage());
+    })
   }
 
   //***************************************************************************************//
@@ -486,27 +519,23 @@ class CasperEpaper extends PolymerElement {
     this.__currentAttachmentName = attachment.name;
     this.__displayOrHideSticky();
 
-    try {
-      switch (attachment.type) {
-        case 'file/pdf':
-          return this.__openPDF();
-        case 'file/xml':
-        case 'file/txt':
-        case 'file/htm':
-        case 'file/html':
-          this.__landscape = false;
-          return this.__openIframe();
-        case 'file/png':
-        case 'file/jpg':
-        case 'file/jpeg':
-          this.__landscape = false;
-          return this.__openImage();
-        case 'epaper':
-          this.__landscape = false;
-          return this.__openServerDocument();
-      }
-    } catch (error) {
-      console.error(error);
+    switch (attachment.type) {
+      case 'file/pdf':
+        return this.__openPDF();
+      case 'file/xml':
+      case 'file/txt':
+      case 'file/htm':
+      case 'file/html':
+        this.__landscape = false;
+        return this.__openIframe();
+      case 'file/png':
+      case 'file/jpg':
+      case 'file/jpeg':
+        this.__landscape = false;
+        return this.__openImage();
+      case 'epaper':
+        this.__landscape = false;
+        return this.__openServerDocument();
     }
   }
 
@@ -925,6 +954,11 @@ class CasperEpaper extends PolymerElement {
 
       this.__epaperComponentSticky.appendChild(archivedBy);
     }
+  }
+
+  __displayErrorPage () {
+    this.__loading = false;
+    this.openGenericPage(this.$['error-opening-attachment-page-template']);
   }
 
   __loadingChanged (loading) {

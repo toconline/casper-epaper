@@ -77,6 +77,7 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
           display: flex;
           align-items: center;
           flex-direction: column;
+          width: 100%;
         }
 
         #uploadContainer .icon-container {

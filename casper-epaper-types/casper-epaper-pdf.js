@@ -1,5 +1,3 @@
-import { timeOut } from '@polymer/polymer/lib/utils/async.js';
-import { Debouncer } from '@polymer/polymer/lib/utils/debounce.js';
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
 
 class CasperEpaperPdf extends PolymerElement {
@@ -80,13 +78,12 @@ class CasperEpaperPdf extends PolymerElement {
   /**
    * Open a PDF document specified in the source property.
    */
-  open () {
+  async open () {
     if (this.ignoreEvents || !this.source) return;
 
-    if (!this.__scriptAlreadyLoaded) return this.__loadScript();
+    try {
+      if (!this.__scriptAlreadyLoaded) await this.__loadScript();
 
-    // Debounce the all render operation to avoid multiple calls to the render method.
-    this.__openPDFDebouncer = Debouncer.debounce(this.__openPDFDebouncer, timeOut.after(150), async () => {
       // Memoize the pdf.js worker.
       this.__pdfJSWorker = this.__pdfJSWorker || new this.__pdfJS.PDFWorker();
 
@@ -113,24 +110,34 @@ class CasperEpaperPdf extends PolymerElement {
       this.loading = true;
       await this.__pdfRenderTask.promise;
       this.loading = false;
-    });
+    } catch (error) {
+      console.error(error);
+
+      // Dispatch a custom error to display the epaper's error page.
+      this.dispatchEvent(new CustomEvent('casper-epaper-error-opening-attachment', {
+        bubbles: true,
+        composed: true
+      }));
+    }
   }
 
   /**
    * Load the PDF.js script.
    */
   __loadScript () {
-    const script = document.createElement('script');
-    script.onload = () => {
-      this.__pdfJS = window['pdfjs-dist/build/pdf'];
-      this.__pdfJS.GlobalWorkerOptions.workerSrc = CasperEpaperPdf.PDF_JS_WORKER_SOURCE;
+    return new Promise(resolve => {
+      const script = document.createElement('script');
+      script.onload = async () => {
+        this.__pdfJS = window['pdfjs-dist/build/pdf'];
+        this.__pdfJS.GlobalWorkerOptions.workerSrc = CasperEpaperPdf.PDF_JS_WORKER_SOURCE;
 
-      this.__scriptAlreadyLoaded = true;
-      this.open();
-    };
+        this.__scriptAlreadyLoaded = true;
+        resolve();
+      };
 
-    script.src = CasperEpaperPdf.PDF_JS_SOURCE;
-    this.shadowRoot.appendChild(script);
+      script.src = CasperEpaperPdf.PDF_JS_SOURCE;
+      this.shadowRoot.appendChild(script);
+    })
   }
 }
 
