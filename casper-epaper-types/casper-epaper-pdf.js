@@ -42,15 +42,6 @@ class CasperEpaperPdf extends PolymerElement {
        */
       source: String,
       /**
-       * The current zoom being applied to the epaper container.
-       *
-       * @type {Number}
-       */
-      zoom: {
-        type: Number,
-        observer: 'open'
-      },
-      /**
        * The PDF document's current page.
        *
        * @type {Number}
@@ -79,46 +70,41 @@ class CasperEpaperPdf extends PolymerElement {
    * Open a PDF document specified in the source property.
    */
   async open () {
-    if (this.ignoreEvents || !this.source) return;
+    if (!this.source) return;
 
-    try {
-      if (!this.__scriptAlreadyLoaded) await this.__loadScript();
+    if (!this.__scriptAlreadyLoaded) await this.__loadScript();
 
-      // Memoize the pdf.js worker.
-      this.__pdfJSWorker = this.__pdfJSWorker || new this.__pdfJS.PDFWorker();
+    // Memoize the pdf.js worker.
+    this.__pdfJSWorker = this.__pdfJSWorker || new this.__pdfJS.PDFWorker();
 
-      const file = await this.__pdfJS.getDocument({
-        url: this.source,
-        worker: this.__pdfJSWorker
-      }).promise;
+    this.loading = true;
 
-      const filePage = await file.getPage(this.currentPage);
-      const fileViewport = filePage.getViewport({ scale: this.epaperCanvas.ratio });
+    const file = await this.__pdfJS.getDocument({
+      url: this.source,
+      worker: this.__pdfJSWorker
+    }).promise;
 
-      this.landscape = fileViewport.height < fileViewport.width;
-      this.epaperCanvas.canvas.width = fileViewport.width;
-      this.epaperCanvas.canvas.height = fileViewport.height;
-      this.epaperCanvas.clearPage();
+    const filePage = await file.getPage(this.currentPage);
+    const fileViewport = filePage.getViewport({ scale: this.epaperCanvas.ratio });
 
-      this.totalPageCount = file._pdfInfo.numPages;
+    this.landscape = fileViewport.height < fileViewport.width;
+    this.epaperCanvas.canvas.width = fileViewport.width;
+    this.epaperCanvas.canvas.height = fileViewport.height;
+    this.epaperCanvas.clearPage();
 
-      this.__pdfRenderTask = filePage.render({
-        viewport: fileViewport,
-        canvasContext: this.epaperCanvas.canvasContext
-      });
+    this.totalPageCount = file._pdfInfo.numPages;
 
-      this.loading = true;
-      await this.__pdfRenderTask.promise;
-      this.loading = false;
-    } catch (error) {
-      console.error(error);
+    this.__pdfRenderTask = filePage.render({
+      viewport: fileViewport,
+      canvasContext: this.epaperCanvas.canvasContext
+    });
 
-      // Dispatch a custom error to display the epaper's error page.
-      this.dispatchEvent(new CustomEvent('casper-epaper-error-opening-attachment', {
-        bubbles: true,
-        composed: true
-      }));
-    }
+    await this.__pdfRenderTask.promise;
+    this.loading = false;
+  }
+
+  __zoomChanged () {
+    this.open();
   }
 
   /**

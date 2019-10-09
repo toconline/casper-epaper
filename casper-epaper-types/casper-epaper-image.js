@@ -12,10 +12,7 @@ class CasperEpaperImage extends PolymerElement {
       /**
        * The image's source url.
        */
-      source: {
-        type: String,
-        observer: '__sourceChanged'
-      },
+      source: String,
       /**
        * This flag states if the epaper component is currently loading or not.
        *
@@ -24,16 +21,7 @@ class CasperEpaperImage extends PolymerElement {
       loading: {
         type: Boolean,
         notify: true
-      },
-      /**
-       * The current zoom being applied to the epaper container.
-       *
-       * @type {Number}
-       */
-      zoom: {
-        type: Number,
-        observer: '__recalculateImageDimensions'
-      },
+      }
     }
   }
 
@@ -47,37 +35,46 @@ class CasperEpaperImage extends PolymerElement {
           justify-content: center;
         }
       </style>
-      <img
-        src="[[__source]]"
-        width="[[__width]]"
-        height="[[__height]]" />
     `;
   }
 
   /**
    * Observer that gets fired when the image's source changes.
    */
-  __sourceChanged () {
-    const imageToLoad = new Image();
-    imageToLoad.onload = event => {
-      this.__loadedImage = event.path.shift();
+  open () {
+    return new Promise((resolve, reject) => {
+      const imageToLoad = new Image();
 
-      this.__recalculateImageDimensions();
-      this.__source = this.source;
-      this.loading = false;
-    };
+      imageToLoad.onerror = error => reject(error);
+      imageToLoad.onload = event => {
+        this.__loadedImage = event.path.shift();
 
-    imageToLoad.onerror = () => {
-      // Dispatch a custom error to display the epaper's error page.
-      this.dispatchEvent(new CustomEvent('casper-epaper-error-opening-attachment', {
-        bubbles: true,
-        composed: true
-      }));
-    }
+        // Remove the existing image if there is any.
+        if (this.__imageElement) this.shadowRoot.removeChild(this.__imageElement);
 
-    // Trigger the image load.
-    this.loading = true;
-    imageToLoad.src = `${this.source}?v=${Date.now()}`;
+        // Create a new image and append it to the DOM.
+        this.__imageElement = document.createElement('img');
+        this.__imageElement.src = this.source;
+        this.__recalculateImageDimensions();
+
+        this.shadowRoot.appendChild(this.__imageElement);
+
+        this.loading = false;
+        resolve();
+      };
+
+
+      // Trigger the image load.
+      this.loading = true;
+      imageToLoad.src = this.source;
+    })
+  }
+
+  /**
+   * This method gets manually invoked when the epaper container is resized.
+   */
+  __zoomChanged () {
+    this.__recalculateImageDimensions();
   }
 
   /**
@@ -85,26 +82,22 @@ class CasperEpaperImage extends PolymerElement {
    * plus the image dimensions.
    */
   __recalculateImageDimensions () {
-    if (!this.__loadedImage) return;
+    const availableWidth = this.parentElement.offsetWidth - 30;
+    const availableHeight = this.parentElement.offsetHeight - 30;
 
-    afterNextRender(this, () => {
-      const availableWidth = this.parentElement.offsetWidth - 30;
-      const availableHeight = this.parentElement.offsetHeight - 30;
+    const widthRatio = parseFloat(this.__loadedImage.width / availableWidth);
+    const heightRatio = parseFloat(this.__loadedImage.height / availableHeight);
 
-      const widthRatio = parseFloat(this.__loadedImage.width / availableWidth);
-      const heightRatio = parseFloat(this.__loadedImage.height / availableHeight);
-
-      // This means it's a horizontal image.
-      if (widthRatio > heightRatio) {
-        // Check if the original image fits within the available horizontal space, otherwise adjust its size.
-        this.__width = Math.min(availableWidth, this.__loadedImage.width);
-        this.__height = Math.min(this.__loadedImage.height / widthRatio, this.__loadedImage.height);
-      } else {
-        // Check if the original image fits within the available vertical space, otherwise adjust its size.
-        this.__height = Math.min(availableHeight, this.__loadedImage.height);
-        this.__width = Math.min(this.__loadedImage.width / heightRatio, this.__loadedImage.width);
-      }
-    });
+    // This means it's a horizontal image.
+    if (widthRatio > heightRatio) {
+      // Check if the original image fits within the available horizontal space, otherwise adjust its size.
+      this.__imageElement.width = Math.min(availableWidth, this.__loadedImage.width);
+      this.__imageElement.height = Math.min(this.__loadedImage.height / widthRatio, this.__loadedImage.height);
+    } else {
+      // Check if the original image fits within the available vertical space, otherwise adjust its size.
+      this.__imageElement.height = Math.min(availableHeight, this.__loadedImage.height);
+      this.__imageElement.width = Math.min(this.__loadedImage.width / heightRatio, this.__loadedImage.width);
+    }
   }
 }
 

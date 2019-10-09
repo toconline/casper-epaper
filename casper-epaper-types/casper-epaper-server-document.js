@@ -25,7 +25,56 @@ export class CasperEpaperServerDocument extends PolymerElement {
     return 'casper-epaper-server-document';
   }
 
-  // TODO remove tooltip!!!!
+  static get properties () {
+    return {
+      /**
+       * The TOConline's app object.
+       *
+       * @type {Object}
+       */
+      app: Object,
+      /**
+       * This flag states if the epaper component is currently loading or not.
+       *
+       * @type {Boolean}
+       */
+      loading: {
+        type: Boolean,
+        notify: true
+      },
+      /**
+       * The epaper's main component object.
+       *
+       * @type {Object}
+       */
+      epaper: Object,
+      /**
+       * The canvas that will be used to display the documents.
+       *
+       * @type {Object}
+       */
+      epaperCanvas: Object,
+      /**
+       * The current document's page that should be displayed.
+       *
+       * @type {Number}
+       */
+      currentPage: {
+        type: Number,
+        observer: '__currentPageChanged',
+        notify: true
+      },
+      /**
+       * The current document's total number of pages.
+       *
+       * @type {Number}
+       */
+      totalPageCount: {
+        type: Number,
+        notify: true
+      },
+    };
+  }
 
   static get template () {
     return html`
@@ -61,23 +110,6 @@ export class CasperEpaperServerDocument extends PolymerElement {
       <paper-icon-button icon="casper-icons:calendar" class="line-menu-button delete" tooltip="Remover linha"   on-click="__removeDocumentLine"></paper-icon-button>
     </div>
     `;
-  }
-
-  static get properties () {
-    return {
-      app: Object,
-      socket: Object,
-      epaperCanvas: Object,
-      currentPage: {
-        type: Number,
-        observer: '__currentPageChanged',
-        notify: true
-      },
-      totalPageCount: {
-        type: Number,
-        notify: true
-      },
-    };
   }
 
   ready () {
@@ -147,7 +179,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
       this.epaperCanvas.canvas.addEventListener('mousemove', event => this._moveHandler(event));
       this.epaperCanvas.canvas.addEventListener('mousedown', event => this._mouseDownHandler(event));
       this.epaperCanvas.canvas.addEventListener('mouseup'  , event => this._mouseUpHandler(event));
-      this.socket.addEventListener('casper-signed-in', event => this.reOpen(event));
+      this.app.socket.addEventListener('casper-signed-in', event => this.reOpen(event));
     });
   }
 
@@ -339,10 +371,8 @@ export class CasperEpaperServerDocument extends PolymerElement {
   }
 
   __zoomChanged () {
-    if (this.ignoreEvents) return;
-
     if (this.documentId !== undefined && this.documentScale !== this.epaperCanvas.sx) {
-      this.socket.setScale(this.documentId, 1.0 * this.epaperCanvas.sx.toFixed(2));
+      this.app.socket.setScale(this.documentId, 1.0 * this.epaperCanvas.sx.toFixed(2));
       this.documentScale = this.epaperCanvas.sx;
     }
   }
@@ -387,6 +417,8 @@ export class CasperEpaperServerDocument extends PolymerElement {
    * @param {number} pageNumber page starts at 1
    */
   async __openChapter (pageNumber) {
+    this.loading = true;
+
     this.__inputBoxDrawString = undefined;
     this.$.servertip.enabled = false;
     this.$.input.setVisible(false);
@@ -400,14 +432,14 @@ export class CasperEpaperServerDocument extends PolymerElement {
     let response;
 
     if (!(this.__jrxml === this.__chapter.jrxml && this.__locale === this.__chapter.locale)) {
-      this.socket._showOverlay({
+      this.app.socket._showOverlay({
         icon: 'connecting',
         spinner: true,
         loading_icon: 'loading-icon-03',
         message: 'A carregar modelo do documento',
       });
 
-      response = await this.socket.openDocument(this.__chapter);
+      response = await this.app.socket.openDocument(this.__chapter);
 
       if (response.errors !== undefined) {
         this.__clear();
@@ -415,7 +447,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
       }
 
       this.documentId  = response.id;
-      this.socket.registerDocumentHandler(this.documentId, (message) => this.documentHandler(message));
+      this.app.socket.registerDocumentHandler(this.documentId, (message) => this.documentHandler(message));
       this.pageWidth  = response.page.width;
       this.pageHeight = response.page.height;
 
@@ -429,14 +461,14 @@ export class CasperEpaperServerDocument extends PolymerElement {
     }
     this.__chapter.id = this.documentId;
 
-    this.socket._showOverlay({
+    this.app.socket._showOverlay({
       message: 'A carregar dados do documento',
       icon: 'connecting',
       spinner: true,
       loading_icon: 'loading-icon-03'
     });
 
-    response = await this.socket.loadDocument({
+    response = await this.app.socket.loadDocument({
       id:       this.documentId,
       editable: this.__chapter.editable,
       path:     this.__chapter.path,
@@ -449,6 +481,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
       this.__clear();
       throw new Error(response.errors);
     }
+
     this.__path    = this.__chapter.path;
     this.__params  = this.__chapter.params;
     this.__edition = this.__chapter.editable;
@@ -460,7 +493,9 @@ export class CasperEpaperServerDocument extends PolymerElement {
 
     this.__loading = false;
     this.$.servertip.enabled = true;
-    this.socket._dismissOverlay();
+    this.app.socket._dismissOverlay();
+
+    this.loading = false;
     return true;
   }
 
@@ -491,7 +526,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
           if ( i === this.__chapterIndex ) {
             if ( this.__chapterPageNumber !== newPageNumber ) {
               this.__resetScroll();
-              await this.socket.gotoPage(this.documentId, newPageNumber);
+              await this.app.socket.gotoPage(this.documentId, newPageNumber);
               return pageNumber;
             }
           } else {
@@ -514,7 +549,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
   async __removeDocumentLine () {
     // TODO spinner and errors
     if (this.__contextMenuIndex !== - 1) {
-      const response = await this.socket.deleteBand(
+      const response = await this.app.socket.deleteBand(
         this.documentId,
         this.__bands[this.__contextMenuIndex]._type,
         this.__bands[this.__contextMenuIndex]._id
@@ -525,7 +560,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
   async __addDocumentLine () {
     // TODO spinner and errors
     if (this.__contextMenuIndex !== - 1) {
-      const response = await this.socket.addBand(
+      const response = await this.app.socket.addBand(
         this.documentId,
         this.__bands[this.__contextMenuIndex]._type,
         this.__bands[this.__contextMenuIndex]._id
@@ -563,7 +598,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
       return -1;
     }
     let idx = 0, dataIndex = 0;
-    
+
     for (let band of this.__bands) {
       if ( band._type === 'DT' /*&& this.__bands[idx]._editable == true */ ) {
         if ( idx == this.__contextMenuIndex ) {
@@ -571,7 +606,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
         }
         dataIndex++;
       }
-      idx++;  
+      idx++;
     }
   }
 
@@ -2008,7 +2043,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
   }
 
   _mouseUpHandler (a_event) {
-    this.socket.sendClick(
+    this.app.socket.sendClick(
       this.documentId,
       parseFloat((a_event.offsetX * this.epaperCanvas.scalePxToServer).toFixed(2)),
       parseFloat((a_event.offsetY * this.epaperCanvas.scalePxToServer).toFixed(2))

@@ -48,41 +48,29 @@ class CasperEpaperIframe extends PolymerElement {
    * Method that will fetch the remote source and render it in the iframe.
    */
   async open () {
-    try {
-      const fileRequest = await fetch(this.source);
+    const fileRequest = await fetch(this.source);
 
-      if (fileRequest.ok) {
-        const fileContents = await fileRequest.text();
+    if (fileRequest.ok) {
+      const fileContents = await fileRequest.text();
 
-        switch (this.contentType) {
-          case 'file/htm':
-          case 'file/html':
-            this.__srcdoc = fileContents;
-            break;
-          case 'file/xml':
-          case 'file/txt':
-            const xmlDocumentContainer = document.createElement('pre');
-            xmlDocumentContainer.style.margin = 0;
-            xmlDocumentContainer.style.padding = '20px';
-            xmlDocumentContainer.style.overflow = 'auto';
-            xmlDocumentContainer.style.backgroundColor = 'white';
-            xmlDocumentContainer.innerText = fileContents;
+      switch (this.contentType) {
+        case 'file/htm':
+        case 'file/html':
+          this.__srcdoc = fileContents;
+          break;
+        case 'file/xml':
+        case 'file/txt':
+          const xmlDocumentContainer = document.createElement('pre');
+          xmlDocumentContainer.style.margin = 0;
+          xmlDocumentContainer.style.padding = '20px';
+          xmlDocumentContainer.style.overflow = 'auto';
+          xmlDocumentContainer.style.backgroundColor = 'white';
+          xmlDocumentContainer.innerText = fileContents;
 
-            this.__srcdoc = xmlDocumentContainer.outerHTML;
-        }
-      } else {
-        // Dispatch a custom error to display the epaper's error page.
-        this.dispatchEvent(new CustomEvent('casper-epaper-error-opening-attachment', {
-          bubbles: true,
-          composed: true
-        }));
+          this.__srcdoc = xmlDocumentContainer.outerHTML;
       }
-    } catch (error) {
-      // Dispatch a custom error to display the epaper's error page.
-      this.dispatchEvent(new CustomEvent('casper-epaper-error-opening-attachment', {
-        bubbles: true,
-        composed: true
-      }));
+    } else {
+      throw new Exception();
     }
   }
 }
