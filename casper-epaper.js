@@ -233,8 +233,8 @@ class CasperEpaper extends PolymerElement {
           <!--Casper-epaper-actions-->
           <slot name="casper-epaper-actions"></slot>
 
-          <paper-icon-button on-click="print"    id="print"    tooltip="Imprimir"        icon="casper-icons:print"        class="toolbar-button"></paper-icon-button>
-          <paper-icon-button on-click="download" id="download" tooltip="Descarregar PDF" icon="casper-icons:download-pdf" class="toolbar-button"></paper-icon-button>
+          <paper-icon-button on-click="print"    id="print"    tooltip="Imprimir"                    icon="casper-icons:print"       class="toolbar-button"></paper-icon-button>
+          <paper-icon-button on-click="download" id="download" tooltip="[[__epaperDownloadTooltip]]" icon="[[__epaperDownloadIcon]]" class="toolbar-button"></paper-icon-button>
 
           <!--Context menu-->
           <template is="dom-if" if="[[__hasContextMenu]]">
@@ -455,8 +455,9 @@ class CasperEpaper extends PolymerElement {
     this.__epaperComponentContainer = this.$['epaper-component-container'];
     this.__epaperComponentLoadingOverlay = this.$['epaper-component-loading-overlay'];
 
-    this.__epaperComponentSticky.addEventListener('mouseleave', () => {this.__epaperComponentSticky.style.height = `${parseInt(this.__epaperComponentStickyStyle.height * this.__zoom)}px`; });
+    this.__epaperComponentSticky.addEventListener('mouseleave', () => { this.__epaperComponentSticky.style.height = `${parseInt(this.__epaperComponentStickyStyle.height * this.__zoom)}px`; });
     this.__epaperComponentSticky.addEventListener('mouseover', () => { this.__epaperComponentSticky.style.height = `${parseInt(this.__epaperComponentStickyStyle.fullHeight * this.__zoom)}px`; });
+
   }
 
   //***************************************************************************************//
@@ -509,9 +510,11 @@ class CasperEpaper extends PolymerElement {
     this.__currentAttachment = attachment;
     this.__currentAttachmentName = attachment.name;
     this.__displayOrHideSticky();
+    this.__updateDownloadIconAndTooltip();
 
+    // Open the attachment.
     try {
-      switch (attachment.type) {
+      switch (this.__currentAttachment.type) {
         case 'file/pdf':
           await this.__openPDF();
           break;
@@ -993,12 +996,41 @@ class CasperEpaper extends PolymerElement {
     this.__enableOrDisablePageButtons();
     this.__enableOrDisableZoomButtons();
     this.__epaperComponentLoadingOverlay.removeAttribute('visible');
+    //this.shadowRoot.querySelector('slot[name="casper-epaper-tabs"]').assignedElements().forEach(tab => tab.disabled = false);
 
     // Set the loading overlay dimensions to zero after the animation is finished.
     setTimeout(() => {
       this.__epaperComponentLoadingOverlay.style.width = 0;
       this.__epaperComponentLoadingOverlay.style.height = 0;
     }, 200);
+  }
+
+  __updateDownloadIconAndTooltip () {
+    this.__epaperDownloadTooltip = this.__currentAttachment.type === 'epaper'
+      ? 'Download ficheiro PDF'
+      : `Download ficheiro ${this.__currentAttachment.type.split('/').pop().toUpperCase()}`;
+
+    switch (this.__currentAttachment.type) {
+      case 'epaper':
+      case 'file/pdf':
+        this.__epaperDownloadIcon = 'casper-icons:file-pdf';
+        break;
+      case 'file/xml':
+        this.__epaperDownloadIcon = 'casper-icons:file-xml';
+        break;
+      case 'file/txt':
+        this.__epaperDownloadIcon = 'casper-icons:file-alt';
+        break;
+      case 'file/htm':
+      case 'file/html':
+        this.__epaperDownloadIcon = 'casper-icons:file-code';
+        break;
+      case 'file/png':
+      case 'file/jpg':
+      case 'file/jpeg':
+        this.__epaperDownloadIcon = 'casper-icons:file-image';
+        break;
+    }
   }
 }
 
