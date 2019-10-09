@@ -146,29 +146,31 @@ class CasperEpaper extends PolymerElement {
           flex-grow: 1;
         }
 
-        .epaper .epaper-container {
+        .epaper #epaper-container {
           display: flex;
           height: fit-content;
           flex-direction: column;
         }
 
-        .epaper .epaper-container h3 {
+        .epaper #epaper-container h3 {
           margin: 0;
           margin-bottom: 15px;
           height: 30px;
           line-height: 30px;
           text-align: center;
           color: var(--primary-color);
+          text-overflow: ellipsis;
+          overflow: hidden;
         }
 
-        .epaper .epaper-container #epaper-component-container {
+        .epaper #epaper-container #epaper-component-container {
           position: relative;
           background-color: white;
           box-shadow: rgba(0, 0, 0, 0.24) 0px 5px 12px 0px,
                       rgba(0, 0, 0, 0.12) 0px 0px 12px 0px;
         }
 
-        .epaper .epaper-container #epaper-component-container #epaper-component-sticky {
+        .epaper #epaper-container #epaper-component-container #epaper-component-sticky {
           opacity: 0.2;
           overflow: auto;
           display: none;
@@ -181,17 +183,17 @@ class CasperEpaper extends PolymerElement {
           background-image: url('/node_modules/@casper2020/casper-epaper/static/epaper-sticky.svg');
         }
 
-        .epaper .epaper-container #epaper-component-container #epaper-component-sticky:hover {
+        .epaper #epaper-container #epaper-component-container #epaper-component-sticky:hover {
           opacity: 1;
           cursor: pointer;
         }
 
-        .epaper .epaper-container #epaper-component-container #epaper-loading-overlay {
+        .epaper #epaper-container #epaper-component-container #epaper-component-loading-overlay {
           top: 0;
           right: 0;
+          width: 0;
+          height: 0;
           opacity: 0;
-          width: 100%;
-          height: 100%;
           display: flex;
           color: white;
           position: absolute;
@@ -202,11 +204,11 @@ class CasperEpaper extends PolymerElement {
           background-color: rgba(0, 0, 0, 0.5);
         }
 
-        .epaper .epaper-container #epaper-component-container #epaper-loading-overlay[visible] {
+        .epaper #epaper-container #epaper-component-container #epaper-component-loading-overlay[visible] {
           opacity: 1;
         }
 
-        .epaper .epaper-container #epaper-component-container #epaper-loading-overlay paper-spinner {
+        .epaper #epaper-container #epaper-component-container #epaper-component-loading-overlay paper-spinner {
           width: 100px;
           height: 100px;
           margin-bottom: 10px;
@@ -244,8 +246,8 @@ class CasperEpaper extends PolymerElement {
       <div class="epaper">
         <div class="spacer"></div>
 
-        <div class="epaper-container">
-        <!--Epaper title-->
+        <div id="epaper-container">
+          <!--Epaper title-->
           <h3 class="epaper-title">[[__currentAttachmentName]]</h3>
 
           <div id="epaper-component-container">
@@ -298,7 +300,7 @@ class CasperEpaper extends PolymerElement {
             <!--Generic Page Epaper-->
             <casper-epaper-generic-page id="genericPage"></casper-epaper-generic-page>
 
-            <div id="epaper-loading-overlay">
+            <div id="epaper-component-loading-overlay">
               <paper-spinner active></paper-spinner>
               A carregar o documento
             </div>
@@ -431,7 +433,6 @@ class CasperEpaper extends PolymerElement {
       },
       __loading: {
         type: Boolean,
-        value: false,
         observer: '__loadingChanged'
       }
     };
@@ -440,28 +441,22 @@ class CasperEpaper extends PolymerElement {
   ready () {
     super.ready();
 
-    this.__epaper = this;
-
-    this.__epaperCanvas = this.$.epaperCanvas;
-    this.__currentPage      = 1;
-    this.__totalPageCount   = 0;
-    this._pageNumber        = 1;
-    this._chapterPageCount  = 0;
-    this._chapterPageNumber = 1;
-    this.__socket           = this.app.socket;
+    this.__epaper         = this;
+    this.__currentPage    = 1;
+    this.__totalPageCount = 0;
+    this.__socket         = this.app.socket;
+    this.__epaperCanvas   = this.$.epaperCanvas;
     this.openBlankPage();
 
     afterNextRender(this, () => this.__handleContextMenu());
 
-    this.__epaperComponentLoadingOverlay = this.$['epaper-component-loading-overlay'];
-    this.__epaperComponentContainer = this.$['epaper-component-container'];
+    this.__epaperContainer = this.$['epaper-container'];
     this.__epaperComponentSticky = this.$['epaper-component-sticky'];
-    this.__epaperComponentSticky.addEventListener('mouseleave', () => { this.__epaperComponentSticky.style.height = `${parseInt(this.__epaperComponentStickyStyle.height * this.__zoom)}px`; });
-    this.__epaperComponentSticky.addEventListener('mouseover', () => { this.__epaperComponentSticky.style.height = `${parseInt(this.__epaperComponentStickyStyle.fullHeight * this.__zoom)}px`; });
+    this.__epaperComponentContainer = this.$['epaper-component-container'];
+    this.__epaperComponentLoadingOverlay = this.$['epaper-component-loading-overlay'];
 
-    [this.$.pdf, this.$.image, this.$.iframe].forEach(epaperComponent => {
-      epaperComponent.addEventListener('casper-epaper-error-opening-attachment', () => this.__displayErrorPage());
-    })
+    this.__epaperComponentSticky.addEventListener('mouseleave', () => {this.__epaperComponentSticky.style.height = `${parseInt(this.__epaperComponentStickyStyle.height * this.__zoom)}px`; });
+    this.__epaperComponentSticky.addEventListener('mouseover', () => { this.__epaperComponentSticky.style.height = `${parseInt(this.__epaperComponentStickyStyle.fullHeight * this.__zoom)}px`; });
   }
 
   //***************************************************************************************//
@@ -508,8 +503,7 @@ class CasperEpaper extends PolymerElement {
   /**
    * Opens an attachment with the correct "type" of epaper.
    *
-   * @param {Object} attachment The attachment's metadata. This object should contain the attachment's identifier,
-   * type and name.
+   * @param {Object} attachment The attachment's metadata. This object should contain the attachment's identifier, type and name.
    */
   async openAttachment (attachment) {
     this.__currentAttachment = attachment;
@@ -908,6 +902,7 @@ class CasperEpaper extends PolymerElement {
   __recalculateEpaperDimensions () {
     afterNextRender(this, () => {
       // Scale the epaper component container.
+      this.__epaperContainer.style.maxWidth  = `${parseInt((this.__landscape ? this.__epaperComponentHeight : this.__epaperComponentWidth) * this.__zoom)}px`;
       this.__epaperComponentContainer.style.width  = `${parseInt((this.__landscape ? this.__epaperComponentHeight : this.__epaperComponentWidth) * this.__zoom)}px`;
       this.__epaperComponentContainer.style.height = `${parseInt((this.__landscape ? this.__epaperComponentWidth : this.__epaperComponentHeight) * this.__zoom)}px`;
 
@@ -986,10 +981,9 @@ class CasperEpaper extends PolymerElement {
   }
 
   __displayLoadingOverlay () {
-    // Set the loading overlay dimensions to zero after the animation is finished
-    this.$['epaper-loading-overlay'].style.width = '100%';
-    this.$['epaper-loading-overlay'].style.height = '100%';
-    this.$['epaper-loading-overlay'].setAttribute('visible', true);
+    this.__epaperComponentLoadingOverlay.style.width = '100%';
+    this.__epaperComponentLoadingOverlay.style.height = '100%';
+    this.__epaperComponentLoadingOverlay.setAttribute('visible', true);
 
     this.__disableZoomButtons();
     this.__disablePageButtons();
@@ -998,12 +992,12 @@ class CasperEpaper extends PolymerElement {
   __hideLoadingOverlay () {
     this.__enableOrDisablePageButtons();
     this.__enableOrDisableZoomButtons();
-    this.$['epaper-loading-overlay'].removeAttribute('visible');
+    this.__epaperComponentLoadingOverlay.removeAttribute('visible');
 
     // Set the loading overlay dimensions to zero after the animation is finished.
     setTimeout(() => {
-      this.$['epaper-loading-overlay'].style.width = 0;
-      this.$['epaper-loading-overlay'].style.height = 0;
+      this.__epaperComponentLoadingOverlay.style.width = 0;
+      this.__epaperComponentLoadingOverlay.style.height = 0;
     }, 200);
   }
 }
