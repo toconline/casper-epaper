@@ -468,8 +468,7 @@ class CasperEpaper extends PolymerElement {
     this.__currentAttachment = undefined;
 
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.GENERIC_PAGE);
-    this.__disableZoomButtons();
-    this.__disablePageButtons();
+    this.__enableOrDisableControlButtons({ zoom: true, print: false, paging: false });
 
     this.$.genericPage.template = template;
   }
@@ -488,8 +487,7 @@ class CasperEpaper extends PolymerElement {
     Object.keys(options).forEach(option => this.$.upload[option] = options[option]);
 
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.UPLOAD);
-    this.__enableOrDisableZoomButtons();
-    this.__disablePageButtons();
+    this.__enableOrDisableControlButtons({ zoom: true, print: false, paging: false });
   }
 
   /**
@@ -765,8 +763,7 @@ class CasperEpaper extends PolymerElement {
     await this.$.serverDocument.open(this.__currentAttachment);
 
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT);
-    this.__enableOrDisablePageButtons();
-    this.__enableOrDisableZoomButtons();
+    this.__enableOrDisableControlButtons({ zoom: true, print: true, paging: true });
   }
 
   /**
@@ -777,8 +774,7 @@ class CasperEpaper extends PolymerElement {
     await this.$.image.open();
 
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.IMAGE);
-    this.__disablePageButtons();
-    this.__enableOrDisableZoomButtons();
+    this.__enableOrDisableControlButtons({ zoom: true, print: false, paging: false });
   }
 
   /**
@@ -792,8 +788,7 @@ class CasperEpaper extends PolymerElement {
     await this.$.iframe.open();
 
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.IFRAME);
-    this.__disablePageButtons();
-    this.__enableOrDisableZoomButtons();
+    this.__enableOrDisableControlButtons({ zoom: true, print: false, paging: false });
   }
 
   /**
@@ -804,9 +799,7 @@ class CasperEpaper extends PolymerElement {
     await this.$.pdf.open();
 
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.PDF);
-    this.__enableOrDisablePageButtons();
-    this.__enableOrDisableZoomButtons();
-
+    this.__enableOrDisableControlButtons({ zoom: true, print: true, paging: true });
   }
 
   __handleContextMenu () {
@@ -846,29 +839,29 @@ class CasperEpaper extends PolymerElement {
     return assignedElements;
   }
 
-  __disablePageButtons () {
-    this.$.nextPage.disabled = true;
-    this.$.previousPage.disabled = true;
-  }
+  __enableOrDisableControlButtons (options, saveCurrentState = true) {
+    if (saveCurrentState) this.__currentActionButtonsOptions = options;
 
-  __disableZoomButtons () {
-    this.$.zoomIn.disabled = true;
-    this.$.zoomOut.disabled = true;
-  }
-
-  __enableOrDisablePageButtons () {
-    if ([CasperEpaper.EPAPER_TYPES.PDF, CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT].includes(this.__epaperType)) {
-      this.$.previousPage.disabled = this.__currentPage === 1;
-      this.$.nextPage.disabled = this.__currentPage === this.__totalPageCount;
+    // Paging buttons.
+    if (options.paging) {
+      this.$.nextPage.disabled = this.__currentPage === 1;
+      this.$.previousPage.disabled = this.__currentPage === this.__totalPageCount;
     } else {
       this.$.nextPage.disabled = true;
       this.$.previousPage.disabled = true;
     }
-  }
 
-  __enableOrDisableZoomButtons () {
-    this.$.zoomIn.disabled = this.__zoom >= CasperEpaper.EPAPER_MAX_ZOOM;
-    this.$.zoomOut.disabled = this.__zoom <= CasperEpaper.EPAPER_MIN_ZOOM;
+    // Zoom buttons.
+    if (options.zoom) {
+      this.$.zoomIn.disabled = this.__zoom >= CasperEpaper.EPAPER_MAX_ZOOM;
+      this.$.zoomOut.disabled = this.__zoom <= CasperEpaper.EPAPER_MIN_ZOOM;
+    } else {
+      this.$.zoomIn.disabled = true;
+      this.$.zoomOut.disabled = true;
+    }
+
+    // Print button.
+    this.$.print.disabled = !options.print;
   }
 
   __toggleBetweenEpaperTypes (epaperType) {
@@ -980,15 +973,12 @@ class CasperEpaper extends PolymerElement {
     this.__epaperComponentLoadingOverlay.style.height = '100%';
     this.__epaperComponentLoadingOverlay.setAttribute('visible', true);
 
-    this.__disableZoomButtons();
-    this.__disablePageButtons();
+    this.__enableOrDisableControlButtons({ zoom: false, print: false, paging: false }, false);
   }
 
   __hideLoadingOverlay () {
-    this.__enableOrDisablePageButtons();
-    this.__enableOrDisableZoomButtons();
     this.__epaperComponentLoadingOverlay.removeAttribute('visible');
-    //this.shadowRoot.querySelector('slot[name="casper-epaper-tabs"]').assignedElements().forEach(tab => tab.disabled = false);
+    this.__enableOrDisableControlButtons(this.__currentActionButtonsOptions);
 
     // Set the loading overlay dimensions to zero after the animation is finished.
     setTimeout(() => {
