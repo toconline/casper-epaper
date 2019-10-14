@@ -155,6 +155,7 @@ class CasperEpaper extends PolymerElement {
         }
 
         .epaper #epaper-container #epaper-component-container {
+          display: none;
           position: relative;
           background-color: white;
           box-shadow: rgba(0, 0, 0, 0.24) 0px 5px 12px 0px,
@@ -606,7 +607,7 @@ class CasperEpaper extends PolymerElement {
    * Open specified chapter, page can also be specified.
    *
    * @param {number} chapterIndex zero page index of the chapter in the document model
-   * @param {number} pageNumber page to open, 1 for 1st page
+   * @param {number} pageNumber page to open, 1 for 1st page
    */
   gotoChapter (chapterIndex, pageNumber) {
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT);
@@ -624,8 +625,8 @@ class CasperEpaper extends PolymerElement {
    * Open document and highlight field or parameter on the specified chapter
    *
    * @param {object} documentModel an object that specifies the layout and data of the document
-   * @param {string} chaperReport name of the chapter's JRXML report
-   * @param {string} fieldName name field or parameter to highlight
+   * @param {string} chaperReport name of the chapter's JRXML report
+   * @param {string} fieldName name field or parameter to highlight
    * @param {string} rowIndex undefined to highlight a parameter or the rowIndex to highligth a field
    */
   openAndGotoParamOrField (documentModel, chapterReport, fieldName, rowIndex) {
@@ -637,8 +638,8 @@ class CasperEpaper extends PolymerElement {
   /**
    * Highlight field or parameter on the specified chapter
    *
-   * @param {string} chaperReport name of the chapter's JRXML report
-   * @param {string} fieldName name field or parameter to highlight
+   * @param {string} chaperReport name of the chapter's JRXML report
+   * @param {string} fieldName name field or parameter to highlight
    * @param {string} rowIndex undefined to highlight a parameter or the rowIndex to highligth a field
    */
   gotoParamOrField (chapterReport, fieldName, rowIndex) {
@@ -898,6 +899,7 @@ class CasperEpaper extends PolymerElement {
       this.__epaperContainer.style.maxWidth  = `${parseInt((this.__landscape ? this.__epaperComponentHeight : this.__epaperComponentWidth) * this.__zoom)}px`;
       this.__epaperComponentContainer.style.width  = `${parseInt((this.__landscape ? this.__epaperComponentHeight : this.__epaperComponentWidth) * this.__zoom)}px`;
       this.__epaperComponentContainer.style.height = `${parseInt((this.__landscape ? this.__epaperComponentWidth : this.__epaperComponentHeight) * this.__zoom)}px`;
+      this.__epaperComponentContainer.style.display = 'block';
 
       // Scale the post-it dimensions and position.
       this.__epaperComponentSticky.style.top          = `${parseInt(this.__epaperComponentStickyStyle.top * this.__zoom)}px`;
