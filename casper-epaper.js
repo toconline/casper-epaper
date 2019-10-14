@@ -839,13 +839,18 @@ class CasperEpaper extends PolymerElement {
     return assignedElements;
   }
 
+  __enableOrDisablePageButtons () {
+    this.$.previousPage.disabled = this.__currentPage === 1;
+    this.$.nextPage.disabled = this.__currentPage === this.__totalPageCount;
+  }
+
   __enableOrDisableControlButtons (options, saveCurrentState = true) {
     if (saveCurrentState) this.__currentActionButtonsOptions = options;
 
     // Paging buttons.
     if (options.paging) {
-      this.$.nextPage.disabled = this.__currentPage === 1;
-      this.$.previousPage.disabled = this.__currentPage === this.__totalPageCount;
+      this.$.previousPage.disabled = this.__currentPage === 1;
+      this.$.nextPage.disabled = this.__currentPage === this.__totalPageCount;
     } else {
       this.$.nextPage.disabled = true;
       this.$.previousPage.disabled = true;
