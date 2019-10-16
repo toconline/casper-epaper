@@ -441,6 +441,12 @@ class CasperEpaper extends PolymerElement {
 
     afterNextRender(this, () => this.__handleContextMenu());
 
+    this.__socket.addEventListener('casper-signed-in', () => {
+      if (this.__currentAttachment) {
+        this.openAttachment(this.__currentAttachment);
+      }
+    });
+
     this.__epaperContainer = this.$['epaper-container'];
     this.__epaperComponentSticky = this.$['epaper-component-sticky'];
     this.__epaperComponentContainer = this.$['epaper-component-container'];
