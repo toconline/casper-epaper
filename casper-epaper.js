@@ -442,9 +442,7 @@ class CasperEpaper extends PolymerElement {
     afterNextRender(this, () => this.__handleContextMenu());
 
     this.__socket.addEventListener('casper-signed-in', () => {
-      if (this.__currentAttachment) {
-        this.openAttachment(this.__currentAttachment);
-      }
+      if (this.__currentAttachment) this.openAttachment(this.__currentAttachment);
     });
 
     this.__epaperContainer = this.$['epaper-container'];
@@ -588,7 +586,9 @@ class CasperEpaper extends PolymerElement {
   }
 
   print () {
-    this.__epaperActiveComponent.print();
+    if (typeof this.__epaperActiveComponent.print === 'function') {
+      this.__epaperActiveComponent.print();
+    }
   }
 
   download () {
@@ -801,7 +801,7 @@ class CasperEpaper extends PolymerElement {
     this.$.pdf.open(1);
 
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.PDF);
-    this.__enableOrDisableControlButtons({ zoom: true, print: true, paging: true });
+    this.__enableOrDisableControlButtons({ zoom: true, print: false, paging: true });
   }
 
   __handleContextMenu () {
