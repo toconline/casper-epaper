@@ -48,7 +48,8 @@ class CasperEpaperPdf extends PolymerElement {
        */
       currentPage: {
         type: Number,
-        observer: 'open'
+        notify: true,
+        observer: '__currentPageChanged'
       },
       /**
        * The total number of pages that the document has.
@@ -69,8 +70,14 @@ class CasperEpaperPdf extends PolymerElement {
   /**
    * Open a PDF document specified in the source property.
    */
-  async open () {
+  async open (currentPage = undefined) {
     if (!this.source) return;
+
+    // If a page was specified and it's different from the current one, set it and return so that the observer fires this method.
+    if (this.currentPage !== currentPage && currentPage !== undefined) {
+      this.currentPage = currentPage;
+      return;
+    }
 
     if (!this.__scriptAlreadyLoaded) await this.__loadScript();
 
@@ -79,14 +86,11 @@ class CasperEpaperPdf extends PolymerElement {
 
     this.loading = true;
 
-    const file = await this.__pdfJS.getDocument({
-      url: this.source,
-      worker: this.__pdfJSWorker
-    }).promise;
-
+    const file = await this.__pdfJS.getDocument({ url: this.source, worker: this.__pdfJSWorker }).promise;
     const filePage = await file.getPage(this.currentPage);
     const fileViewport = filePage.getViewport({ scale: this.epaperCanvas.ratio });
 
+    // Change the canvas dimensions.
     this.landscape = fileViewport.height < fileViewport.width;
     this.epaperCanvas.canvas.width = fileViewport.width;
     this.epaperCanvas.canvas.height = fileViewport.height;
@@ -94,16 +98,16 @@ class CasperEpaperPdf extends PolymerElement {
 
     this.totalPageCount = file._pdfInfo.numPages;
 
-    this.__pdfRenderTask = filePage.render({
-      viewport: fileViewport,
-      canvasContext: this.epaperCanvas.canvasContext
-    });
+    await filePage.render({ viewport: fileViewport, canvasContext: this.epaperCanvas.canvasContext }).promise;
 
-    await this.__pdfRenderTask.promise;
     this.loading = false;
   }
 
   __zoomChanged () {
+    this.open();
+  }
+
+  __currentPageChanged () {
     this.open();
   }
 

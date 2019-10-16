@@ -272,7 +272,7 @@ class CasperEpaper extends PolymerElement {
               id="pdf"
               loading="{{__loading}}"
               landscape="{{__landscape}}"
-              current-page="[[__currentPage]]"
+              current-page="{{__currentPage}}"
               epaper-canvas="[[__epaperCanvas]]"
               total-page-count="{{__totalPageCount}}">
             </casper-epaper-pdf>
@@ -746,10 +746,6 @@ class CasperEpaper extends PolymerElement {
     return job;
   }
 
-  __documentChanged (document) {
-    if (document) this.open(document);
-  }
-
   //***************************************************************************************//
   //                                                                                       //
   //                             ~~~ Private methods ~~~                                   //
@@ -796,7 +792,7 @@ class CasperEpaper extends PolymerElement {
    */
   async __openPDF () {
     this.$.pdf.source = `/file/${this.__currentAttachment.id}`;
-    await this.$.pdf.open();
+    this.$.pdf.open(1);
 
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.PDF);
     this.__enableOrDisableControlButtons({ zoom: true, print: true, paging: true });
@@ -849,8 +845,7 @@ class CasperEpaper extends PolymerElement {
 
     // Paging buttons.
     if (options.paging) {
-      this.$.previousPage.disabled = this.__currentPage === 1;
-      this.$.nextPage.disabled = this.__currentPage === this.__totalPageCount;
+      this.__enableOrDisablePageButtons();
     } else {
       this.$.nextPage.disabled = true;
       this.$.previousPage.disabled = true;
