@@ -1,3 +1,23 @@
+/*
+  - Copyright (c) 2014-2019 Cloudware S.A. All rights reserved.
+  -
+  - This file is part of casper-epaper.
+  -
+  - casper-epaper is free software: you can redistribute it and/or modify
+  - it under the terms of the GNU Affero General Public License as published by
+  - the Free Software Foundation, either version 3 of the License, or
+  - (at your option) any later version.
+  -
+  - casper-epaper  is distributed in the hope that it will be useful,
+  - but WITHOUT ANY WARRANTY; without even the implied warranty of
+  - MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  - GNU General Public License for more details.
+  -
+  - You should have received a copy of the GNU Affero General Public License
+  - along with casper-epaper.  If not, see <http://www.gnu.org/licenses/>.
+  -
+ */
+
 import '../casper-epaper-input.js';
 import '../casper-epaper-tooltip.js';
 import '../casper-epaper-servertip-helper.js';
@@ -125,6 +145,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
     this.__focusedBandId      = undefined;
     this._redraw_timer_key    = '_epaper_redraw_timer_key';
     this._uploaded_assets_url = '';
+    this._socket              = app.socket;
 
     afterNextRender(this, () => {
 
@@ -132,8 +153,8 @@ export class CasperEpaperServerDocument extends PolymerElement {
 
       this.__contextMenuIndex = -1;
       this.__contextMenu = contextMenuSlotElements && contextMenuSlotElements.length > 0
-        ? contextMenuSlotElements.shift()
-        : this.$['default-context-menu'];
+      ? contextMenuSlotElements.shift()
+      : this.$['default-context-menu'];
 
       this.__resetRenderState();
       this.__resetCommandData();
@@ -179,6 +200,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
       this.epaperCanvas.canvas.addEventListener('mousemove', event => this._moveHandler(event));
       this.epaperCanvas.canvas.addEventListener('mousedown', event => this._mouseDownHandler(event));
       this.epaperCanvas.canvas.addEventListener('mouseup'  , event => this._mouseUpHandler(event));
+      this._socket.addEventListener('casper-disconnected', (e) => this.__resetCommandData(true));
     });
   }
 
@@ -371,7 +393,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
 
   __zoomChanged () {
     if (this.documentId !== undefined && this.documentScale !== this.epaperCanvas.sx) {
-      this.app.socket.setScale(this.documentId, 1.0 * this.epaperCanvas.sx.toFixed(2));
+      this._socket.setScale(this.documentId, 1.0 * this.epaperCanvas.sx.toFixed(2));
       this.documentScale = this.epaperCanvas.sx;
     }
   }
@@ -431,14 +453,8 @@ export class CasperEpaperServerDocument extends PolymerElement {
     let response;
 
     if (!(this.__jrxml === this.__chapter.jrxml && this.__locale === this.__chapter.locale)) {
-      this.app.socket._showOverlay({
-        icon: 'connecting',
-        spinner: true,
-        loading_icon: 'loading-icon-03',
-        message: 'A carregar modelo do documento',
-      });
 
-      response = await this.app.socket.openDocument(this.__chapter);
+      response = await this._socket.openDocument(this.__chapter);
 
       if (response.errors !== undefined) {
         this.__clear();
@@ -446,7 +462,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
       }
 
       this.documentId  = response.id;
-      this.app.socket.registerDocumentHandler(this.documentId, (message) => this.documentHandler(message));
+      this._socket.registerDocumentHandler(this.documentId, (message) => this.documentHandler(message));
       this.pageWidth  = response.page.width;
       this.pageHeight = response.page.height;
 
@@ -460,14 +476,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
     }
     this.__chapter.id = this.documentId;
 
-    this.app.socket._showOverlay({
-      message: 'A carregar dados do documento',
-      icon: 'connecting',
-      spinner: true,
-      loading_icon: 'loading-icon-03'
-    });
-
-    response = await this.app.socket.loadDocument({
+    response = await this._socket.loadDocument({
       id:       this.documentId,
       editable: this.__chapter.editable,
       path:     this.__chapter.path,
@@ -492,8 +501,6 @@ export class CasperEpaperServerDocument extends PolymerElement {
 
     this.__loading = false;
     this.$.servertip.enabled = true;
-    this.app.socket._dismissOverlay();
-
     this.loading = false;
     return true;
   }
@@ -525,7 +532,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
           if ( i === this.__chapterIndex ) {
             if ( this.__chapterPageNumber !== newPageNumber ) {
               this.__resetScroll();
-              await this.app.socket.gotoPage(this.documentId, newPageNumber);
+              await this._socket.gotoPage(this.documentId, newPageNumber);
               return pageNumber;
             }
           } else {
@@ -548,7 +555,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
   async __removeDocumentLine () {
     // TODO spinner and errors
     if (this.__contextMenuIndex !== - 1) {
-      const response = await this.app.socket.deleteBand(
+      const response = await this._socket.deleteBand(
         this.documentId,
         this.__bands[this.__contextMenuIndex]._type,
         this.__bands[this.__contextMenuIndex]._id
@@ -559,7 +566,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
   async __addDocumentLine () {
     // TODO spinner and errors
     if (this.__contextMenuIndex !== - 1) {
-      const response = await this.app.socket.addBand(
+      const response = await this._socket.addBand(
         this.documentId,
         this.__bands[this.__contextMenuIndex]._type,
         this.__bands[this.__contextMenuIndex]._id
@@ -1023,7 +1030,6 @@ export class CasperEpaperServerDocument extends PolymerElement {
           band._type        = t1;
           band._id          = w;
           band._editable    = 't' == t2 ? true : false;
-          console.log("BD", band._id, band._editable);
           band._height      = h;
           band._tx          = x;
           band._ty          = y;
@@ -2041,7 +2047,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
   }
 
   _mouseUpHandler (a_event) {
-    this.app.socket.sendClick(
+    this._socket.sendClick(
       this.documentId,
       parseFloat((a_event.offsetX * this.epaperCanvas.scalePxToServer).toFixed(2)),
       parseFloat((a_event.offsetY * this.epaperCanvas.scalePxToServer).toFixed(2))
