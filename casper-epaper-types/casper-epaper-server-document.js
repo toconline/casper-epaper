@@ -145,7 +145,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
     this.__focusedBandId      = undefined;
     this._redraw_timer_key    = '_epaper_redraw_timer_key';
     this._uploaded_assets_url = '';
-    this._socket              = app.socket;
+    this.__socket              = app.socket;
 
     afterNextRender(this, () => {
 
@@ -200,7 +200,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
       this.epaperCanvas.canvas.addEventListener('mousemove', event => this._moveHandler(event));
       this.epaperCanvas.canvas.addEventListener('mousedown', event => this._mouseDownHandler(event));
       this.epaperCanvas.canvas.addEventListener('mouseup'  , event => this._mouseUpHandler(event));
-      this._socket.addEventListener('casper-disconnected', (e) => this.__resetCommandData(true));
+      this.__socket.addEventListener('casper-disconnected', (e) => this.__resetCommandData(true));
     });
   }
 
@@ -393,7 +393,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
 
   __zoomChanged () {
     if (this.documentId !== undefined && this.documentScale !== this.epaperCanvas.sx) {
-      this._socket.setScale(this.documentId, 1.0 * this.epaperCanvas.sx.toFixed(2));
+      this.__socket.setScale(this.documentId, 1.0 * this.epaperCanvas.sx.toFixed(2));
       this.documentScale = this.epaperCanvas.sx;
     }
   }
@@ -454,7 +454,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
 
     if (!(this.__jrxml === this.__chapter.jrxml && this.__locale === this.__chapter.locale)) {
 
-      response = await this._socket.openDocument(this.__chapter);
+      response = await this.__socket.openDocument(this.__chapter);
 
       if (response.errors !== undefined) {
         this.__clear();
@@ -462,7 +462,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
       }
 
       this.documentId  = response.id;
-      this._socket.registerDocumentHandler(this.documentId, (message) => this.documentHandler(message));
+      this.__socket.registerDocumentHandler(this.documentId, (message) => this.documentHandler(message));
       this.pageWidth  = response.page.width;
       this.pageHeight = response.page.height;
 
@@ -476,7 +476,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
     }
     this.__chapter.id = this.documentId;
 
-    response = await this._socket.loadDocument({
+    response = await this.__socket.loadDocument({
       id:       this.documentId,
       editable: this.__chapter.editable,
       path:     this.__chapter.path,
@@ -532,7 +532,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
           if ( i === this.__chapterIndex ) {
             if ( this.__chapterPageNumber !== newPageNumber ) {
               this.__resetScroll();
-              await this._socket.gotoPage(this.documentId, newPageNumber);
+              await this.__socket.gotoPage(this.documentId, newPageNumber);
               return pageNumber;
             }
           } else {
@@ -555,7 +555,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
   async __removeDocumentLine () {
     // TODO spinner and errors
     if (this.__contextMenuIndex !== - 1) {
-      const response = await this._socket.deleteBand(
+      const response = await this.__socket.deleteBand(
         this.documentId,
         this.__bands[this.__contextMenuIndex]._type,
         this.__bands[this.__contextMenuIndex]._id
@@ -566,7 +566,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
   async __addDocumentLine () {
     // TODO spinner and errors
     if (this.__contextMenuIndex !== - 1) {
-      const response = await this._socket.addBand(
+      const response = await this.__socket.addBand(
         this.documentId,
         this.__bands[this.__contextMenuIndex]._type,
         this.__bands[this.__contextMenuIndex]._id
@@ -2047,7 +2047,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
   }
 
   _mouseUpHandler (a_event) {
-    this._socket.sendClick(
+    this.__socket.sendClick(
       this.documentId,
       parseFloat((a_event.offsetX * this.epaperCanvas.scalePxToServer).toFixed(2)),
       parseFloat((a_event.offsetY * this.epaperCanvas.scalePxToServer).toFixed(2))

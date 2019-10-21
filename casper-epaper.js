@@ -175,11 +175,6 @@ class CasperEpaper extends PolymerElement {
           background-image: url('/node_modules/@casper2020/casper-epaper/static/epaper-sticky.svg');
         }
 
-        .epaper #epaper-container #epaper-component-container #epaper-component-sticky:hover {
-          opacity: 1;
-          cursor: pointer;
-        }
-
         .epaper #epaper-container #epaper-component-container #epaper-component-loading-overlay {
           top: 0;
           right: 0;
@@ -377,6 +372,10 @@ class CasperEpaper extends PolymerElement {
        * @type {Object}
        */
       app: Object,
+      disableStickyAnimation: {
+        type: Boolean,
+        value: false,
+      },
       /** id of the containing element that can be scrolled */
       scroller: {
         type: String,
@@ -450,9 +449,20 @@ class CasperEpaper extends PolymerElement {
     this.__epaperComponentContainer = this.$['epaper-component-container'];
     this.__epaperComponentLoadingOverlay = this.$['epaper-component-loading-overlay'];
 
-    this.__epaperComponentSticky.addEventListener('mouseleave', () => { this.__epaperComponentSticky.style.height = `${parseInt(this.__epaperComponentStickyStyle.height * this.__zoom)}px`; });
-    this.__epaperComponentSticky.addEventListener('mouseover', () => { this.__epaperComponentSticky.style.height = `${parseInt(this.__epaperComponentStickyStyle.fullHeight * this.__zoom)}px`; });
+    this.__epaperComponentSticky.addEventListener('mouseleave', () => {
+      if (!this.disableStickyAnimation) {
+        this.__epaperComponentSticky.style.opacity = 0.2;
+        this.__epaperComponentSticky.style.height = `${parseInt(this.__epaperComponentStickyStyle.height * this.__zoom)}px`;
+      }
+    });
 
+    this.__epaperComponentSticky.addEventListener('mouseover', () => {
+      if (!this.disableStickyAnimation) {
+        this.__epaperComponentSticky.style.opacity = 1;
+        this.__epaperComponentSticky.style.cursor = 'pointer';
+        this.__epaperComponentSticky.style.height = `${parseInt(this.__epaperComponentStickyStyle.fullHeight * this.__zoom)}px`;
+      }
+    });
   }
 
   //***************************************************************************************//
@@ -918,6 +928,11 @@ class CasperEpaper extends PolymerElement {
     if (!Object.keys(this.__currentAttachment).includes('sticky')) {
       this.__epaperComponentSticky.style.display =  'none';
       return;
+    }
+
+    if (this.disableStickyAnimation) {
+      this.__epaperComponentSticky.style.opacity = 1;
+      this.__epaperComponentSticky.style.height = `${parseInt(this.__epaperComponentStickyStyle.fullHeight * this.__zoom)}px`;
     }
 
     this.__epaperComponentSticky.style.display =  'flex';
