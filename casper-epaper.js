@@ -948,7 +948,9 @@ class CasperEpaper extends PolymerElement {
     }
 
     this.__epaperComponentSticky.style.display =  'flex';
-    this.__epaperComponentSticky.innerHTML = this.__currentAttachment.sticky;
+    this.__epaperComponentSticky.innerHTML = this.__currentAttachment.sticky.constructor === String
+      ? this.__currentAttachment.sticky
+      : Object.values(this.__currentAttachment.sticky).join('');
   }
 
   __displayErrorPage () {
