@@ -175,6 +175,13 @@ class CasperEpaper extends PolymerElement {
           background-image: url('/node_modules/@casper2020/casper-epaper/static/epaper-sticky.svg');
         }
 
+        .epaper #epaper-container #epaper-component-container #epaper-component-sticky .bold { font-weight: bold; }
+        .epaper #epaper-container #epaper-component-container #epaper-component-sticky .italic { font-style: italic; }
+        .epaper #epaper-container #epaper-component-container #epaper-component-sticky .line-through { text-decoration: line-through; }
+        .epaper #epaper-container #epaper-component-container #epaper-component-sticky .text-small { font-size: 0.5em; }
+        .epaper #epaper-container #epaper-component-container #epaper-component-sticky .text-bigger { font-size: 1.5em; }
+        .epaper #epaper-container #epaper-component-container #epaper-component-sticky .text-biggest { font-size: 2em; }
+
         .epaper #epaper-container #epaper-component-container #epaper-component-loading-overlay {
           top: 0;
           right: 0;
@@ -405,6 +412,7 @@ class CasperEpaper extends PolymerElement {
           paddingTop: 45,
           paddingLeft: 10,
           paddingRight: 10,
+          paddingBottom: 10
         }
       },
       /** zoom factor when zoom is 1 one pt in report is one px in the screen */
@@ -911,14 +919,18 @@ class CasperEpaper extends PolymerElement {
       this.__epaperComponentContainer.style.display = 'block';
 
       // Scale the post-it dimensions and position.
-      this.__epaperComponentSticky.style.top          = `${parseInt(this.__epaperComponentStickyStyle.top * this.__zoom)}px`;
-      this.__epaperComponentSticky.style.right        = `${parseInt(this.__epaperComponentStickyStyle.right * this.__zoom)}px`;
-      this.__epaperComponentSticky.style.width        = `${parseInt(this.__epaperComponentStickyStyle.width * this.__zoom)}px`;
-      this.__epaperComponentSticky.style.height       = `${parseInt(this.__epaperComponentStickyStyle.height * this.__zoom)}px`;
-      this.__epaperComponentSticky.style.fontSize     = `${parseInt(this.__epaperComponentStickyStyle.fontSize * this.__zoom)}px`;
-      this.__epaperComponentSticky.style.paddingTop   = `${parseInt(this.__epaperComponentStickyStyle.paddingTop * this.__zoom)}px`;
-      this.__epaperComponentSticky.style.paddingLeft  = `${parseInt(this.__epaperComponentStickyStyle.paddingLeft * this.__zoom)}px`;
-      this.__epaperComponentSticky.style.paddingRight = `${parseInt(this.__epaperComponentStickyStyle.paddingRight * this.__zoom)}px`;
+      this.__epaperComponentSticky.style.top           = `${parseInt(this.__epaperComponentStickyStyle.top * this.__zoom)}px`;
+      this.__epaperComponentSticky.style.right         = `${parseInt(this.__epaperComponentStickyStyle.right * this.__zoom)}px`;
+      this.__epaperComponentSticky.style.width         = `${parseInt(this.__epaperComponentStickyStyle.width * this.__zoom)}px`;
+      this.__epaperComponentSticky.style.fontSize      = `${parseInt(this.__epaperComponentStickyStyle.fontSize * this.__zoom)}px`;
+      this.__epaperComponentSticky.style.paddingTop    = `${parseInt(this.__epaperComponentStickyStyle.paddingTop * this.__zoom)}px`;
+      this.__epaperComponentSticky.style.paddingLeft   = `${parseInt(this.__epaperComponentStickyStyle.paddingLeft * this.__zoom)}px`;
+      this.__epaperComponentSticky.style.paddingRight  = `${parseInt(this.__epaperComponentStickyStyle.paddingRight * this.__zoom)}px`;
+      this.__epaperComponentSticky.style.paddingBottom = `${parseInt(this.__epaperComponentStickyStyle.paddingBottom * this.__zoom)}px`;
+
+      this.__epaperComponentSticky.style.height = !this.disableStickyAnimation
+        ? `${parseInt(this.__epaperComponentStickyStyle.height * this.__zoom)}px`
+        : `${parseInt(this.__epaperComponentStickyStyle.fullHeight * this.__zoom)}px`
     });
   }
 
@@ -936,39 +948,7 @@ class CasperEpaper extends PolymerElement {
     }
 
     this.__epaperComponentSticky.style.display =  'flex';
-    // Print the text lines.
-    if (this.__currentAttachment.sticky.text_lines && this.__currentAttachment.sticky.text_lines.length > 0) {
-      this.__currentAttachment.sticky.text_lines.forEach(textLine => {
-        const textLineContainer = document.createElement('span');
-        const key = document.createElement('strong');
-        const value = document.createTextNode(textLine.value)
-
-        key.innerText = `${textLine.key}: `;
-        textLineContainer.appendChild(key);
-        textLineContainer.appendChild(value);
-
-        this.__epaperComponentSticky.appendChild(textLineContainer);
-      });
-    }
-
-    // Archived when.
-    if (this.__currentAttachment.sticky.archived_at) {
-      const archivedAt = document.createElement('span');
-      archivedAt.innerText = `Arquivado em ${moment.unix(this.__currentAttachment.sticky.archived_at).format('DD-MM-YYYY // HH:mm[h]')}`;
-      archivedAt.style.marginTop = '10px';
-
-      this.__epaperComponentSticky.appendChild(archivedAt);
-    }
-
-    // Archived by.
-    if (this.__currentAttachment.sticky.archived_by) {
-      const archivedBy = document.createElement('span');
-      archivedBy.innerText = `por ${this.__currentAttachment.sticky.archived_by}`;
-      archivedBy.style.marginTop = '10px';
-      archivedBy.style.color = 'var(--primary-color)';
-
-      this.__epaperComponentSticky.appendChild(archivedBy);
-    }
+    this.__epaperComponentSticky.innerHTML = this.__currentAttachment.sticky;
   }
 
   __displayErrorPage () {
