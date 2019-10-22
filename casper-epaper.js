@@ -179,8 +179,8 @@ class CasperEpaper extends PolymerElement {
         .epaper #epaper-container #epaper-component-container #epaper-component-sticky .italic { font-style: italic; }
         .epaper #epaper-container #epaper-component-container #epaper-component-sticky .line-through { text-decoration: line-through; }
         .epaper #epaper-container #epaper-component-container #epaper-component-sticky .text-small { font-size: 0.5em; }
-        .epaper #epaper-container #epaper-component-container #epaper-component-sticky .text-bigger { font-size: 1.5em; }
-        .epaper #epaper-container #epaper-component-container #epaper-component-sticky .text-biggest { font-size: 2em; }
+        .epaper #epaper-container #epaper-component-container #epaper-component-sticky .text-bigger { font-size: 1.25em; }
+        .epaper #epaper-container #epaper-component-container #epaper-component-sticky .text-biggest { font-size: 1.5em; }
 
         .epaper #epaper-container #epaper-component-container #epaper-component-loading-overlay {
           top: 0;
