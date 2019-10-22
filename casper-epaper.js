@@ -53,17 +53,6 @@ class CasperEpaper extends PolymerElement {
           box-shadow:         inset 0 0 10px #00000080;
         }
 
-        iron-icon {
-          position: absolute;
-          display: inline-block;
-          cursor: pointer;
-          padding: 1px;
-          margin: 0px;
-          width: 24px;
-          height: 24px;
-          fill: var(--dark-primary-color);
-        }
-
         #line_add_button:hover {
           fill: var(--primary-color);
         }
@@ -77,7 +66,7 @@ class CasperEpaper extends PolymerElement {
           height: 100%;
           overflow: auto;
           display: flex;
-          position: relative ;
+          position: relative;
         }
 
         .toolbar {
@@ -135,6 +124,48 @@ class CasperEpaper extends PolymerElement {
 
         .epaper .spacer {
           flex-grow: 1;
+        }
+
+        .epaper #next-attachment,
+        .epaper #previous-attachment {
+          top: calc(50% - 37.5px);
+          width: 75px;
+          height: 150px;
+          z-index: 1;
+          opacity: 0.5;
+          position: absolute;
+          display: none;
+          flex-direction: column;
+          justify-content: center;
+          background-color: darkgray;
+          transition: opacity 200ms linear;
+        }
+
+        .epaper #next-attachment iron-icon,
+        .epaper #previous-attachment iron-icon {
+          width: 50px;
+          height: 50px;
+          color: white;
+        }
+
+        .epaper #previous-attachment {
+          left: 0;
+          align-items: flex-start;
+          border-top-right-radius: 100px;
+          border-bottom-right-radius: 100px;
+        }
+
+        .epaper #next-attachment {
+          right: 0;
+          align-items: flex-end;
+          border-top-left-radius: 100px;
+          border-bottom-left-radius: 100px;
+        }
+
+        .epaper #next-attachment:hover,
+        .epaper #previous-attachment:hover {
+          opacity: 1;
+          cursor: pointer;
         }
 
         .epaper #epaper-container {
@@ -238,6 +269,18 @@ class CasperEpaper extends PolymerElement {
 
       </div>
       <div class="epaper">
+        <!--Previous attachment button-->
+        <div id="previous-attachment" on-click="__onPreviousAttachmentClick">
+          <iron-icon icon="casper-icons:file-alt"></iron-icon>
+          <iron-icon icon="casper-icons:arrow-left"></iron-icon>
+        </div>
+
+        <!--Next attachment button-->
+        <div id="next-attachment" on-click="__onNextAttachmentClick">
+          <iron-icon icon="casper-icons:file-alt"></iron-icon>
+          <iron-icon icon="casper-icons:arrow-right"></iron-icon>
+        </div>
+
         <div class="spacer"></div>
 
         <div id="epaper-container">
@@ -452,8 +495,11 @@ class CasperEpaper extends PolymerElement {
     afterNextRender(this, () => this.__handleContextMenu());
 
     this.__socket.addEventListener('casper-signed-in', () => {
-      if (this.__currentAttachment) this.openAttachment(this.__currentAttachment);
+      if (this.__currentAttachment) this.__openAttachment();
     });
+
+    this.__nextAttachment = this.$['next-attachment'];
+    this.__previousAttachment = this.$['previous-attachment'];
 
     this.__epaperContainer = this.$['epaper-container'];
     this.__epaperComponentSticky = this.$['epaper-component-sticky'];
@@ -520,9 +566,45 @@ class CasperEpaper extends PolymerElement {
    *
    * @param {Object} attachment The attachment's metadata. This object should contain the attachment's identifier, type and name.
    */
-  async openAttachment (attachment) {
-    this.__currentAttachment = attachment;
-    this.__currentAttachmentName = attachment.name;
+  openAttachment (attachment) {
+    if (Array.isArray(attachment) && attachment.length > 0) {
+      this.__currentAttachments = attachment;
+      this.__currentAttachmentIndex = 0;
+      this.__currentAttachment = this.__currentAttachments[this.__currentAttachmentIndex];
+
+      this.__nextAttachment.style.display = this.__currentAttachments.length > 1 ? 'flex' : 'none';
+      this.__previousAttachment.style.display = 'none';
+    } else {
+      this.__currentAttachment = attachment;
+      this.__nextAttachment.style.display = 'none';
+      this.__previousAttachment.style.display = 'none';
+    }
+
+    this.__openAttachment();
+  }
+
+  __onNextAttachmentClick () {
+    this.__currentAttachmentIndex++;
+
+    this.__currentAttachment = this.__currentAttachments[this.__currentAttachmentIndex];
+    this.__previousAttachment.style.display = 'flex';
+    this.__nextAttachment.style.display = this.__currentAttachments.length > this.__currentAttachmentIndex + 1 ? 'flex' : 'none';
+
+    this.__openAttachment();
+  }
+
+  __onPreviousAttachmentClick () {
+    this.__currentAttachmentIndex--;
+
+    this.__currentAttachment = this.__currentAttachments[this.__currentAttachmentIndex];
+    this.__previousAttachment.style.display = this.__currentAttachmentIndex > 0 ? 'flex' : 'none';
+    this.__nextAttachment.style.display = 'flex';
+
+    this.__openAttachment();
+  }
+
+  async __openAttachment () {
+    this.__currentAttachmentName = this.__currentAttachment.name;
     this.__displayOrHideSticky();
     this.__updateDownloadIconAndTooltip();
 
