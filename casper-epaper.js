@@ -379,6 +379,9 @@ class CasperEpaper extends PolymerElement {
        * @type {Object}
        */
       app: Object,
+      stickyMaximumHeight: {
+        type: Number,
+      },
       disableStickyAnimation: {
         type: Boolean,
         value: false,
@@ -468,7 +471,7 @@ class CasperEpaper extends PolymerElement {
       if (!this.disableStickyAnimation) {
         this.__epaperComponentSticky.style.opacity = 1;
         this.__epaperComponentSticky.style.cursor = 'pointer';
-        this.__epaperComponentSticky.style.height = `${parseInt(this.__epaperComponentStickyStyle.fullHeight * this.__zoom)}px`;
+        this.__epaperComponentSticky.style.height = `${parseInt((this.stickyMaximumHeight || this.__epaperComponentStickyStyle.fullHeight) * this.__zoom)}px`;
       }
     });
   }
@@ -930,7 +933,7 @@ class CasperEpaper extends PolymerElement {
 
       this.__epaperComponentSticky.style.height = !this.disableStickyAnimation
         ? `${parseInt(this.__epaperComponentStickyStyle.height * this.__zoom)}px`
-        : `${parseInt(this.__epaperComponentStickyStyle.fullHeight * this.__zoom)}px`
+        : `${parseInt((this.stickyMaximumHeight || this.__epaperComponentStickyStyle.fullHeight) * this.__zoom)}px`
     });
   }
 
@@ -944,7 +947,7 @@ class CasperEpaper extends PolymerElement {
 
     if (this.disableStickyAnimation) {
       this.__epaperComponentSticky.style.opacity = 1;
-      this.__epaperComponentSticky.style.height = `${parseInt(this.__epaperComponentStickyStyle.fullHeight * this.__zoom)}px`;
+      this.__epaperComponentSticky.style.height = `${parseInt((this.stickyMaximumHeight || this.__epaperComponentStickyStyle.fullHeight) * this.__zoom)}px`;
     }
 
     this.__epaperComponentSticky.style.display =  'flex';
