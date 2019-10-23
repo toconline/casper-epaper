@@ -541,9 +541,11 @@ class CasperEpaper extends PolymerElement {
     this.__landscape = false;
     this.__currentAttachmentName = '';
     this.__currentAttachment = undefined;
+    this.__currentAttachments = undefined;
 
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.GENERIC_PAGE);
     this.__enableOrDisableControlButtons({ zoom: true, print: false, paging: false });
+    this.__handleAttachmentNavigationButtons();
 
     this.$.genericPage.template = template;
   }
@@ -558,11 +560,13 @@ class CasperEpaper extends PolymerElement {
     this.__landscape = false;
     this.__currentAttachmentName = '';
     this.__currentAttachment = undefined;
+    this.__currentAttachments = undefined;
 
     Object.keys(options).forEach(option => this.$.upload[option] = options[option]);
 
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.UPLOAD);
     this.__enableOrDisableControlButtons({ zoom: true, print: false, paging: false });
+    this.__handleAttachmentNavigationButtons();
   }
 
   /**
