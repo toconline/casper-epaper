@@ -21,7 +21,6 @@
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
 import { afterNextRender } from '@polymer/polymer/lib/utils/render-status.js';
 
-import moment from 'moment/src/moment.js';
 import '@polymer/iron-icon/iron-icon.js';
 import '@casper2020/casper-icons/casper-icons.js';
 import './casper-epaper-canvas.js';
@@ -271,13 +270,13 @@ class CasperEpaper extends PolymerElement {
       <div class="epaper">
         <!--Previous attachment button-->
         <div id="previous-attachment" on-click="__onPreviousAttachmentClick">
-          <iron-icon icon="casper-icons:file-alt"></iron-icon>
+          <iron-icon icon="[[__previousAttachmentIcon]]"></iron-icon>
           <iron-icon icon="casper-icons:arrow-left"></iron-icon>
         </div>
 
         <!--Next attachment button-->
         <div id="next-attachment" on-click="__onNextAttachmentClick">
-          <iron-icon icon="casper-icons:file-alt"></iron-icon>
+          <iron-icon icon="[[__nextAttachmentIcon]]"></iron-icon>
           <iron-icon icon="casper-icons:arrow-right"></iron-icon>
         </div>
 
@@ -571,72 +570,14 @@ class CasperEpaper extends PolymerElement {
       this.__currentAttachments = attachment;
       this.__currentAttachmentIndex = 0;
       this.__currentAttachment = this.__currentAttachments[this.__currentAttachmentIndex];
-
-      this.__nextAttachment.style.display = this.__currentAttachments.length > 1 ? 'flex' : 'none';
-      this.__previousAttachment.style.display = 'none';
     } else {
+      this.__currentAttachments = undefined;
+      this.__currentAttachmentIndex = undefined;
       this.__currentAttachment = attachment;
-      this.__nextAttachment.style.display = 'none';
-      this.__previousAttachment.style.display = 'none';
     }
 
+    this.__handleAttachmentNavigationButtons();
     this.__openAttachment();
-  }
-
-  __onNextAttachmentClick () {
-    this.__currentAttachmentIndex++;
-
-    this.__currentAttachment = this.__currentAttachments[this.__currentAttachmentIndex];
-    this.__previousAttachment.style.display = 'flex';
-    this.__nextAttachment.style.display = this.__currentAttachments.length > this.__currentAttachmentIndex + 1 ? 'flex' : 'none';
-
-    this.__openAttachment();
-  }
-
-  __onPreviousAttachmentClick () {
-    this.__currentAttachmentIndex--;
-
-    this.__currentAttachment = this.__currentAttachments[this.__currentAttachmentIndex];
-    this.__previousAttachment.style.display = this.__currentAttachmentIndex > 0 ? 'flex' : 'none';
-    this.__nextAttachment.style.display = 'flex';
-
-    this.__openAttachment();
-  }
-
-  async __openAttachment () {
-    this.__currentAttachmentName = this.__currentAttachment.name;
-    this.__displayOrHideSticky();
-    this.__updateDownloadIconAndTooltip();
-
-    // Open the attachment.
-    try {
-      switch (this.__currentAttachment.type) {
-        case 'file/pdf':
-          await this.__openPDF();
-          break;
-        case 'file/xml':
-        case 'file/txt':
-        case 'file/htm':
-        case 'file/html':
-          this.__landscape = false;
-          await this.__openIframe();
-          break;
-        case 'file/png':
-        case 'file/jpg':
-        case 'file/jpeg':
-          this.__landscape = false;
-          await this.__openImage();
-          break;
-        case 'epaper':
-          this.__landscape = false;
-          await this.__openServerDocument();
-          break;
-      }
-    } catch (error) {
-      console.error(error);
-
-      this.__displayErrorPage();
-    }
   }
 
   /**
@@ -861,6 +802,80 @@ class CasperEpaper extends PolymerElement {
   //                                                                                       //
   //***************************************************************************************//
 
+  __onNextAttachmentClick () {
+    this.__currentAttachmentIndex++;
+    this.__currentAttachment = this.__currentAttachments[this.__currentAttachmentIndex];
+
+    this.__handleAttachmentNavigationButtons();
+    this.__openAttachment();
+  }
+
+  __onPreviousAttachmentClick () {
+    this.__currentAttachmentIndex--;
+    this.__currentAttachment = this.__currentAttachments[this.__currentAttachmentIndex];
+
+    this.__handleAttachmentNavigationButtons();
+    this.__openAttachment();
+  }
+
+  __handleAttachmentNavigationButtons () {
+    if (!Array.isArray(this.__currentAttachments)) {
+      this.__nextAttachment.style.display = 'none';
+      this.__previousAttachment.style.display = 'none';
+      return;
+    }
+
+    if (this.__currentAttachmentIndex > 0) {
+      this.__previousAttachment.style.display = 'flex';
+      this.__previousAttachmentIcon = this.__getIconForFileType(this.__currentAttachments[this.__currentAttachmentIndex - 1].type);
+    } else {
+      this.__previousAttachment.style.display = 'none';
+    }
+
+    if (this.__currentAttachments.length > this.__currentAttachmentIndex + 1) {
+      this.__nextAttachment.style.display = 'flex';
+      this.__nextAttachmentIcon = this.__getIconForFileType(this.__currentAttachments[this.__currentAttachmentIndex + 1].type);
+    } else {
+      this.__nextAttachment.style.display = 'none';
+    }
+  }
+
+  async __openAttachment () {
+    this.__currentAttachmentName = this.__currentAttachment.name;
+    this.__displayOrHideSticky();
+    this.__updateDownloadIconAndTooltip();
+
+    // Open the attachment.
+    try {
+      switch (this.__currentAttachment.type) {
+        case 'file/pdf':
+          await this.__openPDF();
+          break;
+        case 'file/xml':
+        case 'file/txt':
+        case 'file/htm':
+        case 'file/html':
+          this.__landscape = false;
+          await this.__openIframe();
+          break;
+        case 'file/png':
+        case 'file/jpg':
+        case 'file/jpeg':
+          this.__landscape = false;
+          await this.__openImage();
+          break;
+        case 'epaper':
+          this.__landscape = false;
+          await this.__openServerDocument();
+          break;
+      }
+    } catch (error) {
+      console.error(error);
+
+      this.__displayErrorPage();
+    }
+  }
+
   /**
    * Open server document
    */
@@ -1076,30 +1091,28 @@ class CasperEpaper extends PolymerElement {
   }
 
   __updateDownloadIconAndTooltip () {
+    this.__epaperDownloadIcon = this.__getIconForFileType(this.__currentAttachment.type);
     this.__epaperDownloadTooltip = this.__currentAttachment.type === 'epaper'
       ? 'Download ficheiro PDF'
       : `Download ficheiro ${this.__currentAttachment.type.split('/').pop().toUpperCase()}`;
+  }
 
-    switch (this.__currentAttachment.type) {
+  __getIconForFileType (fileType) {
+    switch (fileType) {
       case 'epaper':
       case 'file/pdf':
-        this.__epaperDownloadIcon = 'casper-icons:file-pdf';
-        break;
+        return 'casper-icons:file-pdf';
       case 'file/xml':
-        this.__epaperDownloadIcon = 'casper-icons:file-xml';
-        break;
+        return 'casper-icons:file-xml';
       case 'file/txt':
-        this.__epaperDownloadIcon = 'casper-icons:file-alt';
-        break;
+        return 'casper-icons:file-alt';
       case 'file/htm':
       case 'file/html':
-        this.__epaperDownloadIcon = 'casper-icons:file-code';
-        break;
+        return 'casper-icons:file-code';
       case 'file/png':
       case 'file/jpg':
       case 'file/jpeg':
-        this.__epaperDownloadIcon = 'casper-icons:file-image';
-        break;
+        return 'casper-icons:file-image';
     }
   }
 }
