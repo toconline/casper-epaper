@@ -47,17 +47,19 @@ class CasperEpaper extends PolymerElement {
           position: relative;
           flex-direction: column;
           background-color: var(--casper-moac-paper-background-color, #DDD);
+        }
+
+        .shadow {
+          top: 0;
+          left: 0;
+          z-index: 2;
+          width: 100%;
+          height: 100%;
+          position: absolute;
+          pointer-events: none;
           -moz-box-shadow:    inset 0 0 10px #00000080;
           -webkit-box-shadow: inset 0 0 10px #00000080;
           box-shadow:         inset 0 0 10px #00000080;
-        }
-
-        #line_add_button:hover {
-          fill: var(--primary-color);
-        }
-
-        #line_del_button:hover {
-          fill: #B94F4F;
         }
 
         .desktop {
@@ -267,6 +269,9 @@ class CasperEpaper extends PolymerElement {
         </div>
 
       </div>
+
+      <div class="shadow"></div>
+
       <div class="epaper">
         <!--Previous attachment button-->
         <div id="previous-attachment" on-click="__onPreviousAttachmentClick">
