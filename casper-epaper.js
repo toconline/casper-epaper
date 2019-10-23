@@ -828,25 +828,27 @@ class CasperEpaper extends PolymerElement {
   }
 
   __handleAttachmentNavigationButtons () {
-    if (!Array.isArray(this.__currentAttachments)) {
-      this.__nextAttachment.style.display = 'none';
-      this.__previousAttachment.style.display = 'none';
-      return;
-    }
+    afterNextRender(this, () => {
+      if (!Array.isArray(this.__currentAttachments)) {
+        this.__nextAttachment.style.display = 'none';
+        this.__previousAttachment.style.display = 'none';
+        return;
+      }
 
-    if (this.__currentAttachmentIndex > 0) {
-      this.__previousAttachment.style.display = 'flex';
-      this.__previousAttachmentIcon = this.__getIconForFileType(this.__currentAttachments[this.__currentAttachmentIndex - 1].type);
-    } else {
-      this.__previousAttachment.style.display = 'none';
-    }
+      if (this.__currentAttachmentIndex > 0) {
+        this.__previousAttachment.style.display = 'flex';
+        this.__previousAttachmentIcon = this.__getIconForFileType(this.__currentAttachments[this.__currentAttachmentIndex - 1].type);
+      } else {
+        this.__previousAttachment.style.display = 'none';
+      }
 
-    if (this.__currentAttachments.length > this.__currentAttachmentIndex + 1) {
-      this.__nextAttachment.style.display = 'flex';
-      this.__nextAttachmentIcon = this.__getIconForFileType(this.__currentAttachments[this.__currentAttachmentIndex + 1].type);
-    } else {
-      this.__nextAttachment.style.display = 'none';
-    }
+      if (this.__currentAttachments.length > this.__currentAttachmentIndex + 1) {
+        this.__nextAttachment.style.display = 'flex';
+        this.__nextAttachmentIcon = this.__getIconForFileType(this.__currentAttachments[this.__currentAttachmentIndex + 1].type);
+      } else {
+        this.__nextAttachment.style.display = 'none';
+      }
+    });
   }
 
   async __openAttachment () {
