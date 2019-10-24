@@ -557,7 +557,7 @@ class CasperEpaper extends PolymerElement {
    *
    * @param {Object} options
    */
-  openUploadPage (options) {
+  openUploadPage (options, sticky) {
     // Reset the current attachment settings.
     this.__landscape = false;
     this.__currentAttachmentName = '';
@@ -565,6 +565,8 @@ class CasperEpaper extends PolymerElement {
     this.__currentAttachments = undefined;
 
     Object.keys(options).forEach(option => this.$.upload[option] = options[option]);
+
+    this.__displayOrHideSticky(sticky);
 
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.UPLOAD);
     this.__enableOrDisableControlButtons({ zoom: true, print: false, paging: false, download: false });
@@ -855,7 +857,7 @@ class CasperEpaper extends PolymerElement {
 
   async __openAttachment () {
     this.__currentAttachmentName = this.__currentAttachment.name;
-    this.__displayOrHideSticky();
+    this.__displayOrHideSticky(this.__currentAttachment.sticky);
     this.__updateDownloadIconAndTooltip();
 
     // Open the attachment.
@@ -1052,10 +1054,10 @@ class CasperEpaper extends PolymerElement {
     });
   }
 
-  __displayOrHideSticky () {
+  __displayOrHideSticky (sticky) {
     this.__epaperComponentSticky.innerHTML = '';
 
-    if (!Object.keys(this.__currentAttachment).includes('sticky')) {
+    if (!sticky) {
       this.__epaperComponentSticky.style.display =  'none';
       return;
     }
@@ -1066,9 +1068,7 @@ class CasperEpaper extends PolymerElement {
     }
 
     this.__epaperComponentSticky.style.display =  'flex';
-    this.__epaperComponentSticky.innerHTML = this.__currentAttachment.sticky.constructor === String
-      ? this.__currentAttachment.sticky
-      : Object.values(this.__currentAttachment.sticky).join('');
+    this.__epaperComponentSticky.innerHTML = sticky.constructor === String ? sticky : Object.values(sticky).join('');
   }
 
   __displayErrorPage () {
@@ -1109,6 +1109,8 @@ class CasperEpaper extends PolymerElement {
   }
 
   __updateDownloadIconAndTooltip () {
+    if (!this.__currentAttachment || !this.__currentAttachment.type) return;
+
     this.__epaperDownloadIcon = this.__getIconForFileType(this.__currentAttachment.type);
     this.__epaperDownloadTooltip = this.__currentAttachment.type === 'epaper'
       ? 'Download ficheiro PDF'
