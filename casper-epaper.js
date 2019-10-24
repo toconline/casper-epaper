@@ -120,7 +120,7 @@ class CasperEpaper extends PolymerElement {
           display: flex;
           overflow: auto;
           height: 100%;
-          padding-top: 60px;
+          padding: 60px 30px 0;
         }
 
         .epaper .spacer {
@@ -171,6 +171,7 @@ class CasperEpaper extends PolymerElement {
 
         .epaper #epaper-container {
           display: flex;
+          margin: auto;
           height: fit-content;
           flex-direction: column;
         }
@@ -188,7 +189,6 @@ class CasperEpaper extends PolymerElement {
 
         .epaper #epaper-container #epaper-component-container {
           display: none;
-          overflow: hidden;
           position: relative;
           background-color: white;
           box-shadow: rgba(0, 0, 0, 0.24) 0px 5px 12px 0px,
@@ -199,7 +199,7 @@ class CasperEpaper extends PolymerElement {
           opacity: 0.2;
           overflow: auto;
           display: none;
-          position: fixed;
+          position: absolute;
           box-sizing: border-box;
           flex-direction: column;
           background-size: cover;
@@ -287,8 +287,6 @@ class CasperEpaper extends PolymerElement {
           <iron-icon icon="casper-icons:arrow-right"></iron-icon>
         </div>
 
-        <div class="spacer"></div>
-
         <div id="epaper-container">
           <!--Epaper title-->
           <h3 class="epaper-title">[[__currentAttachmentName]]</h3>
@@ -349,7 +347,6 @@ class CasperEpaper extends PolymerElement {
             </div>
           </div>
         </div>
-        <div class="spacer"></div>
       </div>
       <slot name="casper-epaper-context-menu"></slot>
 
@@ -455,7 +452,7 @@ class CasperEpaper extends PolymerElement {
       __epaperComponentStickyStyle: {
         type: Object,
         value: {
-          top: -18,
+          top: -19,
           right: 15,
           width: 150,
           height: 90,
@@ -1037,16 +1034,14 @@ class CasperEpaper extends PolymerElement {
       this.__epaperComponentContainer.style.display = 'block';
 
       // Scale the post-it dimensions and position.
-      const epaperComponentContainerPosition = this.__epaperComponentContainer.getBoundingClientRect();
-
+      this.__epaperComponentSticky.style.top           = `${parseInt(this.__epaperComponentStickyStyle.top * this.__zoom)}px`;
+      this.__epaperComponentSticky.style.right         = `${parseInt(this.__epaperComponentStickyStyle.right * this.__zoom)}px`;
       this.__epaperComponentSticky.style.width         = `${parseInt(this.__epaperComponentStickyStyle.width * this.__zoom)}px`;
       this.__epaperComponentSticky.style.fontSize      = `${parseInt(this.__epaperComponentStickyStyle.fontSize * this.__zoom)}px`;
       this.__epaperComponentSticky.style.paddingTop    = `${parseInt(this.__epaperComponentStickyStyle.paddingTop * this.__zoom)}px`;
       this.__epaperComponentSticky.style.paddingLeft   = `${parseInt(this.__epaperComponentStickyStyle.paddingLeft * this.__zoom)}px`;
       this.__epaperComponentSticky.style.paddingRight  = `${parseInt(this.__epaperComponentStickyStyle.paddingRight * this.__zoom)}px`;
       this.__epaperComponentSticky.style.paddingBottom = `${parseInt(this.__epaperComponentStickyStyle.paddingBottom * this.__zoom)}px`;
-      this.__epaperComponentSticky.style.top           = `${parseInt(epaperComponentContainerPosition.top + this.__epaperComponentStickyStyle.top * this.__zoom)}px`;
-      this.__epaperComponentSticky.style.right         = `${parseInt(window.innerWidth - epaperComponentContainerPosition.right + (this.__epaperComponentStickyStyle.right * this.__zoom))}px`;
 
       this.__epaperComponentSticky.style.height = !this.disableStickyAnimation
         ? `${parseInt(this.__epaperComponentStickyStyle.height * this.__zoom)}px`
