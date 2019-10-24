@@ -199,13 +199,14 @@ class CasperEpaper extends PolymerElement {
           opacity: 0.2;
           overflow: auto;
           display: none;
-          transition: height 100ms linear, opacity 100ms linear;
-          position: absolute;
+          position: fixed;
           box-sizing: border-box;
           flex-direction: column;
           background-size: cover;
           background-repeat: no-repeat;
           background-image: url('/node_modules/@casper2020/casper-epaper/static/epaper-sticky.svg');
+          transition: height 100ms linear,
+                      opacity 100ms linear;
         }
 
         .epaper #epaper-container #epaper-component-container #epaper-component-sticky .bold { font-weight: bold; }
@@ -454,7 +455,7 @@ class CasperEpaper extends PolymerElement {
       __epaperComponentStickyStyle: {
         type: Object,
         value: {
-          top: -19,
+          top: -18,
           right: 15,
           width: 150,
           height: 90,
@@ -1034,14 +1035,16 @@ class CasperEpaper extends PolymerElement {
       this.__epaperComponentContainer.style.display = 'block';
 
       // Scale the post-it dimensions and position.
-      this.__epaperComponentSticky.style.top           = `${parseInt(this.__epaperComponentStickyStyle.top * this.__zoom)}px`;
-      this.__epaperComponentSticky.style.right         = `${parseInt(this.__epaperComponentStickyStyle.right * this.__zoom)}px`;
+      const epaperComponentContainerPosition = this.__epaperComponentContainer.getBoundingClientRect();
+
       this.__epaperComponentSticky.style.width         = `${parseInt(this.__epaperComponentStickyStyle.width * this.__zoom)}px`;
       this.__epaperComponentSticky.style.fontSize      = `${parseInt(this.__epaperComponentStickyStyle.fontSize * this.__zoom)}px`;
       this.__epaperComponentSticky.style.paddingTop    = `${parseInt(this.__epaperComponentStickyStyle.paddingTop * this.__zoom)}px`;
       this.__epaperComponentSticky.style.paddingLeft   = `${parseInt(this.__epaperComponentStickyStyle.paddingLeft * this.__zoom)}px`;
       this.__epaperComponentSticky.style.paddingRight  = `${parseInt(this.__epaperComponentStickyStyle.paddingRight * this.__zoom)}px`;
       this.__epaperComponentSticky.style.paddingBottom = `${parseInt(this.__epaperComponentStickyStyle.paddingBottom * this.__zoom)}px`;
+      this.__epaperComponentSticky.style.top           = `${parseInt(epaperComponentContainerPosition.top + this.__epaperComponentStickyStyle.top * this.__zoom)}px`;
+      this.__epaperComponentSticky.style.right         = `${parseInt(window.innerWidth - epaperComponentContainerPosition.right + (this.__epaperComponentStickyStyle.right * this.__zoom))}px`;
 
       this.__epaperComponentSticky.style.height = !this.disableStickyAnimation
         ? `${parseInt(this.__epaperComponentStickyStyle.height * this.__zoom)}px`

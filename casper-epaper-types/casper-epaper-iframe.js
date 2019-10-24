@@ -90,7 +90,7 @@ class CasperEpaperIframe extends PolymerElement {
           this.__srcdoc = xmlDocumentContainer.outerHTML;
       }
     } else {
-      throw new Exception();
+      throw new Error(fileRequest.statusText);
     }
   }
 }
