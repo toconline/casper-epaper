@@ -417,10 +417,12 @@ class CasperEpaper extends PolymerElement {
             width: 150px;
             height: 150px;
             margin-bottom: 10px;
+            transition: color 200ms linear;
           }
 
           #page-container iron-icon:hover {
             cursor: pointer;
+            color: var(--dark-primary-color);
           }
         </style>
         <div id="page-container">
