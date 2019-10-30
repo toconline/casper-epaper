@@ -399,6 +399,35 @@ class CasperEpaper extends PolymerElement {
           Ocorreu um erro a carregar o documento pretendido
         </div>
       </template>
+
+      <template id="download-generic-file-template">
+        <style>
+          #page-container {
+            height: 100%;
+            display: flex;
+            font-size: 20px;
+            font-weight: bold;
+            align-items: center;
+            flex-direction: column;
+            justify-content: center;
+            color: var(--primary-color);
+          }
+
+          #page-container iron-icon {
+            width: 150px;
+            height: 150px;
+            margin-bottom: 10px;
+          }
+
+          #page-container iron-icon:hover {
+            cursor: pointer;
+          }
+        </style>
+        <div id="page-container">
+          <iron-icon icon="casper-icons:cloud-download" on-click="download"></iron-icon>
+          Clique aqui para descarregar o ficheiro
+        </div>
+      </template>
     `;
   }
 
@@ -538,9 +567,12 @@ class CasperEpaper extends PolymerElement {
   openGenericPage (template) {
     // Reset the current attachment settings.
     this.__landscape = false;
-    this.__currentAttachmentName = '';
-    this.__currentAttachment = undefined;
-    this.__currentAttachments = undefined;
+
+    if (!this.__customAttachmentFileType) {
+      this.__currentAttachmentName = '';
+      this.__currentAttachment = undefined;
+      this.__currentAttachments = undefined;
+    }
 
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.GENERIC_PAGE);
     this.__enableOrDisableControlButtons({ zoom: true, print: false, paging: false, download: false });
@@ -853,6 +885,7 @@ class CasperEpaper extends PolymerElement {
   }
 
   async __openAttachment () {
+    this.__customAttachmentFileType = false;
     this.__currentAttachmentName = this.__currentAttachment.name;
     this.__displayOrHideSticky(this.__currentAttachment.sticky);
     this.__updateDownloadIconAndTooltip();
@@ -879,6 +912,12 @@ class CasperEpaper extends PolymerElement {
         case 'epaper':
           this.__landscape = false;
           await this.__openServerDocument();
+          break;
+        default:
+          if (this.__currentAttachment.type.startsWith('file/')) {
+            this.__customAttachmentFileType = true;
+            this.openGenericPage(this.$['download-generic-file-template']);
+          }
           break;
       }
     } catch (error) {

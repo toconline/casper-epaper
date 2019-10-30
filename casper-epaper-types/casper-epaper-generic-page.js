@@ -60,6 +60,7 @@ class CasperEpaperGenericPage extends PolymerElement {
    */
   __templateChanged (template) {
     const templateClass = templatize(template);
+
     this.$['template-container'].innerHTML = '';
     this.$['template-container'].appendChild(new templateClass().root);
   }
