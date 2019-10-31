@@ -21,8 +21,6 @@
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
 import { afterNextRender } from '@polymer/polymer/lib/utils/render-status.js';
 
-import '@polymer/iron-icon/iron-icon.js';
-import '@casper2020/casper-icons/casper-icons.js';
 import './casper-epaper-canvas.js';
 import './casper-epaper-servertip-helper.js';
 import './casper-epaper-types/casper-epaper-pdf.js';
@@ -136,20 +134,23 @@ class CasperEpaper extends PolymerElement {
           position: absolute;
           display: none;
           flex-direction: column;
-          justify-content: center;
+          padding: 25px 0;
+          box-sizing: border-box;
+          justify-content: space-between;
           background-color: darkgray;
           transition: opacity 200ms linear;
         }
 
         .epaper #next-attachment casper-icon,
         .epaper #previous-attachment casper-icon {
-          width: 50px;
-          height: 50px;
-          color: white;
+          width: 40px;
+          height: 40px;
+          --casper-icon-fill-color: white;
         }
 
         .epaper #previous-attachment {
           left: 0;
+          padding-left: 5px;
           align-items: flex-start;
           border-top-right-radius: 100px;
           border-bottom-right-radius: 100px;
@@ -157,6 +158,7 @@ class CasperEpaper extends PolymerElement {
 
         .epaper #next-attachment {
           right: 0;
+          padding-right: 5px;
           align-items: flex-end;
           border-top-left-radius: 100px;
           border-bottom-left-radius: 100px;
@@ -1169,6 +1171,8 @@ class CasperEpaper extends PolymerElement {
       case 'file/jpg':
       case 'file/jpeg':
         return 'fa-light:file-image';
+      default:
+        return 'fa-light:file-alt';
     }
   }
 }
