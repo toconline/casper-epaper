@@ -85,7 +85,7 @@ class CasperEpaper extends PolymerElement {
           display: flex;
         }
 
-        .toolbar paper-icon-button,
+        .toolbar casper-icon,
         ::slotted(paper-icon-button),
         ::slotted(casper-epaper-tabs) {
           margin-left: 8px;
@@ -93,14 +93,13 @@ class CasperEpaper extends PolymerElement {
 
         .toolbar-button,
         ::slotted(paper-icon-button) {
-          padding: 0;
-          max-width: 32px;
-          max-height: 32px;
+          padding: 7px;
+          box-sizing: border-box;
+          width: 32px;
+          height: 32px;
           border-radius: 50%;
           background-color: var(--primary-color);
-          --iron-icon-width: 100%;
-          --iron-icon-height: 100%;
-          --iron-icon-fill-color: white;
+          --casper-icon-fill-color: white;
           -webkit-box-shadow: 0px 2px 12px -1px rgba(0, 0, 0, 0.61);
           -moz-box-shadow:    0px 2px 12px -1px rgba(0, 0, 0, 0.61);
           box-shadow:         0px 2px 12px -1px rgba(0, 0, 0, 0.61);
@@ -108,12 +107,12 @@ class CasperEpaper extends PolymerElement {
 
         .toolbar-button[disabled] {
           background-color: #E0E0E0;
-          --iron-icon-fill-color: white;
+          --casper-icon-fill-color: white;
         }
 
         .toolbar-white {
-          --iron-icon-fill-color: var(--primary-color);
           background-color: white;
+          --casper-icon-fill-color: var(--primary-color);
         }
 
         .epaper {
@@ -142,8 +141,8 @@ class CasperEpaper extends PolymerElement {
           transition: opacity 200ms linear;
         }
 
-        .epaper #next-attachment iron-icon,
-        .epaper #previous-attachment iron-icon {
+        .epaper #next-attachment casper-icon,
+        .epaper #previous-attachment casper-icon {
           width: 50px;
           height: 50px;
           color: white;
@@ -171,7 +170,7 @@ class CasperEpaper extends PolymerElement {
 
         .epaper #epaper-container {
           display: flex;
-          margin: auto;
+          margin: 0 auto;
           height: fit-content;
           flex-direction: column;
         }
@@ -249,10 +248,10 @@ class CasperEpaper extends PolymerElement {
       </style>
       <div class="toolbar">
         <div>
-          <paper-icon-button on-click="zoomOut"          id="zoomOut"      tooltip="Reduzir"         icon="casper-icons:minus"        class="toolbar-button toolbar-white"></paper-icon-button>
-          <paper-icon-button on-click="zoomIn"           id="zoomIn"       tooltip="Ampliar"         icon="casper-icons:plus"         class="toolbar-button toolbar-white"></paper-icon-button>
-          <paper-icon-button on-click="goToPreviousPage" id="previousPage" tooltip="Página anterior" icon="casper-icons:arrow-left"   class="toolbar-button"></paper-icon-button>
-          <paper-icon-button on-click="goToNextPage"     id="nextPage"     tooltip="Página seguinte" icon="casper-icons:arrow-right"  class="toolbar-button"></paper-icon-button>
+          <casper-icon on-click="zoomOut"          id="zoomOut"      tooltip="Reduzir"         icon="fa-light:minus"        class="toolbar-button toolbar-white"></casper-icon>
+          <casper-icon on-click="zoomIn"           id="zoomIn"       tooltip="Ampliar"         icon="fa-light:plus"         class="toolbar-button toolbar-white"></casper-icon>
+          <casper-icon on-click="goToPreviousPage" id="previousPage" tooltip="Página anterior" icon="fa-light:arrow-left"   class="toolbar-button"></casper-icon>
+          <casper-icon on-click="goToNextPage"     id="nextPage"     tooltip="Página seguinte" icon="fa-light:arrow-right"  class="toolbar-button"></casper-icon>
           <!--Casper-epaper-tabs-->
           <slot name="casper-epaper-tabs"></slot>
         </div>
@@ -261,12 +260,12 @@ class CasperEpaper extends PolymerElement {
           <!--Casper-epaper-actions-->
           <slot name="casper-epaper-actions"></slot>
 
-          <paper-icon-button on-click="print"    id="print"    tooltip="Imprimir"                    icon="casper-icons:print"       class="toolbar-button"></paper-icon-button>
-          <paper-icon-button on-click="download" id="download" tooltip="[[__epaperDownloadTooltip]]" icon="[[__epaperDownloadIcon]]" class="toolbar-button"></paper-icon-button>
+          <casper-icon on-click="print"    id="print"    tooltip="Imprimir"                    icon="fa-light:print"       class="toolbar-button"></casper-icon>
+          <casper-icon on-click="download" id="download" tooltip="[[__epaperDownloadTooltip]]" icon="[[__epaperDownloadIcon]]" class="toolbar-button"></casper-icon>
 
           <!--Context menu-->
           <template is="dom-if" if="[[__hasContextMenu]]">
-            <paper-icon-button icon="casper-icons:bars" class="toolbar-button toolbar-white" id="context-menu-trigger"></paper-icon-button>
+            <casper-icon icon="fa-light:bars" class="toolbar-button toolbar-white" id="context-menu-trigger"></casper-icon>
           </template>
         </div>
 
@@ -277,14 +276,14 @@ class CasperEpaper extends PolymerElement {
       <div class="epaper">
         <!--Previous attachment button-->
         <div id="previous-attachment" on-click="__onPreviousAttachmentClick">
-          <iron-icon icon="[[__previousAttachmentIcon]]"></iron-icon>
-          <iron-icon icon="casper-icons:arrow-left"></iron-icon>
+          <casper-icon icon="[[__previousAttachmentIcon]]"></casper-icon>
+          <casper-icon icon="fa-light:arrow-left"></casper-icon>
         </div>
 
         <!--Next attachment button-->
         <div id="next-attachment" on-click="__onNextAttachmentClick">
-          <iron-icon icon="[[__nextAttachmentIcon]]"></iron-icon>
-          <iron-icon icon="casper-icons:arrow-right"></iron-icon>
+          <casper-icon icon="[[__nextAttachmentIcon]]"></casper-icon>
+          <casper-icon icon="fa-light:arrow-right"></casper-icon>
         </div>
 
         <div id="epaper-container">
@@ -359,17 +358,17 @@ class CasperEpaper extends PolymerElement {
             align-items: center;
             flex-direction: column;
             justify-content: center;
-            color: var(--status-gray);
+            --casper-icon-fill-color: var(--status-gray);
           }
 
-          #page-container iron-icon {
+          #page-container casper-icon {
             width: 100px;
             height: 100px;
             margin-bottom: 10px;
           }
         </style>
         <div id="page-container">
-          <iron-icon icon="casper-icons:empty-data"></iron-icon>
+          <casper-icon icon="fa-light:clipboard"></casper-icon>
           Sem resultado
         </div>
       </template>
@@ -388,14 +387,15 @@ class CasperEpaper extends PolymerElement {
             color: var(--status-red);
           }
 
-          #page-container iron-icon {
+          #page-container casper-icon {
             width: 100px;
             height: 100px;
             margin-bottom: 10px;
+            --casper-icon-fill-color: var(--status-red);
           }
         </style>
         <div id="page-container">
-          <iron-icon icon="casper-icons:warning"></iron-icon>
+          <casper-icon icon="fa-light:exclamation-triangle"></casper-icon>
           Ocorreu um erro a carregar o documento pretendido
         </div>
       </template>
@@ -413,18 +413,21 @@ class CasperEpaper extends PolymerElement {
             color: var(--primary-color);
           }
 
-          #page-container iron-icon {
-            width: 150px;
-            height: 150px;
-            margin-bottom: 10px;
+          #page-container casper-icon {
+            width: 125px;
+            height: 125px;
+            margin-bottom: 25px;
+            --casper-icon-fill-color: var(--primary-color);
+            transition: --casper-icon-fill-color 200ms linear;
           }
 
-          #page-container iron-icon:hover {
+          #page-container casper-icon:hover {
             cursor: pointer;
+            --casper-icon-fill-color: var(--dark-primary-color);
           }
         </style>
         <div id="page-container">
-          <iron-icon icon="casper-icons:cloud-download" on-click="download"></iron-icon>
+          <casper-icon icon="fa-light:download" on-click="download"></casper-icon>
           Clique aqui para descarregar o ficheiro
         </div>
       </template>
@@ -1155,18 +1158,17 @@ class CasperEpaper extends PolymerElement {
     switch (fileType) {
       case 'epaper':
       case 'file/pdf':
-        return 'casper-icons:file-pdf';
-      case 'file/xml':
-        return 'casper-icons:file-xml';
+        return 'fa-light:file-pdf';
       case 'file/txt':
-        return 'casper-icons:file-alt';
+        return 'fa-light:file-alt';
+      case 'file/xml':
       case 'file/htm':
       case 'file/html':
-        return 'casper-icons:file-code';
+        return 'fa-light:file-code';
       case 'file/png':
       case 'file/jpg':
       case 'file/jpeg':
-        return 'casper-icons:file-image';
+        return 'fa-light:file-image';
     }
   }
 }
