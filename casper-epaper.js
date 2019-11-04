@@ -84,13 +84,13 @@ class CasperEpaper extends PolymerElement {
         }
 
         .toolbar casper-icon,
-        ::slotted(paper-icon-button),
+        ::slotted(casper-icon),
         ::slotted(casper-epaper-tabs) {
           margin-left: 8px;
         }
 
         .toolbar-button,
-        ::slotted(paper-icon-button) {
+        ::slotted(casper-icon) {
           padding: 7px;
           box-sizing: border-box;
           width: 32px;
