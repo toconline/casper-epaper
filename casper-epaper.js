@@ -598,7 +598,7 @@ class CasperEpaper extends PolymerElement {
     this.__currentAttachment = undefined;
     this.__currentAttachments = undefined;
 
-    Object.keys(options).forEach(option => this.$.upload[option] = options[option]);
+    if (options) Object.keys(options).forEach(option => this.$.upload[option] = options[option]);
 
     this.__displayOrHideSticky(sticky);
 

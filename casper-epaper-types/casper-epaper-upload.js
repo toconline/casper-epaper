@@ -19,6 +19,7 @@
  */
 
 import '@vaadin/vaadin-upload/vaadin-upload.js';
+import '@casper2020/casper-icons/casper-icon.js';
 import '@casper2020/casper-button/casper-button.js';
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
 import { Casper } from '@casper2020/casper-common-ui/casper-i18n-behavior.js';
@@ -74,7 +75,7 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
        */
       icon: {
         type: String,
-        value: 'casper-icons:question-solid'
+        value: 'fa-solid:question'
       }
     };
   }
@@ -111,10 +112,10 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
           border: 1px solid var(--primary-color);
         }
 
-        #uploadContainer .icon-container iron-icon {
+        #uploadContainer .icon-container casper-icon {
           width: 50%;
           height: 50%;
-          color: var(--primary-color);
+          --casper-icon-fill-color: var(--primary-color);
         }
 
         #uploadContainer #title-container {
@@ -144,20 +145,24 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
           border: 0px solid var(--status-red);
         }
 
-        #uploadContainer[no-module] .icon-container iron-icon {
+        #uploadContainer[no-module] .icon-container casper-icon {
           width: 100%;
           height: 100%;
         }
 
-        #uploadContainer[no-module] .icon-container iron-icon,
+
         #uploadContainer[no-module] #title-container,
         #uploadContainer[no-module] #sub-title-container a {
           color: var(--status-red);
         }
+
+        #uploadContainer[no-module] .icon-container casper-icon {
+          --casper-icon-fill-color: var(--status-red);
+        }
       </style>
       <div id="uploadContainer" no-module$=[[disabled]]>
         <div class="icon-container">
-          <iron-icon icon="[[icon]]"></iron-icon>
+          <casper-icon icon="[[icon]]"></casper-icon>
         </div>
 
         <div id="title-container"></div>
