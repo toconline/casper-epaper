@@ -90,7 +90,7 @@ class CasperEpaper extends PolymerElement {
         }
 
         .toolbar-button,
-        ::slotted(casper-icon) {
+        ::slotted(casper-icon-button) {
           padding: 7px;
           box-sizing: border-box;
           width: 32px;
