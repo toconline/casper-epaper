@@ -103,7 +103,8 @@ class CasperEpaper extends PolymerElement {
           box-shadow:         0px 2px 12px -1px rgba(0, 0, 0, 0.61);
         }
 
-        .toolbar-button[disabled] {
+        .toolbar-button[disabled],
+        ::slotted(casper-icon-button[disabled]) {
           background-color: #E0E0E0;
           --casper-icon-fill-color: white;
         }
