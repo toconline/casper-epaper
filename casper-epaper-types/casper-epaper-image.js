@@ -67,7 +67,8 @@ class CasperEpaperImage extends PolymerElement {
 
       imageToLoad.onerror = error => reject(error);
       imageToLoad.onload = event => {
-        this.__loadedImage = event.path.shift();
+
+        this.__loadedImage = event.composedPath().shift();
 
         // Remove the existing image if there is any.
         if (this.__imageElement) this.shadowRoot.removeChild(this.__imageElement);
