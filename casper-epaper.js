@@ -97,22 +97,9 @@ class CasperEpaper extends PolymerElement {
           width: 32px;
           height: 32px;
           border-radius: 50%;
-          background-color: var(--primary-color);
-          --casper-icon-fill-color: white;
           -webkit-box-shadow: 0px 2px 12px -1px rgba(0, 0, 0, 0.61);
           -moz-box-shadow:    0px 2px 12px -1px rgba(0, 0, 0, 0.61);
           box-shadow:         0px 2px 12px -1px rgba(0, 0, 0, 0.61);
-        }
-
-        .toolbar-button[disabled],
-        ::slotted(casper-icon-button[disabled]) {
-          background-color: #E0E0E0;
-          --casper-icon-fill-color: white;
-        }
-
-        .toolbar-white {
-          background-color: white;
-          --casper-icon-fill-color: var(--primary-color);
         }
 
         .epaper {
@@ -252,8 +239,8 @@ class CasperEpaper extends PolymerElement {
       </style>
       <div class="toolbar">
         <div>
-          <casper-icon-button on-click="zoomOut"          id="zoomOut"      tooltip="Reduzir"         icon="fa-light:minus"        class="toolbar-button toolbar-white"></casper-icon-button>
-          <casper-icon-button on-click="zoomIn"           id="zoomIn"       tooltip="Ampliar"         icon="fa-light:plus"         class="toolbar-button toolbar-white"></casper-icon-button>
+          <casper-icon-button on-click="zoomOut"          id="zoomOut"      tooltip="Reduzir"         icon="fa-light:minus"        class="toolbar-button" reverse></casper-icon-button>
+          <casper-icon-button on-click="zoomIn"           id="zoomIn"       tooltip="Ampliar"         icon="fa-light:plus"         class="toolbar-button" reverse></casper-icon-button>
           <casper-icon-button on-click="goToPreviousPage" id="previousPage" tooltip="Página anterior" icon="fa-light:arrow-left"   class="toolbar-button"></casper-icon-button>
           <casper-icon-button on-click="goToNextPage"     id="nextPage"     tooltip="Página seguinte" icon="fa-light:arrow-right"  class="toolbar-button"></casper-icon-button>
           <!--Casper-epaper-tabs-->
