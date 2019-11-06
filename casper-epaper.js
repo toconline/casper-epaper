@@ -18,6 +18,7 @@
   -
  */
 
+import '@casper2020/casper-icons/casper-icon-button.js';
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
 import { afterNextRender } from '@polymer/polymer/lib/utils/render-status.js';
 
