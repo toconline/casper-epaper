@@ -256,7 +256,7 @@ class CasperEpaper extends PolymerElement {
 
           <!--Context menu-->
           <template is="dom-if" if="[[__hasContextMenu]]">
-            <casper-icon-button icon="fa-light:bars" class="toolbar-button toolbar-white" id="context-menu-trigger"></casper-icon-button>
+            <casper-icon-button icon="fa-light:bars" class="toolbar-button toolbar-white" id="context-menu-trigger" reverse></casper-icon-button>
           </template>
         </div>
 
