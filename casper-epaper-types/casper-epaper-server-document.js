@@ -145,7 +145,8 @@ export class CasperEpaperServerDocument extends PolymerElement {
     this.__focusedBandId      = undefined;
     this._redraw_timer_key    = '_epaper_redraw_timer_key';
     this._uploaded_assets_url = '';
-    this.__socket              = app.socket;
+    this.__socket             = app.socket;
+    this.__app                = app;
 
     afterNextRender(this, () => {
 
@@ -200,6 +201,8 @@ export class CasperEpaperServerDocument extends PolymerElement {
       this.epaperCanvas.canvas.addEventListener('mousemove', event => this._moveHandler(event));
       this.epaperCanvas.canvas.addEventListener('mousedown', event => this._mouseDownHandler(event));
       this.epaperCanvas.canvas.addEventListener('mouseup'  , event => this._mouseUpHandler(event));
+      this.__app.addEventListener('casper-page-changed', (e) => this.__resetCommandData(true));
+      this.__app.addEventListener('casper-session-updated', (e) => this.__resetCommandData(true));
       this.__socket.addEventListener('casper-disconnected', (e) => this.__resetCommandData(true));
     });
   }
