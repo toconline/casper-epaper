@@ -519,7 +519,16 @@ class CasperEpaper extends PolymerElement {
 
     afterNextRender(this, () => {
       this.__handleContextMenu();
-      this.zoom = Number(((this.shadowRoot.host.clientWidth - 60) / this.__epaperComponentWidth).toFixed(2));
+
+      // If the zoom was already provided, no need to fit into the container.
+      if (this.zoom) return;
+
+      let initialZoom = Number(((this.shadowRoot.host.clientWidth - 60) / this.__epaperComponentWidth).toFixed(2));
+      if (initialZoom > CasperEpaper.EPAPER_MAX_ZOOM || initialZoom < CasperEpaper.EPAPER_MIN_ZOOM) {
+        initialZoom = 1;
+      }
+
+      this.zoom = initialZoom;
     });
 
     this.__socket.addEventListener('casper-signed-in', () => {
