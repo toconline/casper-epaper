@@ -490,7 +490,6 @@ class CasperEpaper extends PolymerElement {
       /** zoom factor when zoom is 1 one pt in report is one px in the screen */
       zoom: {
         type: Number,
-        value: 1,
         observer: '__zoomChanged'
       },
       __totalPageCount: {
@@ -518,7 +517,10 @@ class CasperEpaper extends PolymerElement {
     this.__epaperCanvas   = this.$.epaperCanvas;
     this.openBlankPage();
 
-    afterNextRender(this, () => this.__handleContextMenu());
+    afterNextRender(this, () => {
+      this.__handleContextMenu();
+      this.zoom = Number(((this.shadowRoot.host.clientWidth - 60) / this.__epaperComponentWidth).toFixed(2));
+    });
 
     this.__socket.addEventListener('casper-signed-in', () => {
       if (this.__currentAttachment) this.__openAttachment();
