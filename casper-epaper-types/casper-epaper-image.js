@@ -68,7 +68,8 @@ class CasperEpaperImage extends PolymerElement {
       this.__imageElement.onerror = error => reject(error);
       this.__imageElement.onload = event => {
 
-        this.__loadedImage = event.composedPath().shift();
+        this.__originalWidth = event.composedPath().shift().width;
+        this.__originalHeight = event.composedPath().shift().height;
 
         // Remove the existing image if there is any.
         const existingImage = this.shadowRoot.querySelector('img');
@@ -104,18 +105,18 @@ class CasperEpaperImage extends PolymerElement {
     const availableWidth = this.parentElement.offsetWidth - 30;
     const availableHeight = this.parentElement.offsetHeight - 30;
 
-    const widthRatio = parseFloat(this.__loadedImage.width / availableWidth);
-    const heightRatio = parseFloat(this.__loadedImage.height / availableHeight);
+    const widthRatio = parseFloat(this.__originalWidth / availableWidth);
+    const heightRatio = parseFloat(this.__originalHeight / availableHeight);
 
     // This means it's a horizontal image.
     if (widthRatio > heightRatio) {
       // Check if the original image fits within the available horizontal space, otherwise adjust its size.
-      this.__imageElement.width = Math.min(availableWidth, this.__loadedImage.width);
-      this.__imageElement.height = Math.min(this.__loadedImage.height / widthRatio, this.__loadedImage.height);
+      this.__imageElement.width = Math.min(availableWidth, this.__originalWidth);
+      this.__imageElement.height = Math.min(this.__originalHeight / widthRatio, this.__originalHeight);
     } else {
       // Check if the original image fits within the available vertical space, otherwise adjust its size.
-      this.__imageElement.height = Math.min(availableHeight, this.__loadedImage.height);
-      this.__imageElement.width = Math.min(this.__loadedImage.width / heightRatio, this.__loadedImage.width);
+      this.__imageElement.height = Math.min(availableHeight, this.__originalHeight);
+      this.__imageElement.width = Math.min(this.__originalWidth / heightRatio, this.__originalWidth);
     }
   }
 }
