@@ -2046,10 +2046,14 @@ export class CasperEpaperServerDocument extends PolymerElement {
   //***************************************************************************************//
 
   _mouseDownHandler (a_event) {
-    /* empty */
+    // This means the canvas is being used by the PDF epaper so no need to react to these events.
+    if (this.shadowRoot.host.style.display === 'none') return;
   }
 
   _mouseUpHandler (a_event) {
+    // This means the canvas is being used by the PDF epaper so no need to react to these events.
+    if (this.shadowRoot.host.style.display === 'none') return;
+
     this.__socket.sendClick(
       this.documentId,
       parseFloat((a_event.offsetX * this.epaperCanvas.scalePxToServer).toFixed(2)),
@@ -2065,6 +2069,9 @@ export class CasperEpaperServerDocument extends PolymerElement {
    * @brief Creates the handler that listens to mouse movements
    */
   _moveHandler (a_event) {
+    // This means the canvas is being used by the PDF epaper so no need to react to these events.
+    if (this.shadowRoot.host.style.display === 'none') return;
+
     if ( this.$.input.overlayVisible ) {
       return;
     }
