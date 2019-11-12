@@ -63,31 +63,29 @@ class CasperEpaperImage extends PolymerElement {
    */
   open () {
     return new Promise((resolve, reject) => {
-      const imageToLoad = new Image();
+      this.__imageElement = document.createElement('img');
 
-      imageToLoad.onerror = error => reject(error);
-      imageToLoad.onload = event => {
+      this.__imageElement.onerror = error => reject(error);
+      this.__imageElement.onload = event => {
 
         this.__loadedImage = event.composedPath().shift();
 
         // Remove the existing image if there is any.
-        if (this.__imageElement) this.shadowRoot.removeChild(this.__imageElement);
+        const existingImage = this.shadowRoot.querySelector('img');
+        if (existingImage) {
+          this.shadowRoot.removeChild(existingImage);
+        }
 
-        // Create a new image and append it to the DOM.
-        this.__imageElement = document.createElement('img');
-        this.__imageElement.src = this.source;
         this.__recalculateImageDimensions();
-
         this.shadowRoot.appendChild(this.__imageElement);
 
         this.loading = false;
         resolve();
       };
 
-
       // Trigger the image load.
       this.loading = true;
-      imageToLoad.src = this.source;
+      this.__imageElement.src = this.source;
     })
   }
 
