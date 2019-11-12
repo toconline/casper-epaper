@@ -68,6 +68,8 @@ class CasperEpaperIframe extends PolymerElement {
    * Method that will fetch the remote source and render it in the iframe.
    */
   async open () {
+    this.__srcdoc = null;
+
     const fileRequest = await fetch(this.source);
 
     if (fileRequest.ok) {
