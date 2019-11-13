@@ -523,12 +523,7 @@ class CasperEpaper extends PolymerElement {
       // If the zoom was already provided, no need to fit into the container.
       if (this.zoom) return;
 
-      let initialZoom = Number(((this.shadowRoot.host.clientWidth - 60) / this.__epaperComponentWidth).toFixed(2));
-      if (initialZoom > CasperEpaper.EPAPER_MAX_ZOOM || initialZoom < CasperEpaper.EPAPER_MIN_ZOOM) {
-        initialZoom = 1;
-      }
-
-      this.zoom = initialZoom;
+      this.zoom = Number(((this.shadowRoot.host.clientWidth - 60) / this.__epaperComponentWidth).toFixed(2));
     });
 
     this.__socket.addEventListener('casper-signed-in', () => {
@@ -1020,6 +1015,11 @@ class CasperEpaper extends PolymerElement {
     this.$.nextPage.disabled = this.__currentPage === this.__totalPageCount;
   }
 
+  __enableOrDisableZoomButtons () {
+    this.$.zoomIn.disabled = this.zoom >= CasperEpaper.EPAPER_MAX_ZOOM;
+    this.$.zoomOut.disabled = this.zoom <= CasperEpaper.EPAPER_MIN_ZOOM;
+  }
+
   __enableOrDisableControlButtons (options, saveCurrentState = true) {
     if (saveCurrentState) this.__currentActionButtonsOptions = options;
 
@@ -1033,8 +1033,7 @@ class CasperEpaper extends PolymerElement {
 
     // Zoom buttons.
     if (options.zoom) {
-      this.$.zoomIn.disabled = this.zoom >= CasperEpaper.EPAPER_MAX_ZOOM;
-      this.$.zoomOut.disabled = this.zoom <= CasperEpaper.EPAPER_MIN_ZOOM;
+      this.__enableOrDisableZoomButtons();
     } else {
       this.$.zoomIn.disabled = true;
       this.$.zoomOut.disabled = true;
@@ -1062,6 +1061,7 @@ class CasperEpaper extends PolymerElement {
   }
 
   __zoomChanged () {
+    this.__enableOrDisableZoomButtons();
     this.__recalculateEpaperDimensions();
 
     if (this.__epaperActiveComponent && typeof this.__epaperActiveComponent.__zoomChanged === 'function') {
