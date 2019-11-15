@@ -146,7 +146,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
     this._redraw_timer_key    = '_epaper_redraw_timer_key';
     this.__socket             = app.socket;
     this.__app                = app;
-    this._uploaded_assets_url = '';
+    this.__updateAssetsUrlFromSession();
 
     afterNextRender(this, () => {
 
@@ -190,11 +190,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
       this.epaperCanvas.canvas.addEventListener('mouseup'  , event => this._mouseUpHandler(event));
       this.__app.addEventListener('casper-page-changed', (e) => this.__resetCommandData(true));
       this.__app.addEventListener('casper-session-updated', (e) => {
-        try {
-          this._uploaded_assets_url = app.session_data.app.config.public_assets_url;
-        } catch (e) {
-          // ignore
-        }
+        this.__updateAssetsUrlFromSession();
         this.__resetCommandData(true);
       });
       this.__socket.addEventListener('casper-disconnected', (e) => this.__resetCommandData(true));
@@ -238,8 +234,8 @@ export class CasperEpaperServerDocument extends PolymerElement {
   }
 
   __getPrintJob (print) {
-    let name  = 'TESTE'; ///*this.i18n.apply(this, */this.document.filename_template;
-    let title = name
+    let name  = 'Documento'; ///*this.i18n.apply(this, */this.document.filename_template;
+    let title = name;
 
     if (!this.__isPrintableDocument()) return;
 
@@ -2083,6 +2079,15 @@ export class CasperEpaperServerDocument extends PolymerElement {
       this.__updateContextMenu(a_event.offsetY * this._ratio);
     }
   }
+
+  __updateAssetsUrlFromSession () {
+    try {
+      this._uploaded_assets_url = app.session_data.app.config.public_assets_url;
+    } catch (e) {
+      this._uploaded_assets_url = '';
+    }
+  }
+
 }
 
 customElements.define(CasperEpaperServerDocument.is, CasperEpaperServerDocument);
