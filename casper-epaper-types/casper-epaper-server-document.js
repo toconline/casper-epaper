@@ -144,9 +144,9 @@ export class CasperEpaperServerDocument extends PolymerElement {
     this.__images             = {};
     this.__focusedBandId      = undefined;
     this._redraw_timer_key    = '_epaper_redraw_timer_key';
-    this._uploaded_assets_url = '';
     this.__socket             = app.socket;
     this.__app                = app;
+    this.__updateAssetsUrlFromSession();
 
     afterNextRender(this, () => {
 
@@ -179,31 +179,22 @@ export class CasperEpaperServerDocument extends PolymerElement {
 
       this._background_color  = '#FFFFFF';
       this._normal_background = '#FFFFFF';
+
+      // TODO remove this
       if ( this.__masteM_doc_right_margin !== undefined ) {
         this.__rightMmargin = this.__masteM_doc_right_margin;
       }
-
-      // ... FOUT Mitigation @TODO proper FOUT mitigation ...
-      let styles    = ['', 'bold ', 'italic ', 'italic bold '];
-      let y = 175;
-      this.epaperCanvas.canvasContext.save();
-      this.epaperCanvas.canvasContext.fillStyle = '#F0F0F0'
-      this.epaperCanvas.canvasContext.textAlign = 'center';
-      this.fontSpec[CasperEpaperServerDocument.SIZE_INDEX] = 20;
-      for (let i = 0; i < styles.length; i++) {
-        this.fontSpec[CasperEpaperServerDocument.BOLD_INDEX] = styles[i];
-        this.epaperCanvas.canvasContext.font = this.fontSpec.join('');
-        this.epaperCanvas.canvasContext.fillText('Powered by CASPER ePaper', this.epaperCanvas.canvas.width / 2, y);
-        y += 35;
-      }
-      this.epaperCanvas.canvasContext.restore();
 
       this.epaperCanvas.canvas.addEventListener('mousemove', event => this._moveHandler(event));
       this.epaperCanvas.canvas.addEventListener('mousedown', event => this._mouseDownHandler(event));
       this.epaperCanvas.canvas.addEventListener('mouseup'  , event => this._mouseUpHandler(event));
       this.__app.addEventListener('casper-page-changed', (e) => this.__resetCommandData(true));
-      this.__app.addEventListener('casper-session-updated', (e) => this.__resetCommandData(true));
+      this.__app.addEventListener('casper-session-updated', (e) => {
+        this.__updateAssetsUrlFromSession();
+        this.__resetCommandData(true);
+      });
       this.__socket.addEventListener('casper-disconnected', (e) => this.__resetCommandData(true));
+      document.fonts.onloadingdone = (fontFaceSetEvent) => this._repaintPage();
     });
   }
 
@@ -243,8 +234,8 @@ export class CasperEpaperServerDocument extends PolymerElement {
   }
 
   __getPrintJob (print) {
-    let name  = 'TESTE'; ///*this.i18n.apply(this, */this.document.filename_template;
-    let title = name
+    let name  = 'Documento'; ///*this.i18n.apply(this, */this.document.filename_template;
+    let title = name;
 
     if (!this.__isPrintableDocument()) return;
 
@@ -1718,6 +1709,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
             _v:    this.__getString()
           };
 
+          // TODO cache key by URL
           let img = this.__images[img_info._id];
           if ( img === undefined && img_info._path.length ) {
             img = new Image();
@@ -2087,6 +2079,15 @@ export class CasperEpaperServerDocument extends PolymerElement {
       this.__updateContextMenu(a_event.offsetY * this._ratio);
     }
   }
+
+  __updateAssetsUrlFromSession () {
+    try {
+      this._uploaded_assets_url = app.session_data.app.config.public_assets_url;
+    } catch (e) {
+      this._uploaded_assets_url = '';
+    }
+  }
+
 }
 
 customElements.define(CasperEpaperServerDocument.is, CasperEpaperServerDocument);
