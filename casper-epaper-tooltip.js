@@ -44,7 +44,14 @@ class CasperEpaperTooltip extends PolymerElement {
         .hidden {
           visibility: hidden;
           opacity: 0;
-          transition: visibility 0.5s, opacity 0.5s ease-in;
+          transition: visibility 0.2s, opacity 0.2s ease-in;
+        }
+
+        .icon {
+          --casper-icon-fill-color: white;
+          height: 17px;
+          width: 17px;
+          margin-right: 5px;
         }
 
         #canvas {
@@ -132,10 +139,17 @@ class CasperEpaperTooltip extends PolymerElement {
   }
 
   setVisible (visible) {
-    this.toggleClass('hidden' , !visible, this.$.canvas);
-    this.toggleClass('hidden' , !visible, this.$.text);
-    this.toggleClass('visible',  visible, this.$.canvas);
-    this.toggleClass('visible',  visible, this.$.text);
+    if (!visible) {
+      this.$.canvas.classList.remove('visible');
+      this.$.text.classList.remove('visible');
+      this.$.canvas.classList.add('hidden');
+      this.$.text.classList.add('hidden');
+    } else {
+      this.$.canvas.classList.add('visible');
+      this.$.text.classList.add('visible');
+      this.$.canvas.classList.remove('hidden');
+      this.$.text.classList.remove('hidden');
+    }
   }
 
   /**
@@ -161,13 +175,14 @@ class CasperEpaperTooltip extends PolymerElement {
     }
 
     this._showing = true;
+
     this.setVisible(true);
 
     // ... set text and size the tooltip, max width up to 90% of page width ...
     this.style.width = (fitInto.width * 0.9) + 'px';
     this.$.text.style.margin = '0px';
     this.$.text.style.marginTop = this.tipHeight + 'px';
-    Polymer.dom(this.$.text).innerHTML = content;
+    this.$.text.innerHTML = content;
 
     // ... layout the tooltip so that it's stays inside the page (90% central column) ...
     tooltipWidth  = this.$.text.getBoundingClientRect().width;

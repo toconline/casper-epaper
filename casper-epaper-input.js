@@ -956,14 +956,13 @@ class CasperEpaperInput extends PolymerElement {
   }
 
   showTooltip (content, positionTarget) {
-    console.log('Show tooltip:', content); // TODO port to casper-app
-    //this.epaper.$.tooltip.show(content, positionTarget);
+    this.epaper.$.tooltip.fitInto = this.epaper.epaper;
+    this.epaper.$.tooltip.show(content, positionTarget);
   }
 
   hideTooltip () {
     if ( this.epaper.$.tooltip.hide !== undefined ) {
-      console.log('Hide tooltip:'); // TODO port to casper-app
-      //this.epaper.$.tooltip.hide();
+      this.epaper.$.tooltip.hide();
     }
   }
 }

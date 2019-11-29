@@ -115,7 +115,7 @@ class CasperEpaperServertipHelper extends PolymerElement {
       this._top    = response.bbox.y / this._scalePxToServer;
       this._width  = response.bbox.w / this._scalePxToServer;
       this._height = response.bbox.h / this._scalePxToServer;
-      this.input.showTooltip(response.hint.toUpperCase(), { left: this._left, top: this._top, width: this._width, height: this._height});
+      this.input.showTooltip(response.hint, { left: this._left, top: this._top, width: this._width, height: this._height});
     }
   }
 
@@ -150,15 +150,15 @@ class CasperEpaperServertipHelper extends PolymerElement {
    *
    * If the mouse has stayed within the threshold get the hint, if not just update the reference point.
    */
-  _onOverHandler () {
+  async _onOverHandler () {
     if ( Math.abs(this._center_x - this._last_x) <= this.threshold &&
          Math.abs(this._center_y - this._last_y) <= this.threshold ) {
-      this.epaperDocument.app.socket.getHint(
+      let response = await this.epaperDocument.app.socket.getHint(
         this.epaperDocument.documentId,
         this._scalePxToServer * this._center_x,
-        this._scalePxToServer * this._center_y,
-        this._getHintResponse.bind(this)
+        this._scalePxToServer * this._center_y
       );
+      this._getHintResponse(response);
       this._resetTimer();
     } else {
       this._updateCenter(this._last_x, this._last_y);
