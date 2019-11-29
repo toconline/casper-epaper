@@ -69,6 +69,12 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
        */
       accept: String,
       /**
+       * If this property is set, append it to the XMLHttpRequest.
+       *
+       * @type {String}
+       */
+      identifier: String,
+      /**
        * The component's icon that appears in the top.
        *
        * @type {String}
@@ -188,8 +194,8 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
     this.__subTitleContainer = this.$['sub-title-container'];
 
     this.i18nUpdateUpload(this.$.upload);
-    this.$.upload.addEventListener('upload-request', this.__uploadRequest);
-    this.$.upload.addEventListener('upload-success', this.__uploadSuccess);
+    this.$.upload.addEventListener('upload-request', event => this.__uploadRequest(event));
+    this.$.upload.addEventListener('upload-success', event => this.__uploadSuccess(event));
   }
 
   /**
@@ -208,6 +214,11 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
     event.preventDefault();
     event.detail.xhr.setRequestHeader('Content-Type', 'application/octet-stream');
     event.detail.xhr.setRequestHeader('Content-Disposition', `form-data; name="${event.detail.file.formDataName}"; filename="uploaded_file";`);
+
+    if (this.identifier) {
+      event.detail.xhr.identifier = this.identifier;
+    }
+
     event.detail.xhr.send(event.detail.file);
   }
 
@@ -220,10 +231,12 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
   __uploadSuccess (event) {
     if (event.detail.xhr.status === 200) {
       const uploadedFile = JSON.parse(event.detail.xhr.response).file;
+
       this.dispatchEvent(new CustomEvent('casper-epaper-upload-success', {
         bubbles: true,
         composed: true,
         detail: {
+          identifier: event.detail.xhr.identifier,
           uploadedFile: uploadedFile,
           originalFileName: event.detail.file.name,
           originalFileType: event.detail.file.type,
