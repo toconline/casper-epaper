@@ -587,7 +587,7 @@ class CasperEpaper extends PolymerElement {
    *
    * @param {Object} options
    */
-  openUploadPage (options, sticky) {
+  openUploadPage (options) {
     // Reset the current attachment settings.
     this.__landscape = false;
     this.__currentAttachmentName = '';
@@ -595,8 +595,6 @@ class CasperEpaper extends PolymerElement {
     this.__currentAttachments = undefined;
 
     if (options) Object.keys(options).forEach(option => this.$.upload[option] = options[option]);
-
-    this.__displayOrHideSticky(sticky);
 
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.UPLOAD);
     this.__enableOrDisableControlButtons({ zoom: true, print: false, paging: false, download: false });
@@ -888,7 +886,6 @@ class CasperEpaper extends PolymerElement {
   async __openAttachment () {
     this.__customAttachmentFileType = false;
     this.__currentAttachmentName = this.__currentAttachment.name;
-    this.__displayOrHideSticky(this.__currentAttachment.sticky);
     this.__updateDownloadIconAndTooltip();
 
     // Open the attachment.
@@ -1094,7 +1091,7 @@ class CasperEpaper extends PolymerElement {
     });
   }
 
-  __displayOrHideSticky (sticky) {
+  displayOrHideSticky (sticky) {
     this.__epaperComponentSticky.innerHTML = '';
 
     if (!sticky) {
