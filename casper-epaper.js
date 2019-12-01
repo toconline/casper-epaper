@@ -911,6 +911,10 @@ class CasperEpaper extends PolymerElement {
           this.__landscape = false;
           await this.__openServerDocument();
           break;
+        case 'html':
+          this.__landscape = this.__currentAttachment.landscape;
+          await this.__openIframe();
+          break;
         default:
           if (this.__currentAttachment.type.startsWith('file/')) {
             this.__customAttachmentFileType = true;
@@ -952,10 +956,13 @@ class CasperEpaper extends PolymerElement {
    * @param {String} iframeSource The iframe's source URL.
    */
   async __openIframe () {
-    this.$.iframe.source = `/file/${this.__currentAttachment.id}`;
-    this.$.iframe.contentType = this.__currentAttachment.type;
-    await this.$.iframe.open();
-
+    if ( this.__currentAttachment.type === 'html' ) {
+      this.$.iframe.$.iframe.srcdoc = this.__currentAttachment.html;
+    } else {
+      this.$.iframe.source = `/file/${this.__currentAttachment.id}`;
+      this.$.iframe.contentType = this.__currentAttachment.type;
+      await this.$.iframe.open();
+    }
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.IFRAME);
     this.__enableOrDisableControlButtons({ zoom: true, print: false, paging: false, download: true });
   }
