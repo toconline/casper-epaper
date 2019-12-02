@@ -1138,7 +1138,7 @@ class CasperEpaper extends PolymerElement {
     this.__epaperComponentLoadingOverlay.style.height = '100%';
     this.__epaperComponentLoadingOverlay.setAttribute('visible', true);
 
-    this.__enableOrDisableControlButtons({ zoom: false, print: false, paging: false }, false);
+    this.__enableOrDisableControlButtons({ zoom: true, print: false, paging: false }, false);
   }
 
   __hideLoadingOverlay () {
