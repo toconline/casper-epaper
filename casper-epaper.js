@@ -1068,6 +1068,7 @@ class CasperEpaper extends PolymerElement {
   __zoomChanged () {
     this.__enableOrDisableZoomButtons();
     this.__recalculateEpaperDimensions();
+    afterNextRender(this, () => this.__epaperComponentContainer.style.display = 'block');
 
     if (this.__epaperActiveComponent && typeof this.__epaperActiveComponent.__zoomChanged === 'function') {
       afterNextRender(this, () => this.__epaperActiveComponent.__zoomChanged());
@@ -1080,7 +1081,6 @@ class CasperEpaper extends PolymerElement {
       this.__epaperContainer.style.maxWidth  = `${parseInt((this.__landscape ? this.__epaperComponentHeight : this.__epaperComponentWidth) * this.zoom)}px`;
       this.__epaperComponentContainer.style.width  = `${parseInt((this.__landscape ? this.__epaperComponentHeight : this.__epaperComponentWidth) * this.zoom)}px`;
       this.__epaperComponentContainer.style.height = `${parseInt((this.__landscape ? this.__epaperComponentWidth : this.__epaperComponentHeight) * this.zoom)}px`;
-      this.__epaperComponentContainer.style.display = 'block';
 
       // Scale the post-it dimensions and position.
       this.__epaperComponentSticky.style.top           = `${parseInt(this.__epaperComponentStickyStyle.top * this.zoom)}px`;
