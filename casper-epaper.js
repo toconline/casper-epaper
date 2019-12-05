@@ -74,7 +74,7 @@ class CasperEpaper extends PolymerElement {
           z-index: 1;
           display: flex;
           width: 100%;
-          overflow-x: scroll;
+          overflow-x: auto;
           position: absolute;
           align-items: center;
           box-sizing: border-box;
