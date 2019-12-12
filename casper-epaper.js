@@ -982,7 +982,7 @@ class CasperEpaper extends PolymerElement {
     this.$.pdf.open(1);
 
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.PDF);
-    this.__enableOrDisableControlButtons({ zoom: true, print: false, paging: true, download: true });
+    this.__enableOrDisableControlButtons({ zoom: true, print: false, paging: false, download: true });
   }
 
   __handleContextMenu () {
