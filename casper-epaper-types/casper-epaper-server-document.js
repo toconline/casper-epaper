@@ -156,8 +156,8 @@ export class CasperEpaperServerDocument extends PolymerElement {
 
       this.__contextMenuIndex = -1;
       this.__contextMenu = contextMenuSlotElements && contextMenuSlotElements.length > 0
-      ? contextMenuSlotElements.shift()
-      : this.$['default-context-menu'];
+        ? contextMenuSlotElements.shift()
+        : this.$['default-context-menu'];
 
       this.__resetRenderState();
       this.__resetCommandData();

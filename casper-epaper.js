@@ -19,6 +19,7 @@
  */
 
 import '@casper2020/casper-icons/casper-icon-button.js';
+import { CasperBrowser } from '@casper2020/casper-utils/casper-utils.js';
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
 import { afterNextRender } from '@polymer/polymer/lib/utils/render-status.js';
 
@@ -44,7 +45,6 @@ class CasperEpaper extends PolymerElement {
           display: flex;
           position: relative;
           flex-direction: column;
-          background-color: var(--casper-moac-paper-background-color, #DDD);
         }
 
         .shadow {
@@ -65,7 +65,6 @@ class CasperEpaper extends PolymerElement {
           height: 100%;
           overflow: auto;
           display: flex;
-          position: relative;
         }
 
         .toolbar {
@@ -181,8 +180,6 @@ class CasperEpaper extends PolymerElement {
           display: none;
           position: relative;
           background-color: white;
-          box-shadow: rgba(0, 0, 0, 0.24) 0px 5px 12px 0px,
-                      rgba(0, 0, 0, 0.12) 0px 0px 12px 0px;
         }
 
         .epaper #epaper-container #epaper-component-container #epaper-component-sticky {
@@ -206,12 +203,13 @@ class CasperEpaper extends PolymerElement {
         .epaper #epaper-container #epaper-component-container #epaper-component-sticky .text-bigger { font-size: 1.25em; }
         .epaper #epaper-container #epaper-component-container #epaper-component-sticky .text-biggest { font-size: 1.5em; }
 
-        .epaper #epaper-container #epaper-component-container #epaper-component-loading-overlay {
+        #epaper-component-loading-overlay {
           top: 0;
           right: 0;
           width: 0;
           height: 0;
           opacity: 0;
+          z-index: 2;
           display: flex;
           color: white;
           position: absolute;
@@ -222,11 +220,11 @@ class CasperEpaper extends PolymerElement {
           background-color: rgba(0, 0, 0, 0.8);
         }
 
-        .epaper #epaper-container #epaper-component-container #epaper-component-loading-overlay[visible] {
+        #epaper-component-loading-overlay[visible] {
           opacity: 1;
         }
 
-        .epaper #epaper-container #epaper-component-container #epaper-component-loading-overlay paper-spinner {
+        #epaper-component-loading-overlay paper-spinner {
           width: 100px;
           height: 100px;
           margin-bottom: 10px;
@@ -237,6 +235,11 @@ class CasperEpaper extends PolymerElement {
           --paper-spinner-layer-4-color: white;
         }
       </style>
+      <div id="epaper-component-loading-overlay">
+        <paper-spinner active></paper-spinner>
+        A carregar o documento
+      </div>
+
       <div class="toolbar">
         <div>
           <casper-icon-button on-click="zoomOut"          id="zoomOut"      tooltip="Reduzir"         icon="fa-light:minus"        class="toolbar-button" reverse></casper-icon-button>
@@ -325,11 +328,6 @@ class CasperEpaper extends PolymerElement {
 
             <!--Generic Page Epaper-->
             <casper-epaper-generic-page id="genericPage"></casper-epaper-generic-page>
-
-            <div id="epaper-component-loading-overlay">
-              <paper-spinner active></paper-spinner>
-              A carregar o documento
-            </div>
           </div>
         </div>
       </div>
@@ -511,6 +509,21 @@ class CasperEpaper extends PolymerElement {
     this.__socket         = this.app.socket;
     this.__epaperCanvas   = this.$.epaperCanvas;
     this.openBlankPage();
+
+    // Adjust the background color depending on the vendor due to the PDF viewer.
+    if (CasperBrowser.isFirefox) {
+      this.style.backgroundColor = 'rgb(64, 64, 64)';
+    } else if (CasperBrowser.isChrome || CasperBrowser.isOpera) {
+      this.style.backgroundColor = 'rgb(82, 86, 89)';
+    } else if (CasperBrowser.isSafari) {
+      this.style.backgroundColor = 'rgb(128, 128, 128)';
+    } else {
+      this.style.backgroundColor = 'var(--casper-moac-paper-background-color, #DDD)';
+      this.$['epaper-component-container'].style.boxShadow = `
+        rgba(0, 0, 0, 0.24) 0px 5px 12px 0px,
+        rgba(0, 0, 0, 0.12) 0px 0px 12px 0px;
+      `;
+    }
 
     afterNextRender(this, () => {
       this.__handleContextMenu();

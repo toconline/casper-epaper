@@ -91,7 +91,7 @@ class CasperEpaperPdf extends PolymerElement {
           height: 100%;
         }
       </style>
-      <embed src="[[source]]" />
+      <embed src="[[__source]]" type="application/pdf" />
     `;
   }
 
@@ -99,7 +99,6 @@ class CasperEpaperPdf extends PolymerElement {
    * Open a PDF document specified in the source property.
    */
   async open (currentPage = undefined) {
-    /*
     if (!this.source) return;
 
     // If a page was specified and it's different from the current one, set it and return so that the observer fires this method.
@@ -108,29 +107,7 @@ class CasperEpaperPdf extends PolymerElement {
       return;
     }
 
-    if (!this.__scriptAlreadyLoaded) await this.__loadScript();
-
-    // Memoize the pdf.js worker.
-    this.__pdfJSWorker = this.__pdfJSWorker || new this.__pdfJS.PDFWorker();
-
-    this.loading = true;
-
-    const file = await this.__pdfJS.getDocument({ url: this.source, worker: this.__pdfJSWorker }).promise;
-    const filePage = await file.getPage(this.currentPage);
-    const fileViewport = filePage.getViewport({ scale: this.epaperCanvas.ratio });
-
-    // Change the canvas dimensions.
-    this.landscape = fileViewport.height < fileViewport.width;
-    this.epaperCanvas.canvas.width = fileViewport.width;
-    this.epaperCanvas.canvas.height = fileViewport.height;
-    this.epaperCanvas.clearPage();
-
-    this.totalPageCount = file._pdfInfo.numPages;
-
-    await filePage.render({ viewport: fileViewport, canvasContext: this.epaperCanvas.canvasContext }).promise;
-
-    this.loading = false;
-    */
+    this.__source = `${this.source}#view=FitH&toolbar=0`;
   }
 
   __zoomChanged () {
