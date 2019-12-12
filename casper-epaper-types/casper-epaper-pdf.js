@@ -84,13 +84,22 @@ class CasperEpaperPdf extends PolymerElement {
   }
 
   static get template () {
-    return html``;
+    return html`
+      <style>
+        embed {
+          width: 100%;
+          height: 100%;
+        }
+      </style>
+      <embed src="[[source]]" />
+    `;
   }
 
   /**
    * Open a PDF document specified in the source property.
    */
   async open (currentPage = undefined) {
+    /*
     if (!this.source) return;
 
     // If a page was specified and it's different from the current one, set it and return so that the observer fires this method.
@@ -121,6 +130,7 @@ class CasperEpaperPdf extends PolymerElement {
     await filePage.render({ viewport: fileViewport, canvasContext: this.epaperCanvas.canvasContext }).promise;
 
     this.loading = false;
+    */
   }
 
   __zoomChanged () {

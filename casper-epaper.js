@@ -22,7 +22,6 @@ import '@casper2020/casper-icons/casper-icon-button.js';
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
 import { afterNextRender } from '@polymer/polymer/lib/utils/render-status.js';
 
-import './casper-epaper-canvas.js';
 import './casper-epaper-servertip-helper.js';
 import './casper-epaper-types/casper-epaper-pdf.js';
 import './casper-epaper-types/casper-epaper-image.js';
@@ -287,20 +286,15 @@ class CasperEpaper extends PolymerElement {
             <!--Sticky that will be used to display information about the component-->
             <div id="epaper-component-sticky"></div>
 
-            <!--Canvas that will be shared between the document and PDF-->
-            <casper-epaper-canvas
-              id="epaperCanvas"
-              zoom="[[zoom]]"
-              landscape="[[__landscape]]">
-            </casper-epaper-canvas>
-
             <!--Server Document Epaper-->
             <casper-epaper-server-document
               id="serverDocument"
               app="[[app]]"
+              zoom="[[zoom]]"
               epaper="[[__epaper]]"
               loading="{{__loading}}"
               scroller="[[scroller]]"
+              landscape="[[__landscape]]"
               current-page="{{__currentPage}}"
               epaper-canvas="[[__epaperCanvas]]"
               total-page-count="{{__totalPageCount}}">
@@ -1061,8 +1055,6 @@ class CasperEpaper extends PolymerElement {
     this.$.iframe.style.display = epaperType === CasperEpaper.EPAPER_TYPES.IFRAME ? '' : 'none';
     this.$.genericPage.style.display = epaperType === CasperEpaper.EPAPER_TYPES.GENERIC_PAGE ? '' : 'none';
     this.$.serverDocument.style.display = epaperType === CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT ? '' : 'none';
-
-    this.$.epaperCanvas.style.display = epaperType === CasperEpaper.EPAPER_TYPES.PDF || epaperType === CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT ? '' : 'none';
   }
 
   __zoomChanged () {
