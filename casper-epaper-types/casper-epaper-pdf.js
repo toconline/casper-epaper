@@ -66,7 +66,9 @@ class CasperEpaperPdf extends PolymerElement {
       return;
     }
 
-    this.__source = `${this.source}#view=Fit&toolbar=0`;
+    this.__source = this.source.includes('?')
+      ? `${this.source}&content-disposition=inline#view=Fit&toolbar=0`
+      : `${this.source}?content-disposition=inline#view=Fit&toolbar=0`;
   }
 }
 
