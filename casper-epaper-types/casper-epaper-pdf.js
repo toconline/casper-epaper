@@ -32,63 +32,22 @@ class CasperEpaperPdf extends PolymerElement {
   static get properties () {
     return {
       /**
-       * This flag states if the epaper component is in landscape or not.
-       *
-       * @type {Boolean}
-       */
-      landscape: {
-        type: Boolean,
-        notify: true
-      },
-      /**
-       * This flag states if the epaper component is currently loading or not.
-       *
-       * @type {Boolean}
-       */
-      loading: {
-        type: Boolean,
-        notify: true
-      },
-      /**
-       * The canvas element that is shared in the epaper component
-       *
-       * @type {Object}
-       */
-      epaperCanvas: Object,
-      /**
        * The PDF document source url.
        *
        * @type {String}
        */
-      source: String,
-      /**
-       * The PDF document's current page.
-       *
-       * @type {Number}
-       */
-      currentPage: {
-        type: Number,
-        notify: true,
-        observer: '__currentPageChanged'
-      },
-      /**
-       * The total number of pages that the document has.
-       *
-       * @type {Number}
-       */
-      totalPageCount: {
-        type: Number,
-        notify: true
-      }
+      source: String
     }
   }
 
   static get template () {
     return html`
       <style>
+        :host,
         embed {
           width: 100%;
           height: 100%;
+          display: block;
         }
       </style>
       <embed src="[[__source]]" type="application/pdf" />
@@ -96,7 +55,7 @@ class CasperEpaperPdf extends PolymerElement {
   }
 
   /**
-   * Open a PDF document specified in the source property.
+   * Opens a PDF document specified in the source property.
    */
   async open (currentPage = undefined) {
     if (!this.source) return;
@@ -107,34 +66,7 @@ class CasperEpaperPdf extends PolymerElement {
       return;
     }
 
-    this.__source = `${this.source}#view=FitH&toolbar=0`;
-  }
-
-  __zoomChanged () {
-    this.open();
-  }
-
-  __currentPageChanged () {
-    this.open();
-  }
-
-  /**
-   * Load the PDF.js script.
-   */
-  __loadScript () {
-    return new Promise(resolve => {
-      const script = document.createElement('script');
-      script.onload = async () => {
-        this.__pdfJS = window['pdfjs-dist/build/pdf'];
-        this.__pdfJS.GlobalWorkerOptions.workerSrc = CasperEpaperPdf.PDF_JS_WORKER_SOURCE;
-
-        this.__scriptAlreadyLoaded = true;
-        resolve();
-      };
-
-      script.src = CasperEpaperPdf.PDF_JS_SOURCE;
-      this.shadowRoot.appendChild(script);
-    })
+    this.__source = `${this.source}#view=Fit&toolbar=0`;
   }
 }
 
