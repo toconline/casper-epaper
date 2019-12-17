@@ -283,8 +283,8 @@ export class CasperEpaperServerDocument extends PolymerElement {
           entity_id: null,
           entity_schema: null,
           sharded_schema: null,
-          accounting_schema: null,
-          accounting_prefix: null
+          subentity_prefix: null,
+          subentity_schema: null
         }
       }))
     };
