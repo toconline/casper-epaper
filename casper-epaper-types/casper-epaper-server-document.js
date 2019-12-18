@@ -433,7 +433,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
     this.__focusedBandId = undefined;
     this.__resetCommandData(keepLastCommand);
     this.documentScale = undefined;
-    this.__canvas.clearPage();
+    this.__clearPage();
   }
 
   /**
@@ -519,8 +519,8 @@ export class CasperEpaperServerDocument extends PolymerElement {
     this.__params  = this.__chapter.params;
     this.__edition = this.__chapter.editable;
     this.documentScale  = this.__sx;
-    this.__canvas.scalePxToServer = this.__pageWidth * this.__canvas.ratio / this.__canvas.width;
-    this._ratio = this.__canvas.ratio;
+
+    this.__scalePxToServer = this.__pageWidth * this.__ratio / this.__canvas.width;
 
     this._repaintPage();
 
@@ -679,10 +679,10 @@ export class CasperEpaperServerDocument extends PolymerElement {
 
   __activateContextMenu (a_band) {
     const x = (this.__pageWidth - this.__rightMmargin) * this.__sx;
-    const y = a_band._ty + a_band._height / 2 - (CasperEpaperServerDocument.BTN_SIZE * this._ratio) / 2;
+    const y = a_band._ty + a_band._height / 2 - (CasperEpaperServerDocument.BTN_SIZE * this.__ratio) / 2;
 
-    this.__contextMenu.style.left = (x / this._ratio) + 'px';
-    this.__contextMenu.style.top  = (y / this._ratio) + 'px';
+    this.__contextMenu.style.left = (x / this.__ratio) + 'px';
+    this.__contextMenu.style.top  = (y / this.__ratio) + 'px';
     if ( this.__edition /*&& this.is_focused()*/ ) {
       this.__contextMenu.style.position = 'absolute';
       this.__contextMenu.style.display = 'flex';
@@ -758,20 +758,21 @@ export class CasperEpaperServerDocument extends PolymerElement {
       this.__canvasContext.oBackingStorePixelRatio ||
       this.__canvasContext.backingStorePixelRatio || 1;
 
-    this.ratio = devicePixelRatio / backingStoreRatio;
+    this.__ratio = devicePixelRatio / backingStoreRatio;
   }
 
   /**
    * Adjust the canvas dimension taking into account the pixel ratio and also calculates the scale the server should use.
    */
   __setupScale () {
-    this.__canvas.width         = (this.landscape ? this.__canvasHeight : this.__canvasWidth) * this.ratio;
-    this.__canvas.height        = (this.landscape ? this.__canvasWidth : this.__canvasHeight) * this.ratio;
+    this.__canvas.width         = (this.landscape ? this.__canvasHeight : this.__canvasWidth) * this.__ratio;
+    this.__canvas.height        = (this.landscape ? this.__canvasWidth : this.__canvasHeight) * this.__ratio;
     this.__canvas.style.width   = `${this.landscape ? this.__canvasHeight : this.__canvasWidth}px`;
     this.__canvas.style.height  = `${this.landscape ? this.__canvasWidth : this.__canvasHeight}px`;
 
     this.__sx = parseFloat((this.__canvas.width  / this.__pageWidth).toFixed(2));
-    this.scalePxToServer = this.__pageWidth * this.ratio / this.__canvas.width;
+
+    this.__scalePxToServer = this.__pageWidth * this.__ratio / this.__canvas.width;
   }
 
   /**
@@ -820,8 +821,8 @@ export class CasperEpaperServerDocument extends PolymerElement {
   }
 
   __resetCanvasDimensions () {
-    this.__canvas.width  = this.__canvasWidth  * this.ratio;
-    this.__canvas.height = this.__canvasHeight * this.ratio;
+    this.__canvas.width  = this.__canvasWidth  * this.__ratio;
+    this.__canvas.height = this.__canvasHeight * this.__ratio;
     this.__clearPage();
   }
 
@@ -1126,7 +1127,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
     let sy         = 0.0;
     let sh         = 0.0;
     let sw         = 0.0;
-    let s          = this._ratio;
+    let s          = this.__ratio;
     let t1,t2,t3;
 
     this.__resetRenderState();
@@ -1143,7 +1144,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
             this.__resetRenderState();
             this.__r_idx++;
           } else {
-            this.__canvas.clearPage();
+            this.__clearPage();
           }
           this.__r_idx++;
           this.__bands = undefined;
@@ -1229,13 +1230,13 @@ export class CasperEpaperServerDocument extends PolymerElement {
 
             this.__canvasContext.beginPath();
 
-            if ( x === x2 && this._ratio == 1 ) {
+            if ( x === x2 && this.__ratio == 1 ) {
 
               w = Math.round(this.__canvasContext.lineWidth) & 0x1 ? -0.5 : 0;
               this.__canvasContext.moveTo(x  + w, y  + w);
               this.__canvasContext.lineTo(x2 + w, y2 + w);
 
-            } else if ( y === y2 && this._ratio == 1 ) {
+            } else if ( y === y2 && this.__ratio == 1 ) {
 
               w = Math.round(this.__canvasContext.lineWidth) & 0x1 ? -0.5 : 0;
               this.__canvasContext.moveTo(x  + w, y  + w)
@@ -1779,7 +1780,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
 
           w = this.__getDouble();
           if ( w <= 1 ) {
-            w = this._ratio;
+            w = this.__ratio;
           }
           this.__canvasContext.lineWidth = w;
           break;
@@ -2211,8 +2212,8 @@ export class CasperEpaperServerDocument extends PolymerElement {
 
     this.__socket.sendClick(
       this.documentId,
-      parseFloat((a_event.offsetX * this.__canvas.scalePxToServer).toFixed(2)),
-      parseFloat((a_event.offsetY * this.__canvas.scalePxToServer).toFixed(2))
+      parseFloat((a_event.offsetX * this.__scalePxToServer).toFixed(2)),
+      parseFloat((a_event.offsetY * this.__scalePxToServer).toFixed(2))
     );
 
     if ( this.__edition ) {
@@ -2224,22 +2225,20 @@ export class CasperEpaperServerDocument extends PolymerElement {
    * @brief Creates the handler that listens to mouse movements
    */
   _moveHandler (a_event) {
-    // This means the canvas is being used by the PDF epaper so no need to react to these events.
-    if (this.shadowRoot.host.style.display === 'none') return;
-
     if ( this.$.input.overlayVisible ) {
       return;
     }
 
-    if ( isNaN(this.__canvas.scalePxToServer)) {
+    if ( isNaN(this.__scalePxToServer)) {
       return;
     }
 
     if ( this.$.servertip ) {
-      this.$.servertip.onMouseMove(a_event.offsetX, a_event.offsetY, this.__canvas.scalePxToServer);
+      this.$.servertip.onMouseMove(a_event.offsetX, a_event.offsetY, this.__scalePxToServer);
     }
+
     if ( this.__edition ) {
-      this.__updateContextMenu(a_event.offsetY * this._ratio);
+      this.__updateContextMenu(a_event.offsetY * this.__ratio);
     }
   }
 
