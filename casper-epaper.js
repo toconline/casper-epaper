@@ -36,7 +36,7 @@ class CasperEpaper extends PolymerElement {
   static get EPAPER_MAX_ZOOM () { return 2; }
   static get EPAPER_MIN_ZOOM () { return 0.5; }
 
-  static get template() {
+  static get template () {
     return html`
       <style>
         :host {
@@ -503,11 +503,11 @@ class CasperEpaper extends PolymerElement {
   ready () {
     super.ready();
 
-    this.__epaper         = this;
-    this.__currentPage    = 1;
+    this.__epaper = this;
+    this.__currentPage = 1;
     this.__totalPageCount = 0;
-    this.__socket         = this.app.socket;
-    this.__epaperCanvas   = this.$.epaperCanvas;
+    this.__socket = this.app.socket;
+    this.__epaperCanvas = this.$.epaperCanvas;
     this.openBlankPage();
 
     // Adjust the background color depending on the vendor due to the PDF viewer.
@@ -708,9 +708,9 @@ class CasperEpaper extends PolymerElement {
   gotoChapter (chapterIndex, pageNumber) {
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT);
 
-    if ( this._document && this._document.chapters && this._document.chapters.length >= 1 ) {
+    if (this._document && this._document.chapters && this._document.chapters.length >= 1) {
       this._chapterIndex = chapterIndex;
-      this._chapter      = this._document.chapters[chapterIndex];
+      this._chapter = this._document.chapters[chapterIndex];
       return this._openChapter(pageNumber);
     } else {
       // warning
@@ -745,8 +745,8 @@ class CasperEpaper extends PolymerElement {
   }
 
   previousChapter () {
-    if ( this._document && this._document.chapters && this._document.chapters.length >= 1 ) {
-      if (this._chapterIndex >= 1 ) {
+    if (this._document && this._document.chapters && this._document.chapters.length >= 1) {
+      if (this._chapterIndex >= 1) {
         this._chapterIndex -= 1;
         this.gotoChapter(this._chapterIndex, -1);
         return true;
@@ -756,8 +756,8 @@ class CasperEpaper extends PolymerElement {
   }
 
   nextChapter () {
-    if ( this._document && this._document.chapters && this._document.chapters.length >= 1 ) {
-      if ( this._chapterIndex < (this._document.chapters.length - 1) ) {
+    if (this._document && this._document.chapters && this._document.chapters.length >= 1) {
+      if (this._chapterIndex < (this._document.chapters.length - 1)) {
         this._chapterIndex += 1;
         this.gotoChapter(this._chapterIndex, 1);
         return true;
@@ -791,7 +791,7 @@ class CasperEpaper extends PolymerElement {
 
     first_document = documents[0]
 
-    if ( first_document !== undefined ) {
+    if (first_document !== undefined) {
       name = first_document.name || this.i18n.apply(this, first_document.filename_template)
       title = first_document.title || name
     }
@@ -963,7 +963,7 @@ class CasperEpaper extends PolymerElement {
    * @param {String} iframeSource The iframe's source URL.
    */
   async __openIframe () {
-    if ( this.__currentAttachment.type === 'html' ) {
+    if (this.__currentAttachment.type === 'html') {
       this.$.iframe.$.iframe.srcdoc = this.__currentAttachment.html;
     } else {
       this.$.iframe.source = `/file/${this.__currentAttachment.id}`;
@@ -1002,7 +1002,9 @@ class CasperEpaper extends PolymerElement {
         contextMenu.horizontalAlign = 'right';
         contextMenu.verticalOffset = contextMenuTrigger.offsetHeight + 10;
 
-        contextMenuTrigger.addEventListener('click', () => contextMenu.toggle());
+        contextMenuTrigger.addEventListener('click', () => {
+          contextMenu.toggle();
+        });
         contextMenu.addEventListener('iron-overlay-canceled', event => {
           if (event.detail.path.includes(contextMenuTrigger)) {
             event.preventDefault();
@@ -1083,18 +1085,18 @@ class CasperEpaper extends PolymerElement {
   __recalculateEpaperDimensions () {
     afterNextRender(this, () => {
       // Scale the epaper component container.
-      this.__epaperContainer.style.maxWidth  = `${parseInt((this.__landscape ? this.__epaperComponentHeight : this.__epaperComponentWidth) * this.zoom)}px`;
-      this.__epaperComponentContainer.style.width  = `${parseInt((this.__landscape ? this.__epaperComponentHeight : this.__epaperComponentWidth) * this.zoom)}px`;
+      this.__epaperContainer.style.maxWidth = `${parseInt((this.__landscape ? this.__epaperComponentHeight : this.__epaperComponentWidth) * this.zoom)}px`;
+      this.__epaperComponentContainer.style.width = `${parseInt((this.__landscape ? this.__epaperComponentHeight : this.__epaperComponentWidth) * this.zoom)}px`;
       this.__epaperComponentContainer.style.height = `${parseInt((this.__landscape ? this.__epaperComponentWidth : this.__epaperComponentHeight) * this.zoom)}px`;
 
       // Scale the post-it dimensions and position.
-      this.__epaperComponentSticky.style.top           = `${parseInt(this.__epaperComponentStickyStyle.top * this.zoom)}px`;
-      this.__epaperComponentSticky.style.right         = `${parseInt(this.__epaperComponentStickyStyle.right * this.zoom)}px`;
-      this.__epaperComponentSticky.style.width         = `${parseInt(this.__epaperComponentStickyStyle.width * this.zoom)}px`;
-      this.__epaperComponentSticky.style.fontSize      = `${parseInt(this.__epaperComponentStickyStyle.fontSize * this.zoom)}px`;
-      this.__epaperComponentSticky.style.paddingTop    = `${parseInt(this.__epaperComponentStickyStyle.paddingTop * this.zoom)}px`;
-      this.__epaperComponentSticky.style.paddingLeft   = `${parseInt(this.__epaperComponentStickyStyle.paddingLeft * this.zoom)}px`;
-      this.__epaperComponentSticky.style.paddingRight  = `${parseInt(this.__epaperComponentStickyStyle.paddingRight * this.zoom)}px`;
+      this.__epaperComponentSticky.style.top = `${parseInt(this.__epaperComponentStickyStyle.top * this.zoom)}px`;
+      this.__epaperComponentSticky.style.right = `${parseInt(this.__epaperComponentStickyStyle.right * this.zoom)}px`;
+      this.__epaperComponentSticky.style.width = `${parseInt(this.__epaperComponentStickyStyle.width * this.zoom)}px`;
+      this.__epaperComponentSticky.style.fontSize = `${parseInt(this.__epaperComponentStickyStyle.fontSize * this.zoom)}px`;
+      this.__epaperComponentSticky.style.paddingTop = `${parseInt(this.__epaperComponentStickyStyle.paddingTop * this.zoom)}px`;
+      this.__epaperComponentSticky.style.paddingLeft = `${parseInt(this.__epaperComponentStickyStyle.paddingLeft * this.zoom)}px`;
+      this.__epaperComponentSticky.style.paddingRight = `${parseInt(this.__epaperComponentStickyStyle.paddingRight * this.zoom)}px`;
       this.__epaperComponentSticky.style.paddingBottom = `${parseInt(this.__epaperComponentStickyStyle.paddingBottom * this.zoom)}px`;
 
       this.__epaperComponentSticky.style.height = !this.disableStickyAnimation
@@ -1107,7 +1109,7 @@ class CasperEpaper extends PolymerElement {
     this.__epaperComponentSticky.innerHTML = '';
 
     if (!sticky) {
-      this.__epaperComponentSticky.style.display =  'none';
+      this.__epaperComponentSticky.style.display = 'none';
       return;
     }
 
@@ -1116,7 +1118,7 @@ class CasperEpaper extends PolymerElement {
       this.__epaperComponentSticky.style.height = `${parseInt((this.stickyMaximumHeight || this.__epaperComponentStickyStyle.fullHeight) * this.zoom)}px`;
     }
 
-    this.__epaperComponentSticky.style.display =  'flex';
+    this.__epaperComponentSticky.style.display = 'flex';
     this.__epaperComponentSticky.innerHTML = sticky.constructor === String ? sticky : Object.values(sticky).join('');
   }
 
@@ -1139,6 +1141,7 @@ class CasperEpaper extends PolymerElement {
   }
 
   __displayLoadingOverlay () {
+    this.__epaperComponentLoadingOverlay.style.display = '';
     this.__epaperComponentLoadingOverlay.style.width = '100%';
     this.__epaperComponentLoadingOverlay.style.height = '100%';
     this.__epaperComponentLoadingOverlay.setAttribute('visible', true);
@@ -1152,6 +1155,7 @@ class CasperEpaper extends PolymerElement {
 
     // Set the loading overlay dimensions to zero after the animation is finished.
     setTimeout(() => {
+      this.__epaperComponentLoadingOverlay.style.display = 'none';
       this.__epaperComponentLoadingOverlay.style.width = 0;
       this.__epaperComponentLoadingOverlay.style.height = 0;
     }, 200);
