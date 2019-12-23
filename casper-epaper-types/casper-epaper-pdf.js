@@ -36,7 +36,16 @@ class CasperEpaperPdf extends PolymerElement {
        *
        * @type {String}
        */
-      source: String
+      source: String,
+      /**
+       * This flag states if the epaper component is currently loading or not.
+       *
+       * @type {Boolean}
+       */
+      loading: {
+        type: Boolean,
+        notify: true
+      }
     }
   }
 
@@ -54,18 +63,19 @@ class CasperEpaperPdf extends PolymerElement {
     `;
   }
 
+  ready () {
+    super.ready();
+
+    this.shadowRoot.querySelector('embed').addEventListener('load', () => { this.loading = false; });
+  }
+
   /**
    * Opens a PDF document specified in the source property.
    */
-  async open (currentPage = undefined) {
+  async open () {
     if (!this.source) return;
 
-    // If a page was specified and it's different from the current one, set it and return so that the observer fires this method.
-    if (this.currentPage !== currentPage && currentPage !== undefined) {
-      this.currentPage = currentPage;
-      return;
-    }
-
+    this.loading = true;
     this.__source = this.source.includes('?')
       ? `${this.source}&content-disposition=inline#view=Fit&toolbar=0`
       : `${this.source}?content-disposition=inline#view=Fit&toolbar=0`;

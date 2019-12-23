@@ -299,20 +299,12 @@ class CasperEpaper extends PolymerElement {
               scroller="[[scroller]]"
               landscape="[[__landscape]]"
               current-page="{{__currentPage}}"
-              epaper-canvas="[[__epaperCanvas]]"
               total-page-count="{{__totalPageCount}}">
               <slot name="casper-epaper-line-menu" slot="casper-epaper-line-menu"></slot>
             </casper-epaper-server-document>
 
             <!--PDF Epaper-->
-            <casper-epaper-pdf
-              id="pdf"
-              loading="{{__loading}}"
-              landscape="{{__landscape}}"
-              current-page="{{__currentPage}}"
-              epaper-canvas="[[__epaperCanvas]]"
-              total-page-count="{{__totalPageCount}}">
-            </casper-epaper-pdf>
+            <casper-epaper-pdf id="pdf" loading="{{__loading}}"></casper-epaper-pdf>
 
             <!--Iframe Epaper-->
             <casper-epaper-iframe id="iframe"></casper-epaper-iframe>
@@ -507,7 +499,6 @@ class CasperEpaper extends PolymerElement {
     this.__currentPage = 1;
     this.__totalPageCount = 0;
     this.__socket = this.app.socket;
-    this.__epaperCanvas = this.$.epaperCanvas;
     this.openBlankPage();
 
     // Adjust the background color depending on the vendor due to the PDF viewer.
