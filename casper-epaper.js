@@ -614,10 +614,10 @@ class CasperEpaper extends PolymerElement {
    *
    * @param {Object} attachment The attachment's metadata. This object should contain the attachment's identifier, type and name.
    */
-  openAttachment (attachment) {
+  openAttachment (attachment, attachmentIndex) {
     if (Array.isArray(attachment) && attachment.length > 0) {
       this.__currentAttachments = attachment;
-      this.__currentAttachmentIndex = 0;
+      this.__currentAttachmentIndex = attachmentIndex !== undefined && attachmentIndex < attachment.length ? attachmentIndex : 0;
       this.__currentAttachment = this.__currentAttachments[this.__currentAttachmentIndex];
     } else {
       this.__currentAttachments = undefined;
