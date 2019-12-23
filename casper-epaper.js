@@ -603,6 +603,7 @@ class CasperEpaper extends PolymerElement {
 
     if (options) Object.keys(options).forEach(option => this.$.upload[option] = options[option]);
 
+    this.$.upload.clearUploadedFiles();
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.UPLOAD);
     this.__enableOrDisableControlButtons({ zoom: true, print: false, paging: false, download: false });
     this.__handleAttachmentNavigationButtons();
