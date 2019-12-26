@@ -22,9 +22,6 @@ import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
 
 class CasperEpaperPdf extends PolymerElement {
 
-  static get PDF_JS_SOURCE () { return '/static/js/pdf.js'; }
-  static get PDF_JS_WORKER_SOURCE () { return '/static/js/pdf.worker.js'; }
-
   static get is () {
     return 'casper-epaper-pdf';
   }
