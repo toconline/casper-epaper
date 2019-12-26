@@ -133,7 +133,7 @@ class CasperEpaper extends PolymerElement {
         .epaper #previous-attachment casper-icon {
           width: 40px;
           height: 40px;
-          --casper-icon-fill-color: white;
+          color: white;
         }
 
         .epaper #previous-attachment {
@@ -334,7 +334,7 @@ class CasperEpaper extends PolymerElement {
             align-items: center;
             flex-direction: column;
             justify-content: center;
-            --casper-icon-fill-color: var(--status-gray);
+            color: var(--status-gray);
           }
 
           #page-container casper-icon {
@@ -367,7 +367,7 @@ class CasperEpaper extends PolymerElement {
             width: 100px;
             height: 100px;
             margin-bottom: 10px;
-            --casper-icon-fill-color: var(--status-red);
+            color: var(--status-red);
           }
         </style>
         <div id="page-container">
@@ -393,13 +393,13 @@ class CasperEpaper extends PolymerElement {
             width: 125px;
             height: 125px;
             margin-bottom: 25px;
-            --casper-icon-fill-color: var(--primary-color);
-            transition: --casper-icon-fill-color 200ms linear;
+            color: var(--primary-color);
+            transition: color 200ms linear;
           }
 
           #page-container casper-icon:hover {
             cursor: pointer;
-            --casper-icon-fill-color: var(--dark-primary-color);
+            color: var(--dark-primary-color);
           }
         </style>
         <div id="page-container">

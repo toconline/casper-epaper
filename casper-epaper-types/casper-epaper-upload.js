@@ -121,7 +121,7 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
         #uploadContainer .icon-container casper-icon {
           width: 50%;
           height: 50%;
-          --casper-icon-fill-color: var(--primary-color);
+          color: var(--primary-color);
         }
 
         #uploadContainer #title-container {
@@ -163,7 +163,7 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
         }
 
         #uploadContainer[no-module] .icon-container casper-icon {
-          --casper-icon-fill-color: var(--status-red);
+          color: var(--status-red);
         }
       </style>
       <div id="uploadContainer" no-module$=[[disabled]]>

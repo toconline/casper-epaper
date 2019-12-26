@@ -48,7 +48,7 @@ class CasperEpaperTooltip extends PolymerElement {
         }
 
         .icon {
-          --casper-icon-fill-color: white;
+          color: white;
           height: 17px;
           width: 17px;
           margin-right: 5px;
@@ -165,13 +165,13 @@ class CasperEpaperTooltip extends PolymerElement {
     var tooltipWidth, tooltipArrowX, tooltipLeft, arrowLoc, fitInto;
 
     fitInto = this.fitInto.getBoundingClientRect();
-    if ( positionTarget === undefined ) {
+    if (positionTarget === undefined) {
       positionTarget = this.positionTarget.getBoundingClientRect();
     } else {
-      positionTarget.left  += fitInto.left;
-      positionTarget.top   += fitInto.top;
+      positionTarget.left += fitInto.left;
+      positionTarget.top += fitInto.top;
       positionTarget.bottom = positionTarget.top + positionTarget.height;
-      positionTarget.right  = positionTarget.left + positionTarget.width;
+      positionTarget.right = positionTarget.left + positionTarget.width;
     }
 
     this._showing = true;
@@ -185,15 +185,15 @@ class CasperEpaperTooltip extends PolymerElement {
     this.$.text.innerHTML = content;
 
     // ... layout the tooltip so that it's stays inside the page (90% central column) ...
-    tooltipWidth  = this.$.text.getBoundingClientRect().width;
+    tooltipWidth = this.$.text.getBoundingClientRect().width;
     tooltipArrowX = positionTarget.left + positionTarget.width / 2;
-    tooltipLeft   = tooltipArrowX - tooltipWidth / 2;
-    arrowLoc      = 0.5;
+    tooltipLeft = tooltipArrowX - tooltipWidth / 2;
+    arrowLoc = 0.5;
 
-    if ( tooltipLeft < fitInto.left + fitInto.width * 0.05 ) {
+    if (tooltipLeft < fitInto.left + fitInto.width * 0.05) {
       tooltipLeft = fitInto.left + fitInto.width * 0.05;
       arrowLoc = (tooltipArrowX - tooltipLeft) / tooltipWidth;
-    } else if ( tooltipLeft + tooltipWidth > fitInto.left + fitInto.width * 0.95 ) {
+    } else if (tooltipLeft + tooltipWidth > fitInto.left + fitInto.width * 0.95) {
       tooltipLeft = fitInto.left + fitInto.width * 0.95 - tooltipWidth;
       arrowLoc = (tooltipArrowX - tooltipLeft) / tooltipWidth;
     }
@@ -201,7 +201,7 @@ class CasperEpaperTooltip extends PolymerElement {
     // ... position relative to fitInto and show the tooltip ...
     this.tipLocation = arrowLoc;
     this.style.left = tooltipLeft - fitInto.left + 'px';
-    this.style.top  = positionTarget.bottom - fitInto.top  + 'px';
+    this.style.top = positionTarget.bottom - fitInto.top + 'px';
     this._updateBalloon();
   }
 
@@ -218,40 +218,40 @@ class CasperEpaperTooltip extends PolymerElement {
     var width, height, bb;
 
     bb = this.$.text.getBoundingClientRect();
-    switch(this._tipEdge) {
+    switch (this._tipEdge) {
       case 'N':
       case 'S':
         height = bb.height + this.tipHeight;
-        width  = bb.width;
+        width = bb.width;
         break;
       case 'W':
       case 'E':
         height = bb.height;
-        width  = bb.width + this.tipHeight + this.radius;
+        width = bb.width + this.tipHeight + this.radius;
         break;
     }
     this.$.canvas.width = width * this._ratio;
     this.$.canvas.height = height * this._ratio;
-    this.$.canvas.style.width  = width + 'px';
+    this.$.canvas.style.width = width + 'px';
     this.$.canvas.style.height = height + 'px';
-    this._paintBalloon(width - 1, height -1);
+    this._paintBalloon(width - 1, height - 1);
   }
 
   /**
    * @brief Determine the device pixel ratio: 1 on classical displays 2 on retina/UHD displays
    */
   _setupPixelRatio () {
-    var devicePixelRatio  = window.devicePixelRatio || 1;
+    var devicePixelRatio = window.devicePixelRatio || 1;
     if (devicePixelRatio > 1.6) {
       devicePixelRatio = 2;
     } else {
       devicePixelRatio = 1;
     }
     var backingStoreRatio = this._ctx.webkitBackingStorePixelRatio ||
-                            this._ctx.mozBackingStorePixelRatio ||
-                            this._ctx.msBackingStorePixelRatio ||
-                            this._ctx.oBackingStorePixelRatio ||
-                            this._ctx.backingStorePixelRatio || 1;
+      this._ctx.mozBackingStorePixelRatio ||
+      this._ctx.msBackingStorePixelRatio ||
+      this._ctx.oBackingStorePixelRatio ||
+      this._ctx.backingStorePixelRatio || 1;
     this._ratio = devicePixelRatio / backingStoreRatio;
   }
 
@@ -265,11 +265,11 @@ class CasperEpaperTooltip extends PolymerElement {
    * @param r corner radius
    */
   _makeRoundRectPath (x, y, w, h, r) {
-    this._ctx.moveTo( x + r, y );
-    this._ctx.arcTo(  x + w, y    , x + w    , y + r    , r);
-    this._ctx.arcTo(  x + w, y + h, x + w - r, y + h    , r);
-    this._ctx.arcTo(  x    , y + h, x        , y + h - r, r);
-    this._ctx.arcTo(  x    , y    , x + r    , y        , r);
+    this._ctx.moveTo(x + r, y);
+    this._ctx.arcTo(x + w, y, x + w, y + r, r);
+    this._ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+    this._ctx.arcTo(x, y + h, x, y + h - r, r);
+    this._ctx.arcTo(x, y, x + r, y, r);
   }
 
   _paintBalloon (width, height) {
@@ -278,11 +278,11 @@ class CasperEpaperTooltip extends PolymerElement {
     this._ctx.fillStyle = '#000';
     this._ctx.globalAlpha = 0.75;
 
-    radius    = this.radius    * this._ratio;
+    radius = this.radius * this._ratio;
     tipHeight = this.tipHeight * this._ratio;
-    tipBase   = this.tipBase   * this._ratio;
-    width    *= this._ratio;
-    height   *= this._ratio;
+    tipBase = this.tipBase * this._ratio;
+    width *= this._ratio;
+    height *= this._ratio;
     this._ctx.beginPath();
     switch (this._tipEdge) {
       case 'N':
@@ -298,8 +298,8 @@ class CasperEpaperTooltip extends PolymerElement {
         this._makeRoundRectPath(0, 0, width - tipHeight, height, radius);
         tipLocation = Math.round(0 + height * this.tipLocation);
         this._ctx.moveTo(0 + width, tipLocation);
-        this._ctx.lineTo(0 + width - tipHeight, Math.round(tipLocation - tipBase/ 2));
-        this._ctx.lineTo(0 + width - tipHeight, Math.round(tipLocation + tipBase/ 2));
+        this._ctx.lineTo(0 + width - tipHeight, Math.round(tipLocation - tipBase / 2));
+        this._ctx.lineTo(0 + width - tipHeight, Math.round(tipLocation + tipBase / 2));
         this._ctx.lineTo(0 + width, tipLocation);
         break;
       case 'S':
@@ -314,8 +314,8 @@ class CasperEpaperTooltip extends PolymerElement {
         this._makeRoundRectPath(0 + tipHeight, 0, width - tipHeight, height, radius);
         tipLocation = Math.round(0 + height * this.tipLocation);
         this._ctx.moveTo(0, tipLocation);
-        this._ctx.lineTo(0 + tipHeight, Math.round(tipLocation - tipBase/ 2));
-        this._ctx.lineTo(0 + tipHeight, Math.round(tipLocation + tipBase/ 2));
+        this._ctx.lineTo(0 + tipHeight, Math.round(tipLocation - tipBase / 2));
+        this._ctx.lineTo(0 + tipHeight, Math.round(tipLocation + tipBase / 2));
         this._ctx.lineTo(0, tipLocation);
         break;
     }
