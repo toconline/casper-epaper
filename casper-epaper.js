@@ -433,6 +433,10 @@ class CasperEpaper extends PolymerElement {
        * @type {Object}
        */
       app: Object,
+      currentAttachment: {
+        type: Object,
+        notify: true
+      },
       stickyMaximumHeight: {
         type: Number,
       },
@@ -569,7 +573,7 @@ class CasperEpaper extends PolymerElement {
 
     if (!this.__customAttachmentFileType) {
       this.__currentAttachmentName = '';
-      this.__currentAttachment = undefined;
+      this.__currentAttachment = this.currentAttachment = undefined;
       this.__currentAttachments = undefined;
     }
 
@@ -589,7 +593,7 @@ class CasperEpaper extends PolymerElement {
     // Reset the current attachment settings.
     this.__landscape = false;
     this.__currentAttachmentName = '';
-    this.__currentAttachment = undefined;
+    this.__currentAttachment = this.currentAttachment = undefined;
     this.__currentAttachments = undefined;
 
     if (options) Object.keys(options).forEach(option => this.$.upload[option] = options[option]);
@@ -609,11 +613,11 @@ class CasperEpaper extends PolymerElement {
     if (Array.isArray(attachment) && attachment.length > 0) {
       this.__currentAttachments = attachment;
       this.__currentAttachmentIndex = attachmentIndex !== undefined && attachmentIndex < attachment.length ? attachmentIndex : 0;
-      this.__currentAttachment = this.__currentAttachments[this.__currentAttachmentIndex];
+      this.__currentAttachment = this.currentAttachment = this.__currentAttachments[this.__currentAttachmentIndex];
     } else {
       this.__currentAttachments = undefined;
       this.__currentAttachmentIndex = undefined;
-      this.__currentAttachment = attachment;
+      this.__currentAttachment = this.currentAttachment = attachment;
     }
 
     this.__handleAttachmentNavigationButtons();
@@ -844,7 +848,7 @@ class CasperEpaper extends PolymerElement {
 
   __onNextAttachmentClick () {
     this.__currentAttachmentIndex++;
-    this.__currentAttachment = this.__currentAttachments[this.__currentAttachmentIndex];
+    this.__currentAttachment = this.currentAttachment = this.__currentAttachments[this.__currentAttachmentIndex];
 
     this.__handleAttachmentNavigationButtons();
     this.__openAttachment();
@@ -852,7 +856,7 @@ class CasperEpaper extends PolymerElement {
 
   __onPreviousAttachmentClick () {
     this.__currentAttachmentIndex--;
-    this.__currentAttachment = this.__currentAttachments[this.__currentAttachmentIndex];
+    this.__currentAttachment = this.currentAttachment = this.__currentAttachments[this.__currentAttachmentIndex];
 
     this.__handleAttachmentNavigationButtons();
     this.__openAttachment();
