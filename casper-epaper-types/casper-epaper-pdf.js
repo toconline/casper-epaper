@@ -70,12 +70,14 @@ class CasperEpaperPdf extends PolymerElement {
    * Opens a PDF document specified in the source property.
    */
   async open () {
-    if (!this.source) return;
-
-    this.loading = true;
-    this.__source = this.source.includes('?')
+    const newSource = this.source.includes('?')
       ? `${this.source}&content-disposition=inline#view=Fit&toolbar=0`
       : `${this.source}?content-disposition=inline#view=Fit&toolbar=0`;
+
+    if (!this.source || newSource === this.__source) return;
+
+    this.loading = true;
+    this.__source = newSource
   }
 }
 
