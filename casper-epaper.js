@@ -167,13 +167,14 @@ class CasperEpaper extends PolymerElement {
 
         .epaper #epaper-container h3 {
           margin: 0;
-          margin-bottom: 15px;
           height: 30px;
           line-height: 30px;
           text-align: center;
-          color: var(--primary-color);
+          color: white;
           text-overflow: ellipsis;
           overflow: hidden;
+          font-size: 14px;
+          margin: 10px;
         }
 
         .epaper #epaper-container #epaper-component-container {
@@ -610,6 +611,7 @@ class CasperEpaper extends PolymerElement {
    * @param {Object} attachment The attachment's metadata. This object should contain the attachment's identifier, type and name.
    */
   openAttachment (attachment, attachmentIndex) {
+
     if (Array.isArray(attachment) && attachment.length > 0) {
       this.__currentAttachments = attachment;
       this.__currentAttachmentIndex = attachmentIndex !== undefined && attachmentIndex < attachment.length ? attachmentIndex : 0;
