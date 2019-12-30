@@ -175,6 +175,7 @@ class CasperEpaper extends PolymerElement {
           overflow: hidden;
           font-size: 14px;
           margin: 10px;
+          font-weight: normal;
         }
 
         .epaper #epaper-container #epaper-component-container {
