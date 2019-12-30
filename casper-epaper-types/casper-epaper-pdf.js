@@ -56,28 +56,31 @@ class CasperEpaperPdf extends PolymerElement {
           display: block;
         }
       </style>
-      <embed src="[[__source]]" type="application/pdf" />
     `;
-  }
-
-  ready () {
-    super.ready();
-
-    this.shadowRoot.querySelector('embed').addEventListener('load', () => { this.loading = false; });
   }
 
   /**
    * Opens a PDF document specified in the source property.
    */
   async open () {
+    if (!this.source) return;
+
     const newSource = this.source.includes('?')
       ? `${this.source}&content-disposition=inline#view=Fit&toolbar=0`
       : `${this.source}?content-disposition=inline#view=Fit&toolbar=0`;
 
-    if (!this.source || newSource === this.__source) return;
+    if (this.__currentSource === newSource) return;
+    if (this.__embedElement) this.__embedElement.remove();
+
+    this.__embedElement = document.createElement('embed');
+    this.__embedElement.addEventListener('load', () => { this.loading = false; });
+    this.__embedElement.src = newSource;
+    this.__embedElement.type = 'application/pdf';
+
+    this.__currentSource = newSource;
 
     this.loading = true;
-    this.__source = newSource
+    this.shadowRoot.appendChild(this.__embedElement);
   }
 }
 
