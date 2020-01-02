@@ -89,7 +89,7 @@ class CasperEpaper extends PolymerElement {
           margin-left: 8px;
         }
 
-        .toolbar-button,
+        .toolbar casper-icon-button,
         ::slotted(casper-icon-button) {
           padding: 7px;
           box-sizing: border-box;
@@ -98,6 +98,11 @@ class CasperEpaper extends PolymerElement {
           -webkit-box-shadow: 0px 2px 12px -1px rgba(0, 0, 0, 0.61);
           -moz-box-shadow:    0px 2px 12px -1px rgba(0, 0, 0, 0.61);
           box-shadow:         0px 2px 12px -1px rgba(0, 0, 0, 0.61);
+        }
+
+        .toolbar casper-icon-button[has-text],
+        ::slotted(casper-icon-button[has-text]) {
+          padding: 5px 10px;
         }
 
         .epaper {
@@ -243,10 +248,10 @@ class CasperEpaper extends PolymerElement {
 
       <div class="toolbar">
         <div>
-          <casper-icon-button on-click="zoomOut"          id="zoomOut"      tooltip="Reduzir"         icon="fa-light:minus"        class="toolbar-button" reverse></casper-icon-button>
-          <casper-icon-button on-click="zoomIn"           id="zoomIn"       tooltip="Ampliar"         icon="fa-light:plus"         class="toolbar-button" reverse></casper-icon-button>
-          <casper-icon-button on-click="goToPreviousPage" id="previousPage" tooltip="Página anterior" icon="fa-light:arrow-left"   class="toolbar-button"></casper-icon-button>
-          <casper-icon-button on-click="goToNextPage"     id="nextPage"     tooltip="Página seguinte" icon="fa-light:arrow-right"  class="toolbar-button"></casper-icon-button>
+          <casper-icon-button on-click="zoomOut"          id="zoomOut"      tooltip="Reduzir"         icon="fa-light:minus" reverse></casper-icon-button>
+          <casper-icon-button on-click="zoomIn"           id="zoomIn"       tooltip="Ampliar"         icon="fa-light:plus" reverse></casper-icon-button>
+          <casper-icon-button on-click="goToPreviousPage" id="previousPage" tooltip="Página anterior" icon="fa-light:arrow-left"></casper-icon-button>
+          <casper-icon-button on-click="goToNextPage"     id="nextPage"     tooltip="Página seguinte" icon="fa-light:arrow-right"></casper-icon-button>
           <!--Casper-epaper-tabs-->
           <slot name="casper-epaper-tabs"></slot>
         </div>
@@ -255,12 +260,12 @@ class CasperEpaper extends PolymerElement {
           <!--Casper-epaper-actions-->
           <slot name="casper-epaper-actions"></slot>
 
-          <casper-icon-button on-click="print"    id="print"    tooltip="Imprimir"                    icon="fa-light:print"       class="toolbar-button"></casper-icon-button>
-          <casper-icon-button on-click="download" id="download" tooltip="[[__epaperDownloadTooltip]]" icon="[[__epaperDownloadIcon]]" class="toolbar-button"></casper-icon-button>
+          <casper-icon-button on-click="print"    id="print"    tooltip="Imprimir"                    icon="fa-light:print"></casper-icon-button>
+          <casper-icon-button on-click="download" id="download" tooltip="[[__epaperDownloadTooltip]]" icon="[[__epaperDownloadIcon]]"></casper-icon-button>
 
           <!--Context menu-->
           <template is="dom-if" if="[[__hasContextMenu]]">
-            <casper-icon-button icon="fa-light:bars" class="toolbar-button toolbar-white" id="context-menu-trigger" reverse></casper-icon-button>
+            <casper-icon-button icon="fa-light:bars" class="toolbar-white" id="context-menu-trigger" reverse></casper-icon-button>
           </template>
         </div>
 
