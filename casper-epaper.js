@@ -95,7 +95,6 @@ class CasperEpaper extends PolymerElement {
           box-sizing: border-box;
           width: 32px;
           height: 32px;
-          border-radius: 50%;
           -webkit-box-shadow: 0px 2px 12px -1px rgba(0, 0, 0, 0.61);
           -moz-box-shadow:    0px 2px 12px -1px rgba(0, 0, 0, 0.61);
           box-shadow:         0px 2px 12px -1px rgba(0, 0, 0, 0.61);
