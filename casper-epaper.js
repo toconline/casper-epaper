@@ -1135,8 +1135,18 @@ class CasperEpaper extends PolymerElement {
       this.__displayLoadingOverlayTimeout = setTimeout(() => {
         this.__displayLoadingOverlay();
         this.__displayLoadingOverlayTimeout = undefined;
+
+        // Hide the sticky container if it has contents while the epaper is loading something.
+        if (!!this.__epaperComponentSticky.innerHTML) {
+          this.__epaperComponentSticky.style.display = 'none';
+        }
       }, 10);
     } else {
+      // Display the sticky container if it has contents since the epaper has finished loading.
+      if (!!this.__epaperComponentSticky.innerHTML) {
+        this.__epaperComponentSticky.style.display = 'flex';
+      }
+
       this.__displayLoadingOverlayTimeout
         ? clearTimeout(this.__displayLoadingOverlayTimeout)
         : this.__hideLoadingOverlay();

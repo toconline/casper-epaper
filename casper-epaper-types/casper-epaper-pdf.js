@@ -73,7 +73,11 @@ class CasperEpaperPdf extends PolymerElement {
     if (this.__embedElement) this.__embedElement.remove();
 
     this.__embedElement = document.createElement('embed');
-    this.__embedElement.addEventListener('load', () => { this.loading = false; });
+    this.__embedElement.addEventListener('load', () => {
+      // Wait 750ms before hide the loading overlay since the load event is fired way sooner than the actual render itself causing some clanky animations.
+      setTimeout(() => this.loading = false, 750);
+    });
+
     this.__embedElement.src = newSource;
     this.__embedElement.type = 'application/pdf';
 
