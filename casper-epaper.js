@@ -216,7 +216,7 @@ class CasperEpaper extends PolymerElement {
           height: 0;
           opacity: 0;
           z-index: 2;
-          display: flex;
+          display: none;
           color: white;
           position: absolute;
           align-items: center;
@@ -1144,7 +1144,7 @@ class CasperEpaper extends PolymerElement {
   }
 
   __displayLoadingOverlay () {
-    this.__epaperComponentLoadingOverlay.style.display = '';
+    this.__epaperComponentLoadingOverlay.style.display = 'flex';
     this.__epaperComponentLoadingOverlay.style.width = '100%';
     this.__epaperComponentLoadingOverlay.style.height = '100%';
     this.__epaperComponentLoadingOverlay.setAttribute('visible', true);
