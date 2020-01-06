@@ -198,8 +198,6 @@ class CasperEpaper extends PolymerElement {
           background-size: cover;
           background-repeat: no-repeat;
           background-image: url('/node_modules/@casper2020/casper-epaper/static/epaper-sticky.svg');
-          transition: height 100ms linear,
-                      opacity 100ms linear;
         }
 
         .epaper #epaper-container #epaper-component-container #epaper-component-sticky .bold { font-weight: bold; }
@@ -445,10 +443,12 @@ class CasperEpaper extends PolymerElement {
       },
       stickyMaximumHeight: {
         type: Number,
+        observer: '__updateStickyDimensions'
       },
       disableStickyAnimation: {
         type: Boolean,
         value: false,
+        observer: '__updateStickyDimensions'
       },
       /** id of the containing element that can be scrolled */
       scroller: {
@@ -1085,6 +1085,25 @@ class CasperEpaper extends PolymerElement {
     }
   }
 
+  __updateStickyDimensions () {
+    afterNextRender(this, () => {
+      this.__epaperComponentSticky.style.height = !this.disableStickyAnimation
+        ? `${parseInt(this.__epaperComponentStickyStyle.height * this.zoom)}px`
+        : `${parseInt((this.stickyMaximumHeight || this.__epaperComponentStickyStyle.fullHeight) * this.zoom)}px`
+
+      if (this.disableStickyAnimation) {
+        this.__epaperComponentSticky.style.opacity = 1;
+        this.__epaperComponentSticky.style.transition = '';
+      } else {
+        this.__epaperComponentSticky.style.opacity = 0.2;
+        this.__epaperComponentSticky.style.transition = `
+          height 100ms linear,
+          opacity 100ms linear
+        `;
+      }
+    });
+  }
+
   __recalculateEpaperDimensions () {
     afterNextRender(this, () => {
       // Scale the epaper component container.
@@ -1102,9 +1121,7 @@ class CasperEpaper extends PolymerElement {
       this.__epaperComponentSticky.style.paddingRight = `${parseInt(this.__epaperComponentStickyStyle.paddingRight * this.zoom)}px`;
       this.__epaperComponentSticky.style.paddingBottom = `${parseInt(this.__epaperComponentStickyStyle.paddingBottom * this.zoom)}px`;
 
-      this.__epaperComponentSticky.style.height = !this.disableStickyAnimation
-        ? `${parseInt(this.__epaperComponentStickyStyle.height * this.zoom)}px`
-        : `${parseInt((this.stickyMaximumHeight || this.__epaperComponentStickyStyle.fullHeight) * this.zoom)}px`
+      this.__updateStickyDimensions();
     });
   }
 
@@ -1116,10 +1133,7 @@ class CasperEpaper extends PolymerElement {
       return;
     }
 
-    if (this.disableStickyAnimation) {
-      this.__epaperComponentSticky.style.opacity = 1;
-      this.__epaperComponentSticky.style.height = `${parseInt((this.stickyMaximumHeight || this.__epaperComponentStickyStyle.fullHeight) * this.zoom)}px`;
-    }
+    this.__updateStickyDimensions();
 
     this.__epaperComponentSticky.style.display = 'flex';
     this.__epaperComponentSticky.innerHTML = sticky.constructor === String ? sticky : Object.values(sticky).join('');
