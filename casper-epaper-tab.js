@@ -35,7 +35,7 @@ class CasperEpaperTab extends PolymerElement {
           background-color: white;
           white-space: nowrap;
           color: var(--primary-color);
-          border-right: 1px solid var(--primary-color);
+          border-right: 1px solid var(--disabled-background-color);
           transition: background-color 100ms linear;
         }
 
@@ -46,7 +46,6 @@ class CasperEpaperTab extends PolymerElement {
 
         :host([disabled]) {
           pointer-events: none;
-          border-color: #D4D4D4;
           color: var(--disabled-text-color);
           background-color: var(--disabled-background-color);
         }
@@ -60,7 +59,7 @@ class CasperEpaperTab extends PolymerElement {
         .tab-container {
           width: 100%;
           height: 100%;
-          padding: 0 25px;
+          padding: 0 15px;
           display: flex;
           align-items: center;
         }
