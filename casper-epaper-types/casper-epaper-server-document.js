@@ -624,18 +624,23 @@ export class CasperEpaperServerDocument extends PolymerElement {
     return -1; // Not found!
   }
 
-  getDataModelIndex () {
+  async getDataModelIndex () {
     if ( this.__contextMenuIndex === -1 ) {
       return -1;
     }
-    let idx = 0, dataIndex = 0;
+    let idx = 0;
 
     for (let band of this.__bands) {
       if ( band._type === 'DT' && this.__bands[idx]._editable == true ) {
         if ( idx == this.__contextMenuIndex ) {
-          return dataIndex;
+          let response = await this.__socket.getBandDri(this.documentId,'DT',this.__bands[idx]._id);
+
+          if (response.errors !== undefined) {
+            this.__clear();
+            throw new Error(response.errors);
+          }
+          return response.band.properties.dri-1;
         }
-        dataIndex++;
       }
       idx++;
     }
