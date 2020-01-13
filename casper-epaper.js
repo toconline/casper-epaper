@@ -198,6 +198,7 @@ class CasperEpaper extends PolymerElement {
           background-size: cover;
           background-repeat: no-repeat;
           background-image: url('/node_modules/@casper2020/casper-epaper/static/epaper-sticky.svg');
+          transition: opacity 200ms linear;
         }
 
         .epaper #epaper-container #epaper-component-container #epaper-component-sticky .bold { font-weight: bold; }
@@ -551,14 +552,17 @@ class CasperEpaper extends PolymerElement {
       if (!this.disableStickyAnimation) {
         this.__epaperComponentSticky.style.opacity = 0.2;
         this.__epaperComponentSticky.style.height = `${parseInt(this.__epaperComponentStickyStyle.height * this.zoom)}px`;
+      } else {
+        this.__epaperComponentSticky.style.opacity = 1;
       }
     });
 
     this.__epaperComponentSticky.addEventListener('mouseover', () => {
       if (!this.disableStickyAnimation) {
         this.__epaperComponentSticky.style.opacity = 1;
-        this.__epaperComponentSticky.style.cursor = 'pointer';
         this.__epaperComponentSticky.style.height = `${parseInt((this.stickyMaximumHeight || this.__epaperComponentStickyStyle.fullHeight) * this.zoom)}px`;
+      } else {
+        this.__epaperComponentSticky.style.opacity = 0.2;
       }
     });
   }
@@ -1098,7 +1102,7 @@ class CasperEpaper extends PolymerElement {
         this.__epaperComponentSticky.style.opacity = 0.2;
         this.__epaperComponentSticky.style.transition = `
           height 100ms linear,
-          opacity 100ms linear
+          opacity 200ms linear
         `;
       }
     });
