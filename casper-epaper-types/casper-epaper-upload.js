@@ -33,6 +33,12 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
   static get properties () {
     return {
       /**
+       * The TOConline's app object.
+       *
+       * @type {Object}
+       */
+      app: Object,
+      /**
        * The component's title.
        *
        * @type {String}
@@ -82,6 +88,15 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
       icon: {
         type: String,
         value: 'fa-solid:question'
+      },
+      /**
+       * The text that will be shown in the vaadin-upload button.
+       *
+       * @type {String}
+       */
+      addFileButtonText: {
+        type: String,
+        value: 'Carregar ficheiro(s)'
       }
     };
   }
@@ -93,24 +108,28 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
           width: 100%;
           height: 100%;
           padding: 50px;
-          display: flex;
+          display: block;
           overflow: auto;
-          align-items: center;
           box-sizing: border-box;
           background-color: white;
         }
 
-        #uploadContainer {
+        #upload-container {
+          height: 100%;
           display: flex;
+          padding: 45px;
+          overflow: auto;
           align-items: center;
           flex-direction: column;
-          width: 100%;
+          box-sizing: border-box;
+          border: 1px dashed var(--primary-color);
         }
 
-        #uploadContainer .icon-container {
+        #upload-container #icon-container {
           width: 150px;
           height: 150px;
           display: flex;
+          flex-shrink: 0;
           border-radius: 50%;
           margin-bottom: 40px;
           align-items: center;
@@ -118,13 +137,13 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
           border: 1px solid var(--primary-color);
         }
 
-        #uploadContainer .icon-container casper-icon {
+        #upload-container #icon-container casper-icon {
           width: 50%;
           height: 50%;
           color: var(--primary-color);
         }
 
-        #uploadContainer #title-container {
+        #upload-container #title-container {
           font-size: 20px;
           font-weight: bold;
           text-align: center;
@@ -132,42 +151,41 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
           color: var(--primary-color);
         }
 
-        #uploadContainer #sub-title-container {
+        #upload-container #sub-title-container {
           color: darkgray;
           text-align: center;
           margin-bottom: 25px;
         }
 
-        #uploadContainer vaadin-upload {
+        #upload-container vaadin-upload {
           width: 100%;
-          height: 250px;
         }
 
-        #uploadContainer vaadin-upload casper-button {
+        #upload-container vaadin-upload casper-button {
           margin: 0;
         }
 
-        #uploadContainer[no-module] .icon-container {
+        #upload-container[no-module] #icon-container {
           border: 0px solid var(--status-red);
         }
 
-        #uploadContainer[no-module] .icon-container casper-icon {
+        #upload-container[no-module] #icon-container casper-icon {
           width: 100%;
           height: 100%;
         }
 
 
-        #uploadContainer[no-module] #title-container,
-        #uploadContainer[no-module] #sub-title-container a {
+        #upload-container[no-module] #title-container,
+        #upload-container[no-module] #sub-title-container a {
           color: var(--status-red);
         }
 
-        #uploadContainer[no-module] .icon-container casper-icon {
+        #upload-container[no-module] #icon-container casper-icon {
           color: var(--status-red);
         }
       </style>
-      <div id="uploadContainer" no-module$=[[disabled]]>
-        <div class="icon-container">
+      <div id="upload-container" no-module$=[[disabled]]>
+        <div id="icon-container">
           <casper-icon icon="[[icon]]"></casper-icon>
         </div>
 
@@ -176,12 +194,13 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
 
         <vaadin-upload
           id="upload"
+          nodrop
           target="[[target]]"
           accept="[[accept]]"
           hidden$="[[disabled]]"
           max-files="[[maxFiles]]"
           form-data-name="my-attachment">
-          <casper-button slot="add-button">ABRIR</casper-button>
+          <casper-button slot="add-button">[[addFileButtonText]]</casper-button>
         </vaadin-upload>
       </div>
     `;
@@ -196,6 +215,52 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
     this.i18nUpdateUpload(this.$.upload);
     this.$.upload.addEventListener('upload-request', event => this.__uploadRequest(event));
     this.$.upload.addEventListener('upload-success', event => this.__uploadSuccess(event));
+
+    // This prevents the default behavior of the browser of opening the file.
+    this.addEventListener('drop', event => event.preventDefault());
+    this.addEventListener('dragover', event => event.preventDefault());
+
+    this.$['upload-container'].addEventListener('dragenter', () => this.__applyUploadContainerStyles(true));
+    this.$['upload-container'].addEventListener('dragleave', event => {
+      const containerDimensions = this.$['upload-container'].getBoundingClientRect();
+
+      if (event.clientY >= containerDimensions.top
+        && event.clientY <= containerDimensions.bottom
+        && event.clientX >= containerDimensions.left
+        && event.clientX <= containerDimensions.right) return;
+
+      this.__applyUploadContainerStyles();
+    });
+
+    this.$['upload-container'].addEventListener('drop', event => {
+      event.preventDefault();
+
+      this.__applyUploadContainerStyles();
+
+      if (event.dataTransfer.files.length === 0) return;
+
+      const droppedFiles = Array.from(event.dataTransfer.files);
+
+      // First check the number of files.
+      if (this.maxFiles && droppedFiles.length > this.maxFiles) {
+        return this.app.openToast({
+          text: `Só pode fazer upload de ${this.maxFiles} ficheiro(s) de cada vez.`,
+          backgroundColor: 'red'
+        });
+      }
+
+      // Then check the MIME types of the files.
+      const acceptMimeTypes = this.accept.split(',').map(mimeType => mimeType.trim());
+      if (droppedFiles.some(file => !acceptMimeTypes.includes(file.type))) {
+        return this.app.openToast({
+          text: `Tentou fazer upload de um ficheiro com extensão inválida. As seguintes extensões são aceites: ${this.accept.split(',').map(mimeType => this.__fileExtensionByMimeType(mimeType)).join(' / ')}.`,
+          backgroundColor: 'red'
+        });
+      }
+
+      this.$.upload.files = droppedFiles;
+      this.$.upload.uploadFiles(droppedFiles);
+    });
   }
 
   /**
@@ -213,7 +278,7 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
   __uploadRequest (event) {
     event.preventDefault();
     event.detail.xhr.setRequestHeader('Content-Type', 'application/octet-stream');
-    event.detail.xhr.setRequestHeader('Content-Disposition', `form-data; name="${event.detail.file.formDataName}"; filename="uploaded_file";`);
+    event.detail.xhr.setRequestHeader('Content-Disposition', `form - data; name = "${event.detail.file.formDataName}"; filename = "uploaded_file"; `);
 
     if (this.identifier) {
       event.detail.xhr.identifier = this.identifier;
@@ -261,6 +326,37 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
    */
   __subTitleChanged (subTitle) {
     this.__subTitleContainer.innerHTML = subTitle;
+  }
+
+  /**
+   * This method applies / removes the drop-zone styles depending if the user is currently hovering it or not.
+   *
+   * @param {Boolean} isHovering Flag that checks if the user is currently hovering the drop-zone with a file.
+   */
+  __applyUploadContainerStyles (isHovering) {
+    if (isHovering) {
+      this.$['upload-container'].style.border = '1px solid var(--primary-color)';
+      this.$['upload-container'].style.backgroundColor = 'rgba(var(--primary-color-rgb), 0.2)';
+    } else {
+      this.$['upload-container'].style.border = '1px dashed var(--primary-color)';
+      this.$['upload-container'].style.backgroundColor = '';
+    }
+  }
+
+  /**
+   * This method returns the extension(s) associated with a mime type.
+   *
+   * @param {String} mimeType The file's mime type.
+   */
+  __fileExtensionByMimeType (mimeType) {
+    switch (mimeType.trim()) {
+      case 'text/xml': return '.xml';
+      case 'image/png': return '.png';
+      case 'text/html': return '.html';
+      case 'text/plain': return '.txt';
+      case 'application/pdf': return '.pdf';
+      case 'image/jpeg': return '.jpg ou .jpeg';
+    }
   }
 }
 

@@ -321,7 +321,7 @@ class CasperEpaper extends PolymerElement {
             </casper-epaper-image>
 
             <!--Upload Epaper-->
-            <casper-epaper-upload id="upload"></casper-epaper-upload>
+            <casper-epaper-upload id="upload" app="[[app]]"></casper-epaper-upload>
 
             <!--Generic Page Epaper-->
             <casper-epaper-generic-page id="genericPage"></casper-epaper-generic-page>
