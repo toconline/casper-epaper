@@ -189,6 +189,28 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
         #upload-container[no-module] #icon-container casper-icon {
           color: var(--status-red);
         }
+
+        #drop-zone-container {
+          top: 50px;
+          left: 50px;
+          display: none;
+          font-size: 20px;
+          font-weight: bold;
+          position: absolute;
+          align-items: center;
+          flex-direction: column;
+          justify-content: center;
+          width: calc(100% - 100px);
+          height: calc(100% - 100px);
+          color: var(--primary-color);
+          background-color: rgba(var(--primary-color-rgb), 0.2);
+        }
+
+        #drop-zone-container casper-icon {
+          width: 75px;
+          height: 75px;
+          margin-bottom: 25px;
+        }
       </style>
       <div id="upload-container" no-module$=[[disabled]]>
         <div id="icon-container">
@@ -208,6 +230,11 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
           form-data-name="my-attachment">
           <casper-button slot="add-button">[[addFileButtonText]]</casper-button>
         </vaadin-upload>
+
+        <div id="drop-zone-container">
+          <casper-icon icon="fa-solid:upload"></casper-icon>
+          Arraste os seus ficheiros para aqui
+        </div>
       </div>
     `;
   }
@@ -221,47 +248,37 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
     this.i18nUpdateUpload(this.$.upload);
     this.$.upload.addEventListener('upload-request', event => this.__uploadRequest(event));
     this.$.upload.addEventListener('upload-success', event => this.__uploadSuccess(event));
+    this.$.upload.addEventListener('file-reject', () => this.__alertUserAboutInvalidFiles());
 
     // This prevents the default behavior of the browser of opening the file.
     this.addEventListener('drop', event => event.preventDefault());
     this.addEventListener('dragover', event => event.preventDefault());
 
-    this.$['upload-container'].addEventListener('dragenter', () => this.__applyUploadContainerStyles(true));
+    this.$['upload-container'].addEventListener('dragenter', () => this.__toggleDropZoneContainer(true));
     this.$['upload-container'].addEventListener('dragleave', event => {
       const containerDimensions = this.$['upload-container'].getBoundingClientRect();
 
-      if (event.clientY >= containerDimensions.top
-        && event.clientY <= containerDimensions.bottom
-        && event.clientX >= containerDimensions.left
-        && event.clientX <= containerDimensions.right) return;
+      if (parseInt(event.clientY) > parseInt(containerDimensions.top)
+        && parseInt(event.clientY) < parseInt(containerDimensions.bottom)
+        && parseInt(event.clientX) > parseInt(containerDimensions.left)
+        && parseInt(event.clientX) < parseInt(containerDimensions.right)) return;
 
-      this.__applyUploadContainerStyles();
+      this.__toggleDropZoneContainer();
     });
 
     this.$['upload-container'].addEventListener('drop', event => {
       event.preventDefault();
 
-      this.__applyUploadContainerStyles();
+      this.__toggleDropZoneContainer();
 
       if (event.dataTransfer.files.length === 0) return;
 
       const droppedFiles = Array.from(event.dataTransfer.files);
 
-      // First check the number of files.
-      if (this.maxFiles && droppedFiles.length > this.maxFiles) {
-        return this.app.openToast({
-          text: `Só pode fazer upload de ${this.maxFiles} ficheiro(s) de cada vez.`,
-          backgroundColor: 'red'
-        });
-      }
-
-      // Then check the MIME types of the files.
+      // Check the number of files and the MIME type of the uploaded files.
       const acceptMimeTypes = this.accept.split(',').map(mimeType => mimeType.trim());
-      if (droppedFiles.some(file => !acceptMimeTypes.includes(file.type))) {
-        return this.app.openToast({
-          text: `Tentou fazer upload de um ficheiro com extensão inválida. As seguintes extensões são aceites: ${this.accept.split(',').map(mimeType => this.__fileExtensionByMimeType(mimeType)).join(' / ')}.`,
-          backgroundColor: 'red'
-        });
+      if (this.maxFiles && droppedFiles.length > this.maxFiles || droppedFiles.some(file => !acceptMimeTypes.includes(file.type))) {
+        return this.__alertUserAboutInvalidFiles();
       }
 
       this.$.upload.files = droppedFiles;
@@ -339,13 +356,19 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
    *
    * @param {Boolean} isHovering Flag that checks if the user is currently hovering the drop-zone with a file.
    */
-  __applyUploadContainerStyles (isHovering) {
-    if (isHovering) {
-      this.$['upload-container'].style.border = '1px solid var(--primary-color)';
-      this.$['upload-container'].style.backgroundColor = 'rgba(var(--primary-color-rgb), 0.2)';
+  __toggleDropZoneContainer (displayDropZone) {
+    if (displayDropZone) {
+      this.$['upload'].style.opacity = '0.2';
+      this.$['icon-container'].style.opacity = '0.2';
+      this.$['title-container'].style.opacity = '0.2';
+      this.$['sub-title-container'].style.opacity = '0.2';
+      this.$['drop-zone-container'].style.display = 'flex';
     } else {
-      this.$['upload-container'].style.border = '1px dashed var(--primary-color)';
-      this.$['upload-container'].style.backgroundColor = '';
+      this.$['upload'].removeAttribute('style');
+      this.$['icon-container'].removeAttribute('style');
+      this.$['title-container'].removeAttribute('style');
+      this.$['sub-title-container'].removeAttribute('style');
+      this.$['drop-zone-container'].style.display = 'none';
     }
   }
 
@@ -363,6 +386,17 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
       case 'application/pdf': return '.pdf';
       case 'image/jpeg': return '.jpg ou .jpeg';
     }
+  }
+
+  /**
+   * When the user tries to upload more files than the limit and / or their extensions are invalid, this method
+   * will display a toast to inform him.
+   */
+  __alertUserAboutInvalidFiles () {
+    this.app.openToast({
+      text: `Só pode fazer upload de ${this.maxFiles} ficheiro(s) de cada vez com as seguintes extensões: ${this.accept.split(',').map(mimeType => this.__fileExtensionByMimeType(mimeType)).join(' / ')}.`,
+      backgroundColor: 'red'
+    });
   }
 }
 
