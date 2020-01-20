@@ -50,13 +50,22 @@ class CasperEpaperPdf extends PolymerElement {
     return html`
       <style>
         :host,
-        embed {
+        iframe {
           width: 100%;
           height: 100%;
+          border: none;
           display: block;
         }
       </style>
+      <iframe></iframe>
     `;
+  }
+
+  ready () {
+    super.ready();
+
+    this.__iframeElement = this.shadowRoot.querySelector('iframe');
+    this.__iframeElement.addEventListener('load', () => { this.loading = false; });
   }
 
   /**
@@ -70,21 +79,18 @@ class CasperEpaperPdf extends PolymerElement {
       : `${this.source}?content-disposition=inline#view=Fit&toolbar=0`;
 
     if (this.__currentSource === newSource) return;
-    if (this.__embedElement) this.__embedElement.remove();
 
-    this.__embedElement = document.createElement('embed');
-    this.__embedElement.addEventListener('load', () => {
-      // Wait 750ms before hide the loading overlay since the load event is fired way sooner than the actual render itself causing some clanky animations.
-      setTimeout(() => this.loading = false, 750);
-    });
-
-    this.__embedElement.src = newSource;
-    this.__embedElement.type = 'application/pdf';
-
+    this.__iframeElement.src = newSource;
     this.__currentSource = newSource;
 
     this.loading = true;
-    this.shadowRoot.appendChild(this.__embedElement);
+  }
+
+  /**
+   * Prints the currently rendered PDF document.
+   */
+  print () {
+    this.__iframeElement.contentWindow.print();
   }
 }
 

@@ -989,7 +989,7 @@ class CasperEpaper extends PolymerElement {
     this.$.pdf.open(1);
 
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.PDF);
-    this.__enableOrDisableControlButtons({ zoom: true, print: false, paging: false, download: true });
+    this.__enableOrDisableControlButtons({ zoom: true, print: true, paging: false, download: true });
   }
 
   __handleContextMenu () {
@@ -1158,7 +1158,7 @@ class CasperEpaper extends PolymerElement {
         if (!!this.__epaperComponentSticky.innerHTML) {
           this.__epaperComponentSticky.style.display = 'none';
         }
-      }, 10);
+      }, 100);
     } else {
       // Display the sticky container if it has contents since the epaper has finished loading.
       if (!!this.__epaperComponentSticky.innerHTML) {
