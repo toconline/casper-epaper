@@ -1158,7 +1158,7 @@ class CasperEpaper extends PolymerElement {
         if (!!this.__epaperComponentSticky.innerHTML) {
           this.__epaperComponentSticky.style.display = 'none';
         }
-      }, 100);
+      }, 250);
     } else {
       // Display the sticky container if it has contents since the epaper has finished loading.
       if (!!this.__epaperComponentSticky.innerHTML) {
