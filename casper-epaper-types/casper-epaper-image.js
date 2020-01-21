@@ -54,7 +54,12 @@ class CasperEpaperImage extends PolymerElement {
           align-items: center;
           justify-content: center;
         }
+
+        iframe {
+          display: none;
+        }
       </style>
+      <iframe></iframe>
     `;
   }
 
@@ -118,6 +123,22 @@ class CasperEpaperImage extends PolymerElement {
       this.__imageElement.height = Math.min(availableHeight, this.__originalHeight);
       this.__imageElement.width = Math.min(this.__originalWidth / heightRatio, this.__originalWidth);
     }
+  }
+
+  /**
+   * Prints the current image being displayed.
+   */
+  print () {
+    this.__iframeElement = this.__iframeElement || this.shadowRoot.querySelector('iframe');
+    this.__iframeElement.contentWindow.document.open();
+    this.__iframeElement.contentWindow.document.write(`
+      <html>
+        <body onload="this.print(); this.close();">
+          <img src="${this.source}" />
+        </body>
+      </html>
+    `);
+    this.__iframeElement.contentWindow.document.close();
   }
 }
 

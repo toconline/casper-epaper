@@ -961,7 +961,7 @@ class CasperEpaper extends PolymerElement {
     await this.$.image.open();
 
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.IMAGE);
-    this.__enableOrDisableControlButtons({ zoom: true, print: false, paging: false, download: true });
+    this.__enableOrDisableControlButtons({ zoom: true, print: true, paging: false, download: true });
   }
 
   /**
