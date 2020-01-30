@@ -125,9 +125,9 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
           border: 1px dashed var(--primary-color);
         }
 
-        #upload-container #icon-container,
-        #upload-container #title-container,
-        #upload-container #sub-title-container {
+        #upload-container:not([no-module]) #icon-container,
+        #upload-container:not([no-module]) #title-container,
+        #upload-container:not([no-module]) #sub-title-container {
           pointer-events: none;
         }
 
