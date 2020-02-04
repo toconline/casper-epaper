@@ -18,7 +18,9 @@
   -
  */
 
+import { CasperBrowser } from '@casper2020/casper-utils/casper-utils.js';
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
+import { afterNextRender } from '@polymer/polymer/lib/utils/render-status.js';
 
 class CasperEpaperPdf extends PolymerElement {
 
@@ -28,6 +30,12 @@ class CasperEpaperPdf extends PolymerElement {
 
   static get properties () {
     return {
+      /**
+       * The TOConline's app object.
+       *
+       * @type {Object}
+       */
+      app: Object,
       /**
        * The PDF document source url.
        *
@@ -65,7 +73,18 @@ class CasperEpaperPdf extends PolymerElement {
     super.ready();
 
     this.__iframeElement = this.shadowRoot.querySelector('iframe');
-    this.__iframeElement.addEventListener('load', () => { this.loading = false; });
+    this.__iframeElement.addEventListener('load', () => {
+      if (!this.source) return;
+
+      afterNextRender(this, () => {
+        this.loading = false;
+
+        // Check if the iframe has an embed element, which would mean that the PDF was correctly rendered.
+        !this.__iframeElement.contentDocument.querySelector('embed')
+          ? this.__rejectCallback()
+          : this.__resolveCallback();
+      });
+    });
   }
 
   /**
@@ -80,10 +99,29 @@ class CasperEpaperPdf extends PolymerElement {
 
     if (this.__currentSource === newSource) return;
 
-    this.__iframeElement.src = newSource;
-    this.__currentSource = newSource;
+    return new Promise(async (resolve, reject) => {
+      this.__rejectCallback = reject;
+      this.__resolveCallback = resolve;
 
-    this.loading = true;
+      try {
+        if (CasperBrowser.isFirefox) {
+          // Since we can't inspect the iframe contents in Firefox, send a pre-flight request to see if we have access to the file.
+          const response = await fetch(this.source, {
+            method: 'HEAD',
+            headers: { 'Authorization': `Bearer ${this.app.socket.sessionCookie}` }
+          });
+
+          if (!response.ok) return this.__rejectCallback();
+        }
+
+        this.__iframeElement.src = newSource;
+        this.__currentSource = newSource;
+
+        this.loading = true;
+      } catch (exception) {
+        this.__rejectCallback();
+      }
+    });
   }
 
   /**

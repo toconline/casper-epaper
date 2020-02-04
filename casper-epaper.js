@@ -180,6 +180,7 @@ class CasperEpaper extends PolymerElement {
           font-size: 14px;
           margin: 10px;
           font-weight: normal;
+          flex-shrink: 0;
         }
 
         .epaper #epaper-container #epaper-component-container {
@@ -287,7 +288,7 @@ class CasperEpaper extends PolymerElement {
 
         <div id="epaper-container">
           <!--Epaper title-->
-          <h3 class="epaper-title">[[__currentAttachmentName]]</h3>
+          <h3>[[__currentAttachmentName]]</h3>
 
           <div id="epaper-component-container">
 
@@ -309,7 +310,7 @@ class CasperEpaper extends PolymerElement {
             </casper-epaper-server-document>
 
             <!--PDF Epaper-->
-            <casper-epaper-pdf id="pdf" loading="{{__loading}}"></casper-epaper-pdf>
+            <casper-epaper-pdf id="pdf" app="[[app]]" loading="{{__loading}}"></casper-epaper-pdf>
 
             <!--Iframe Epaper-->
             <casper-epaper-iframe id="iframe"></casper-epaper-iframe>
@@ -986,7 +987,7 @@ class CasperEpaper extends PolymerElement {
    */
   async __openPDF () {
     this.$.pdf.source = `/file/${this.__currentAttachment.id}`;
-    this.$.pdf.open(1);
+    await this.$.pdf.open();
 
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.PDF);
     this.__enableOrDisableControlButtons({ zoom: true, print: true, paging: false, download: true });
