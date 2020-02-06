@@ -80,9 +80,13 @@ class CasperEpaperPdf extends PolymerElement {
         this.loading = false;
 
         // Check if the iframe has an embed element, which would mean that the PDF was correctly rendered.
-        !this.__iframeElement.contentDocument.querySelector('embed')
-          ? this.__rejectCallback()
-          : this.__resolveCallback();
+        if (!CasperBrowser.isFirefox) {
+          !this.__iframeElement.contentDocument.querySelector('embed')
+            ? this.__rejectCallback()
+            : this.__resolveCallback();
+        } else {
+          this.__resolveCallback();
+        }
       });
     });
   }
