@@ -913,6 +913,7 @@ class CasperEpaper extends PolymerElement {
         case 'file/txt':
         case 'file/htm':
         case 'file/html':
+        case 'file/email':
           this.__landscape = false;
           await this.__openIframe();
           break;
