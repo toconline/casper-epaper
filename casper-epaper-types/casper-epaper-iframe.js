@@ -78,6 +78,7 @@ class CasperEpaperIframe extends PolymerElement {
       switch (this.contentType) {
         case 'file/htm':
         case 'file/html':
+        case 'file/email':
           this.__srcdoc = fileContents;
           break;
         case 'file/xml':
