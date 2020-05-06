@@ -1,7 +1,10 @@
 {
   "description": "Casper ePaper document renderer",
-  "name": "@casper2020/casper-epaper",
+  "name": "@cloudware-casper/casper-epaper",
   "version": "2.27.0",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
   "resolutions": {
     "inherits": "2.0.3",
     "samsam": "1.1.3",
