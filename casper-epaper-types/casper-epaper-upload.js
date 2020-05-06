@@ -19,10 +19,10 @@
  */
 
 import '@vaadin/vaadin-upload/vaadin-upload.js';
-import '@casper2020/casper-icons/casper-icon.js';
-import '@casper2020/casper-button/casper-button.js';
+import '@cloudware-casper/casper-icons/casper-icon.js';
+import '@cloudware-casper/casper-button/casper-button.js';
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
-import { Casper } from '@casper2020/casper-common-ui/casper-i18n-behavior.js';
+import { Casper } from '@cloudware-casper/casper-common-ui/casper-i18n-behavior.js';
 
 class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
 
