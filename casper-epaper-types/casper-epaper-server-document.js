@@ -952,7 +952,6 @@ export class CasperEpaperServerDocument extends PolymerElement {
         break;
 
       case 'RH':
-      case 'RS':
         // A scale image type that instructs the engine to stretch the image height to fit the actual height of the image.
         // If the actual image width exceeds the declared image element width, the image is proportionally stretched to fit the declared width.
         if ( img.naturalWidth <= max_image_width && img.naturalHeight <= max_image_height ) {
@@ -979,8 +978,13 @@ export class CasperEpaperServerDocument extends PolymerElement {
       x   = img_info._r - t_w;
       s_x = s_w - t_w;
     } else if ( img_info._h === 'C' ) {
-      x   = img_info._l + ( ( max_image_width - t_w ) / 2 );
-      s_x = ( img.naturalWidth / 2 ) - ( t_w / 2 );
+      if ( t_w < max_image_width ) {
+        s_x = 0;
+        x   = img_info._l + (max_image_width - t_w ) / 2;
+      } else {
+        s_x = (img.naturalWidth - t_w) / 2;
+        x   = img_info._l;
+      }
     } else { /* left */
       x   = img_info._l;
       s_x = 0;
@@ -992,6 +996,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
       y   = ( b - 0 /*a_image->bottom_pen_.width_*/ ) - t_h;
       s_y = b - t_h;
     } else if ( img_info._v === 'M' ) {
+      // TODO REVIEW THIS
       y   =  img_info._t  + ( ( max_image_height - t_h ) / 2 );
       s_y = ( img_info/ 2 ) - ( t_h / 2 );
     } else { /* top */
@@ -1878,24 +1883,18 @@ export class CasperEpaperServerDocument extends PolymerElement {
             _v:    this.__getString()
           };
 
-          // TODO cache key by URL
-          let img = this.__images[img_info._id];
+          let img = this.__images[img_info._path];
           if ( img === undefined && img_info._path.length ) {
             img = new Image();
-            if ( false) {  // Image scaling QA
-              document.getElementById('epaper-container').appendChild(img);
-              img.style.display = 'none';
-              img.id = img_info._id;
-            }
-            this.__images[img_info._id] = img;
+            this.__images[img_info._path] = img;
             img.onload = function() {
               this.__restartRedrawTimer();
             }.bind(this);
             img.onerror = function() {
-              this.__images[img_info._id] = undefined;
+              this.__images[img_info._path] = undefined;
             }.bind(this);
             img.src = this._uploaded_assets_url + img_info._path;
-            this.__images[img_info._id] = img;
+            this.__images[img_info._path] = img;
           }
           if ( img && img.complete && typeof img.naturalWidth !== undefined && img.naturalWidth !== 0 ) {
             try {
