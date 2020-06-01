@@ -190,6 +190,7 @@ class CasperEpaper extends PolymerElement {
         }
 
         .epaper #epaper-container #epaper-component-container #epaper-component-sticky {
+          z-index: 1;
           opacity: 0.2;
           overflow: auto;
           display: none;

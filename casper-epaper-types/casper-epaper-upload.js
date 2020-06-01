@@ -18,9 +18,9 @@
   -
  */
 
-import '@vaadin/vaadin-upload/vaadin-upload.js';
 import '@cloudware-casper/casper-icons/casper-icon.js';
 import '@cloudware-casper/casper-button/casper-button.js';
+import '@cloudware-casper/casper-upload-dropzone/casper-upload-dropzone.js';
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
 import { Casper } from '@cloudware-casper/casper-common-ui/casper-i18n-behavior.js';
 
@@ -45,7 +45,6 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
        */
       title: {
         type: String,
-        observer: '__titleChanged'
       },
       /**
        * The component's sub-title.
@@ -54,7 +53,6 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
        */
       subTitle: {
         type: String,
-        observer: '__subTitleChanged'
       },
       /**
        * The vaadin-uploads's maximum number of files.
@@ -79,7 +77,10 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
        *
        * @type {String}
        */
-      identifier: String,
+      identifier: {
+        type: String,
+        observer: '__identifierChanged'
+      },
       /**
        * The component's icon that appears in the top.
        *
@@ -212,77 +213,34 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
           margin-bottom: 25px;
         }
       </style>
-      <div id="upload-container" no-module$=[[disabled]]>
-        <div id="icon-container">
-          <casper-icon icon="[[icon]]"></casper-icon>
-        </div>
 
-        <div id="title-container"></div>
-        <div id="sub-title-container"></div>
-
-        <vaadin-upload
-          id="upload"
-          nodrop
-          target="[[target]]"
-          accept="[[accept]]"
-          hidden$="[[disabled]]"
-          max-files="[[maxFiles]]"
-          form-data-name="my-attachment">
-          <casper-button slot="add-button">[[addFileButtonText]]</casper-button>
-        </vaadin-upload>
-
-        <div id="drop-zone-container">
-          <casper-icon icon="fa-solid:upload"></casper-icon>
-          Arraste os seus ficheiros para aqui
-        </div>
-      </div>
+      <casper-upload-dropzone
+        id="upload"
+        target="[[target]]"
+        accept="[[accept]]"
+        title="[[title]]"
+        sub-title="[[subTitle]]"
+        disabled="[[disabled]]"
+        max-files="[[maxFiles]]"
+        add-file-button-text="[[addFileButtonText]]">
+      </casper-upload-dropzone>
     `;
   }
 
   ready () {
     super.ready();
 
-    this.__titleContainer = this.$['title-container'];
-    this.__subTitleContainer = this.$['sub-title-container'];
-
-    this.i18nUpdateUpload(this.$.upload);
-    this.$.upload.addEventListener('upload-request', event => this.__uploadRequest(event));
-    this.$.upload.addEventListener('upload-success', event => this.__uploadSuccess(event));
-    this.$.upload.addEventListener('file-reject', () => this.__alertUserAboutInvalidFiles());
-
-    // This prevents the default behavior of the browser of opening the file.
-    this.addEventListener('drop', event => event.preventDefault());
-    this.addEventListener('dragover', event => event.preventDefault());
-
-    this.$['upload-container'].addEventListener('dragenter', () => this.__toggleDropZoneContainer(true));
-    this.$['upload-container'].addEventListener('dragleave', event => {
-      const containerDimensions = this.$['upload-container'].getBoundingClientRect();
-
-      if (parseInt(event.clientY) > parseInt(containerDimensions.top)
-        && parseInt(event.clientY) < parseInt(containerDimensions.bottom)
-        && parseInt(event.clientX) > parseInt(containerDimensions.left)
-        && parseInt(event.clientX) < parseInt(containerDimensions.right)) return;
-
-      this.__toggleDropZoneContainer();
-    });
-
-    this.$['upload-container'].addEventListener('drop', event => {
-      event.preventDefault();
-
-      this.__toggleDropZoneContainer();
-
-      if (event.dataTransfer.files.length === 0) return;
-
-      const droppedFiles = Array.from(event.dataTransfer.files);
-
-      // Check the number of files and the MIME type of the uploaded files.
-      const acceptMimeTypes = this.accept.split(',').map(mimeType => mimeType.trim());
-      if (this.maxFiles && droppedFiles.length > this.maxFiles || droppedFiles.some(file => !acceptMimeTypes.includes(file.type))) {
-        return this.__alertUserAboutInvalidFiles();
-      }
-
-      this.$.upload.files = droppedFiles;
-      this.$.upload.uploadFiles(droppedFiles);
+    this.$.upload.addEventListener('on-upload-success', event => {
+      this.dispatchEvent(new CustomEvent('casper-epaper-upload-success', {
+        bubbles: true,
+        composed: true,
+        detail: {
+          uploadedFile: event.detail.uploadedFile,
+          originalFileName: event.detail.originalFileName,
+          originalFileType: event.detail.originalFileType,
+          identifier: event.detail.additionalParams.identifier
+        }
+      }));
     });
   }
 
@@ -290,113 +248,16 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
    * This method clears locally the files that were uploaded.
    */
   clearUploadedFiles () {
-    this.$.upload.files = [];
+    this.$.upload.clearUploadedFiles();
   }
 
   /**
-   * Intercept the vaadin-upload's request event to add some additional information.
-   *
-   * @param {Object} event The event's object.
+   * This method sets the additional parameters for the upload component.
    */
-  __uploadRequest (event) {
-    event.preventDefault();
-    event.detail.xhr.setRequestHeader('Content-Type', 'application/octet-stream');
-    event.detail.xhr.setRequestHeader('Content-Disposition', `form - data; name = "${event.detail.file.formDataName}"; filename = "uploaded_file"; `);
-
-    if (this.identifier) {
-      event.detail.xhr.identifier = this.identifier;
+  __identifierChanged () {
+    this.$.upload.additionalParams = {
+      identifier: this.identifier
     }
-
-    event.detail.xhr.send(event.detail.file);
-  }
-
-  /**
-   * Intercept the vaadin-upload's successful request event and dispatch an event with information
-   * regarding the recently uploaded file.
-   *
-   * @param {Object} event The event's object.
-   */
-  __uploadSuccess (event) {
-    if (event.detail.xhr.status === 200) {
-      const uploadedFile = JSON.parse(event.detail.xhr.response).file;
-
-      this.dispatchEvent(new CustomEvent('casper-epaper-upload-success', {
-        bubbles: true,
-        composed: true,
-        detail: {
-          identifier: event.detail.xhr.identifier,
-          uploadedFile: uploadedFile,
-          originalFileName: event.detail.file.name,
-          originalFileType: event.detail.file.type,
-        }
-      }));
-    }
-  }
-
-  /**
-   * Observer that gets fired when the component's title changes.
-   *
-   * @param {String} title The component's title.
-   */
-  __titleChanged (title) {
-    this.__titleContainer.innerHTML = title;
-  }
-
-  /**
-   * Observer that gets fired when the component's sub-title changes.
-   *
-   * @param {String} title The component's sub-title.
-   */
-  __subTitleChanged (subTitle) {
-    this.__subTitleContainer.innerHTML = subTitle;
-  }
-
-  /**
-   * This method applies / removes the drop-zone styles depending if the user is currently hovering it or not.
-   *
-   * @param {Boolean} isHovering Flag that checks if the user is currently hovering the drop-zone with a file.
-   */
-  __toggleDropZoneContainer (displayDropZone) {
-    if (displayDropZone) {
-      this.$['upload'].style.opacity = '0.2';
-      this.$['icon-container'].style.opacity = '0.2';
-      this.$['title-container'].style.opacity = '0.2';
-      this.$['sub-title-container'].style.opacity = '0.2';
-      this.$['drop-zone-container'].style.display = 'flex';
-    } else {
-      this.$['upload'].removeAttribute('style');
-      this.$['icon-container'].removeAttribute('style');
-      this.$['title-container'].removeAttribute('style');
-      this.$['sub-title-container'].removeAttribute('style');
-      this.$['drop-zone-container'].style.display = 'none';
-    }
-  }
-
-  /**
-   * This method returns the extension(s) associated with a mime type.
-   *
-   * @param {String} mimeType The file's mime type.
-   */
-  __fileExtensionByMimeType (mimeType) {
-    switch (mimeType.trim()) {
-      case 'text/xml': return '.xml';
-      case 'image/png': return '.png';
-      case 'text/html': return '.html';
-      case 'text/plain': return '.txt';
-      case 'application/pdf': return '.pdf';
-      case 'image/jpeg': return '.jpg ou .jpeg';
-    }
-  }
-
-  /**
-   * When the user tries to upload more files than the limit and / or their extensions are invalid, this method
-   * will display a toast to inform him.
-   */
-  __alertUserAboutInvalidFiles () {
-    this.app.openToast({
-      text: `Só pode fazer upload de ${this.maxFiles} ficheiro(s) de cada vez com as seguintes extensões: ${this.accept.split(',').map(mimeType => this.__fileExtensionByMimeType(mimeType)).join(' / ')}.`,
-      backgroundColor: 'red'
-    });
   }
 }
 
