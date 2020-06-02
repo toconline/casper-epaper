@@ -33,53 +33,34 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
   static get properties () {
     return {
       /**
-       * The TOConline's app object.
-       *
-       * @type {Object}
-       */
-      app: Object,
-      /**
-       * The component's title.
-       *
-       * @type {String}
-       */
-      title: {
-        type: String,
-      },
-      /**
-       * The component's sub-title.
-       *
-       * @type {String}
-       */
-      subTitle: {
-        type: String,
-      },
-      /**
-       * The vaadin-uploads's maximum number of files.
-       *
-       * @type {Number}
-       */
-      maxFiles: Number,
-      /**
-       * The vaadin-uploads's maximum upload URL.
-       *
-       * @type {String}
-       */
-      target: String,
-      /**
        * The list of MIME types accepted by the vaadin-upload component.
        *
        * @type {String}
        */
       accept: String,
       /**
-       * If this property is set, append it to the XMLHttpRequest.
+       * The text that will be shown in the vaadin-upload button.
        *
        * @type {String}
        */
-      identifier: {
+      addFileButtonText: {
         type: String,
-        observer: '__identifierChanged'
+        value: 'Carregar ficheiro(s)'
+      },
+      /**
+       * The TOConline's app object.
+       *
+       * @type {Object}
+       */
+      app: Object,
+      /**
+       * Flag which states if the component is disabled or not.
+       *
+       * @type {Boolean}
+       */
+      disabled: {
+        type: Boolean,
+        reflectToAttribute: true
       },
       /**
        * The component's icon that appears in the top.
@@ -91,14 +72,42 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
         value: 'fa-solid:question'
       },
       /**
-       * The text that will be shown in the vaadin-upload button.
+       * If this property is set, append it to the XMLHttpRequest.
        *
        * @type {String}
        */
-      addFileButtonText: {
+      identifier: {
         type: String,
-        value: 'Carregar ficheiro(s)'
-      }
+        observer: '__identifierChanged'
+      },
+      /**
+       * The vaadin-uploads's maximum number of files.
+       *
+       * @type {Number}
+       */
+      maxFiles: Number,
+      /**
+       * The component's sub-title.
+       *
+       * @type {String}
+       */
+      subTitle: {
+        type: String,
+      },
+      /**
+       * The vaadin-uploads's maximum upload URL.
+       *
+       * @type {String}
+       */
+      target: String,
+      /**
+       * The component's title.
+       *
+       * @type {String}
+       */
+      title: {
+        type: String,
+      },
     };
   }
 
@@ -115,110 +124,18 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
           background-color: white;
         }
 
-        #upload-container {
-          height: 100%;
-          display: flex;
-          padding: 45px;
-          overflow: auto;
-          align-items: center;
-          flex-direction: column;
-          box-sizing: border-box;
-          border: 1px dashed var(--primary-color);
-        }
-
-        #upload-container:not([no-module]) #icon-container,
-        #upload-container:not([no-module]) #title-container,
-        #upload-container:not([no-module]) #sub-title-container {
-          pointer-events: none;
-        }
-
-        #upload-container #icon-container {
-          width: 150px;
-          height: 150px;
-          display: flex;
-          flex-shrink: 0;
-          border-radius: 50%;
-          margin-bottom: 40px;
-          align-items: center;
-          justify-content: center;
-          border: 1px solid var(--primary-color);
-        }
-
-        #upload-container #icon-container casper-icon {
-          width: 50%;
-          height: 50%;
-          color: var(--primary-color);
-        }
-
-        #upload-container #title-container {
-          font-size: 20px;
-          font-weight: bold;
-          text-align: center;
-          margin-bottom: 20px;
-          color: var(--primary-color);
-        }
-
-        #upload-container #sub-title-container {
-          color: darkgray;
-          text-align: center;
-          margin-bottom: 25px;
-        }
-
-        #upload-container vaadin-upload {
-          width: 100%;
-        }
-
-        #upload-container vaadin-upload casper-button {
-          margin: 0;
-        }
-
-        #upload-container[no-module] #icon-container {
-          border: 0px solid var(--status-red);
-        }
-
-        #upload-container[no-module] #icon-container casper-icon {
-          width: 100%;
-          height: 100%;
-        }
-
-
-        #upload-container[no-module] #title-container,
-        #upload-container[no-module] #sub-title-container a {
-          color: var(--status-red);
-        }
-
-        #upload-container[no-module] #icon-container casper-icon {
-          color: var(--status-red);
-        }
-
-        #drop-zone-container {
-          top: 50px;
-          left: 50px;
-          display: none;
-          font-size: 20px;
-          font-weight: bold;
-          position: absolute;
-          align-items: center;
-          flex-direction: column;
-          justify-content: center;
-          width: calc(100% - 100px);
-          height: calc(100% - 100px);
-          color: var(--primary-color);
-          background-color: rgba(var(--primary-color-rgb), 0.2);
-        }
-
-        #drop-zone-container casper-icon {
-          width: 75px;
-          height: 75px;
-          margin-bottom: 25px;
+        casper-upload-dropzone {
+          --casper-upload-dropzone-icon-size: 150px;
+          --casper-upload-dropzone-disabled-color: var(--status-red);
         }
       </style>
 
       <casper-upload-dropzone
         id="upload"
+        title="[[title]]"
         target="[[target]]"
         accept="[[accept]]"
-        title="[[title]]"
+        header-icon="[[icon]]"
         sub-title="[[subTitle]]"
         disabled="[[disabled]]"
         max-files="[[maxFiles]]"
