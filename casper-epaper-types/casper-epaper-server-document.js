@@ -508,13 +508,14 @@ export class CasperEpaperServerDocument extends PolymerElement {
         this.__pageHeight = 4000;
       }
 
-      this.landscape = response.page.height < response.page.width && response.page.height > 0;
-      this.__zoomChanged();
-
       this.__rightMmargin = response.page.margins.right;
       this.__jrxml        = this.__chapter.jrxml;
       this.__locale       = this.__chapter.locale;
     }
+
+    this.landscape = this.__pageHeight < this.__pageWidth && this.__pageHeight > 0;
+    this.__zoomChanged();
+
     this.__chapter.id = this.documentId;
 
     response = await this.__socket.loadDocument({
