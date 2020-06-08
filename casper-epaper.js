@@ -303,7 +303,7 @@ class CasperEpaper extends PolymerElement {
               epaper="[[__epaper]]"
               loading="{{__loading}}"
               scroller="[[scroller]]"
-              landscape="[[__landscape]]"
+              landscape="{{__landscape}}"
               current-page="{{__currentPage}}"
               total-page-count="{{__totalPageCount}}">
               <slot name="casper-epaper-line-menu" slot="casper-epaper-line-menu"></slot>
@@ -925,7 +925,6 @@ class CasperEpaper extends PolymerElement {
           await this.__openImage();
           break;
         case 'epaper':
-          this.__landscape = false;
           await this.__openServerDocument();
           break;
         case 'html':
