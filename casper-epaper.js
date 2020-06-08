@@ -167,6 +167,7 @@ class CasperEpaper extends PolymerElement {
           margin: 0 auto;
           height: fit-content;
           flex-direction: column;
+          position: relative;
         }
 
         .epaper #epaper-container h3 {
@@ -190,8 +191,7 @@ class CasperEpaper extends PolymerElement {
           background-color: white;
         }
 
-        .epaper #epaper-container #epaper-component-container #epaper-component-sticky {
-          z-index: 1;
+        .epaper #epaper-container #epaper-component-sticky {
           opacity: 0.2;
           overflow: auto;
           display: none;
@@ -204,12 +204,12 @@ class CasperEpaper extends PolymerElement {
           transition: opacity 200ms linear;
         }
 
-        .epaper #epaper-container #epaper-component-container #epaper-component-sticky .bold { font-weight: bold; }
-        .epaper #epaper-container #epaper-component-container #epaper-component-sticky .italic { font-style: italic; }
-        .epaper #epaper-container #epaper-component-container #epaper-component-sticky .line-through { text-decoration: line-through; }
-        .epaper #epaper-container #epaper-component-container #epaper-component-sticky .text-small { font-size: 0.5em; }
-        .epaper #epaper-container #epaper-component-container #epaper-component-sticky .text-bigger { font-size: 1.25em; }
-        .epaper #epaper-container #epaper-component-container #epaper-component-sticky .text-biggest { font-size: 1.5em; }
+        .epaper #epaper-container #epaper-component-sticky .bold { font-weight: bold; }
+        .epaper #epaper-container #epaper-component-sticky .italic { font-style: italic; }
+        .epaper #epaper-container #epaper-component-sticky .line-through { text-decoration: line-through; }
+        .epaper #epaper-container #epaper-component-sticky .text-small { font-size: 0.5em; }
+        .epaper #epaper-container #epaper-component-sticky .text-bigger { font-size: 1.25em; }
+        .epaper #epaper-container #epaper-component-sticky .text-biggest { font-size: 1.5em; }
 
         #epaper-component-loading-overlay {
           top: 0;
@@ -292,10 +292,9 @@ class CasperEpaper extends PolymerElement {
           <!--Epaper title-->
           <h3>[[__currentAttachmentName]]</h3>
 
+          <!--Sticky that will be used to display information about the component-->
+          <div id="epaper-component-sticky"></div>
           <div id="epaper-component-container">
-
-            <!--Sticky that will be used to display information about the component-->
-            <div id="epaper-component-sticky"></div>
 
             <!--Server Document Epaper-->
             <casper-epaper-server-document
@@ -474,7 +473,7 @@ class CasperEpaper extends PolymerElement {
       __epaperComponentStickyStyle: {
         type: Object,
         value: {
-          top: -19,
+          clipSize: 19,
           right: 15,
           width: 150,
           height: 90,
@@ -1120,7 +1119,7 @@ class CasperEpaper extends PolymerElement {
       this.__epaperComponentContainer.style.height = `${parseInt((this.__landscape ? this.__epaperComponentWidth : this.__epaperComponentHeight) * this.zoom)}px`;
 
       // Scale the post-it dimensions and position.
-      this.__epaperComponentSticky.style.top = `${parseInt(this.__epaperComponentStickyStyle.top * this.zoom)}px`;
+      this.__epaperComponentSticky.style.top = `${parseInt(50 - this.__epaperComponentStickyStyle.clipSize * this.zoom)}px`;
       this.__epaperComponentSticky.style.right = `${parseInt(this.__epaperComponentStickyStyle.right * this.zoom)}px`;
       this.__epaperComponentSticky.style.width = `${parseInt(this.__epaperComponentStickyStyle.width * this.zoom)}px`;
       this.__epaperComponentSticky.style.fontSize = `${parseInt(this.__epaperComponentStickyStyle.fontSize * this.zoom)}px`;
