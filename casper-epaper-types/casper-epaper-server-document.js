@@ -275,6 +275,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
         name: name,
         title: title,
         jrxml: chapter.jrxml,
+        number_of_copies: chapter.number_of_copies || 1,
         jsonapi: {
           // TODO extract list of relationships from the report!!!! // TODO NO TOCONLINE
           urn: 'https://app.toconline.pt/' + chapter.path + '?' + ((undefined !== chapter.params && '' !== chapter.params) ? chapter.params : 'include=lines'),
