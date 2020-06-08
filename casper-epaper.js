@@ -185,6 +185,7 @@ class CasperEpaper extends PolymerElement {
 
         .epaper #epaper-container #epaper-component-container {
           display: none;
+          overflow: auto;
           position: relative;
           background-color: white;
         }

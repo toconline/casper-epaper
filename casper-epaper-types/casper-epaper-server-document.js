@@ -108,6 +108,10 @@ export class CasperEpaperServerDocument extends PolymerElement {
   static get template () {
     return html`
     <style>
+      :host {
+        display: flex;
+        justify-content: center;
+      }
 
       .line-menu-button {
         padding: 4px;
@@ -499,12 +503,13 @@ export class CasperEpaperServerDocument extends PolymerElement {
       this.__socket.registerDocumentHandler(this.documentId, (message) => this.documentHandler(message));
       this.__pageWidth  = response.page.width;
       this.__pageHeight = response.page.height;
-      this.landscape = response.page.height < response.page.width;
-      this.__zoomChanged();
 
-      if (isNaN(this.__pageHeight)) {
+      if (isNaN(this.__pageHeight) || this.__pageHeight < 0) {
         this.__pageHeight = 4000;
       }
+
+      this.landscape = response.page.height < response.page.width;
+      this.__zoomChanged();
 
       this.__rightMmargin = response.page.margins.right;
       this.__jrxml        = this.__chapter.jrxml;
