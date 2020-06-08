@@ -54,6 +54,15 @@ export class CasperEpaperServerDocument extends PolymerElement {
        */
       app: Object,
       /**
+       * This flag states if the epaper document is in landscape mode or not.
+       *
+       * @type {Boolean}
+       */
+      landscape: {
+        type: Boolean,
+        notify: true
+      },
+      /**
        * This flag states if the epaper component is currently loading or not.
        *
        * @type {Boolean}
@@ -99,6 +108,10 @@ export class CasperEpaperServerDocument extends PolymerElement {
   static get template () {
     return html`
     <style>
+      :host {
+        display: flex;
+        justify-content: center;
+      }
 
       .line-menu-button {
         padding: 4px;
@@ -235,7 +248,6 @@ export class CasperEpaperServerDocument extends PolymerElement {
    * @param {Object} documentModel an object that specifies the layout and data of the document
    */
   async open (documentModel) {
-    this.__zoomChanged();
     this.currentPage = 1; // # TODO goto page on open /
     if ( documentModel.backgroundColor ) {
       this.__setBackground(documentModel.backgroundColor);
@@ -275,6 +287,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
         name: name,
         title: title,
         jrxml: chapter.jrxml,
+        number_of_copies: chapter.number_of_copies || 1,
         jsonapi: {
           // TODO extract list of relationships from the report!!!! // TODO NO TOCONLINE
           urn: 'https://app.toconline.pt/' + chapter.path + '?' + ((undefined !== chapter.params && '' !== chapter.params) ? chapter.params : 'include=lines'),
@@ -491,7 +504,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
       this.__pageWidth  = response.page.width;
       this.__pageHeight = response.page.height;
 
-      if (isNaN(this.__pageHeight)) {
+      if (isNaN(this.__pageHeight) || this.__pageHeight < 0) {
         this.__pageHeight = 4000;
       }
 
@@ -499,6 +512,10 @@ export class CasperEpaperServerDocument extends PolymerElement {
       this.__jrxml        = this.__chapter.jrxml;
       this.__locale       = this.__chapter.locale;
     }
+
+    this.landscape = this.__pageHeight < this.__pageWidth && this.__pageHeight > 0;
+    this.__zoomChanged();
+
     this.__chapter.id = this.documentId;
 
     response = await this.__socket.loadDocument({
@@ -770,10 +787,10 @@ export class CasperEpaperServerDocument extends PolymerElement {
    * Adjust the canvas dimension taking into account the pixel ratio and also calculates the scale the server should use.
    */
   __setupScale () {
-    this.__canvas.width         = (this.landscape ? this.__canvasHeight : this.__canvasWidth) * this.__ratio;
-    this.__canvas.height        = (this.landscape ? this.__canvasWidth : this.__canvasHeight) * this.__ratio;
-    this.__canvas.style.width   = `${this.landscape ? this.__canvasHeight : this.__canvasWidth}px`;
-    this.__canvas.style.height  = `${this.landscape ? this.__canvasWidth : this.__canvasHeight}px`;
+    this.__canvas.width         = this.__canvasWidth * this.__ratio;
+    this.__canvas.height        = this.__canvasHeight * this.__ratio;
+    this.__canvas.style.width   = `${this.__canvasWidth}px`;
+    this.__canvas.style.height  = `${this.__canvasHeight}px`;
 
     this.__sx = parseFloat((this.__canvas.width  / this.__pageWidth).toFixed(2));
 

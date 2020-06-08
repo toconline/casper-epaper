@@ -185,6 +185,7 @@ class CasperEpaper extends PolymerElement {
 
         .epaper #epaper-container #epaper-component-container {
           display: none;
+          overflow: auto;
           position: relative;
           background-color: white;
         }
@@ -304,7 +305,7 @@ class CasperEpaper extends PolymerElement {
               epaper="[[__epaper]]"
               loading="{{__loading}}"
               scroller="[[scroller]]"
-              landscape="[[__landscape]]"
+              landscape="{{__landscape}}"
               current-page="{{__currentPage}}"
               total-page-count="{{__totalPageCount}}">
               <slot name="casper-epaper-line-menu" slot="casper-epaper-line-menu"></slot>
@@ -621,7 +622,8 @@ class CasperEpaper extends PolymerElement {
    *
    * @param {Object} attachment The attachment's metadata. This object should contain the attachment's identifier, type and name.
    */
-  openAttachment (attachment, attachmentIndex) {
+  openAttachment (attachment, attachmentIndex, controlButtonsOptions = {}) {
+    this.__controlButtonsOptions = controlButtonsOptions;
 
     if (Array.isArray(attachment) && attachment.length > 0) {
       this.__currentAttachments = attachment;
@@ -925,7 +927,6 @@ class CasperEpaper extends PolymerElement {
           await this.__openImage();
           break;
         case 'epaper':
-          this.__landscape = false;
           await this.__openServerDocument();
           break;
         case 'html':
@@ -953,7 +954,7 @@ class CasperEpaper extends PolymerElement {
     await this.$.serverDocument.open(this.__currentAttachment);
 
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT);
-    this.__enableOrDisableControlButtons({ zoom: true, print: true, paging: true, download: true });
+    this.__enableOrDisableControlButtons({...{ zoom: true, print: true, paging: true, download: true }, ...this.__controlButtonsOptions });
   }
 
   /**
@@ -964,7 +965,7 @@ class CasperEpaper extends PolymerElement {
     await this.$.image.open();
 
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.IMAGE);
-    this.__enableOrDisableControlButtons({ zoom: true, print: true, paging: false, download: true });
+    this.__enableOrDisableControlButtons({...{ zoom: true, print: true, paging: false, download: true }, ...this.__controlButtonsOptions });
   }
 
   /**
@@ -981,7 +982,7 @@ class CasperEpaper extends PolymerElement {
       await this.$.iframe.open();
     }
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.IFRAME);
-    this.__enableOrDisableControlButtons({ zoom: true, print: false, paging: false, download: true });
+    this.__enableOrDisableControlButtons({...{ zoom: true, print: false, paging: false, download: true }, ...this.__controlButtonsOptions });
   }
 
   /**
@@ -992,7 +993,7 @@ class CasperEpaper extends PolymerElement {
     await this.$.pdf.open();
 
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.PDF);
-    this.__enableOrDisableControlButtons({ zoom: true, print: true, paging: false, download: true });
+    this.__enableOrDisableControlButtons({...{ zoom: true, print: true, paging: false, download: true }, ...this.__controlButtonsOptions});
   }
 
   __handleContextMenu () {
