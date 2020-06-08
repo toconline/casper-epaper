@@ -508,7 +508,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
         this.__pageHeight = 4000;
       }
 
-      this.landscape = response.page.height < response.page.width;
+      this.landscape = response.page.height < response.page.width && response.page.height > 0;
       this.__zoomChanged();
 
       this.__rightMmargin = response.page.margins.right;
