@@ -69,7 +69,7 @@ class CasperEpaper extends PolymerElement {
 
         .toolbar {
           padding: 15px;
-          z-index: 1;
+          z-index: 2;
           display: flex;
           width: 100%;
           overflow-x: auto;
@@ -186,7 +186,6 @@ class CasperEpaper extends PolymerElement {
 
         .epaper #epaper-container #epaper-component-container {
           display: none;
-          overflow: auto;
           position: relative;
           background-color: white;
         }
