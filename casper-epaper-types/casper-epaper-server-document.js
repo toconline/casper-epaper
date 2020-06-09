@@ -109,8 +109,13 @@ export class CasperEpaperServerDocument extends PolymerElement {
     return html`
     <style>
       :host {
+        height: 100%;
         display: flex;
         justify-content: center;
+      }
+
+      #canvas-container {
+        height: 100%;
       }
 
       .line-menu-button {
@@ -133,7 +138,10 @@ export class CasperEpaperServerDocument extends PolymerElement {
       }
 
     </style>
-    <canvas id="canvas"></canvas>
+
+    <div id="canvas-container">
+      <canvas id="canvas"></canvas>
+    </div>
 
     <casper-epaper-tooltip id="tooltip"></casper-epaper-tooltip>
     <casper-epaper-input id="input" epaper-document="[[__epaperDocument]]"></casper-epaper-input>
@@ -506,6 +514,9 @@ export class CasperEpaperServerDocument extends PolymerElement {
 
       if (isNaN(this.__pageHeight) || this.__pageHeight < 0) {
         this.__pageHeight = 4000;
+        this.$['canvas-container'].style.overflow = 'auto';
+      } else {
+        this.$['canvas-container'].style.overflow = '';
       }
 
       this.__rightMmargin = response.page.margins.right;
@@ -513,7 +524,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
       this.__locale       = this.__chapter.locale;
     }
 
-    this.landscape = this.__pageHeight < this.__pageWidth && this.__pageHeight > 0;
+    this.landscape = this.__pageHeight < this.__pageWidth;
     this.__zoomChanged();
 
     this.__chapter.id = this.documentId;
