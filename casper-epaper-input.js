@@ -115,7 +115,6 @@ class CasperEpaperInput extends PolymerElement {
     <iron-icon id="dropdown_btn" on-tap="_toggleOverlay" icon="casper-icons:arrow-drop-down" rotate\$="[[overlayVisible]]"></iron-icon>
     <iron-icon id="clear_btn" on-tap="_clearField" icon="casper-icons:clear-combo"></iron-icon>
     <iron-icon id="edit_btn" on-tap="_toggleSubEditor" icon="casper-icons:edit-doc"></iron-icon>
-    <casper-epaper-datepicker id="date"></casper-epaper-datepicker>
     <casper-select id="select" disable-smart-filter="" search-combo="" items="[[test]]"></casper-select>
 `;
   }
@@ -195,10 +194,10 @@ class CasperEpaperInput extends PolymerElement {
   /**
    * Position and size the input overlay on top the editable element
    *
-   * @param {number} x Upper left corner (x)
-   * @param {number} y Upper left corner (y)
-   * @param {number} w box width in px
-   * @param {number} h box height in px
+   * @param {number} x Upper left corner (x)
+   * @param {number} y Upper left corner (y)
+   * @param {number} w box width in px
+   * @param {number} h box height in px
    */
   alignPosition (x, y, w, h) {
     this.style.left           = x + 'px';
@@ -218,8 +217,8 @@ class CasperEpaperInput extends PolymerElement {
   /**
    * Align the HTML input text size baseline and left edge with the text drawn in the canvas, also sets color
    *
-   * @param {number} a_text_left   Starting point of left aligned text # TODO paddding
-   * @param {number} a_baseline    Vertical baseline of the first text line # TODO remove??? or do PADDING?
+   * @param {number} a_text_left   Starting point of left aligned text # TODO paddding
+   * @param {number} a_baseline    Vertical baseline of the first text line # TODO remove??? or do PADDING?
    */
   alignStyle (a_text_left, a_baseline) {
 
@@ -273,7 +272,7 @@ class CasperEpaperInput extends PolymerElement {
       this.setCombolistQuery(binding.attachment.route);
       if ( binding.hint && binding.hint.expression && binding.hint.expression.length ) {
         this.showTooltip(binding.hint.expression);
-      } else {
+      } else {
         this.hideTooltip();
       }
     } else {
@@ -581,7 +580,7 @@ class CasperEpaperInput extends PolymerElement {
         this.epaperDocument.socket.moveCursor(this.epaperDocument.documentId, vkey);
         event.preventDefault();
         return;
-      } else if ( ['tab', 'shift+tab'].indexOf(vkey) > -1 ) {
+      } else if ( ['tab', 'shift+tab'].indexOf(vkey) > -1 ) {
         if ( this._initialSelection === true ) {
           this._initialSelection = false;
           if ( vkey === 'shift+tab') {
@@ -680,7 +679,7 @@ class CasperEpaperInput extends PolymerElement {
           this.epaperDocument.socket.moveCursor(this.epaperDocument.documentId, vkey);
         }
         event.preventDefault();
-      } else if ( ['tab', 'shift+tab', 'enter'].indexOf(vkey) > -1 ) {
+      } else if ( ['tab', 'shift+tab', 'enter'].indexOf(vkey) > -1 ) {
         /*
         TODO
         if ( this.$.combo.getSelectedId() && this.$.combo.getSelectedId() !== this.$.combo.getInitialId() ) {
@@ -956,14 +955,19 @@ class CasperEpaperInput extends PolymerElement {
   }
 
   showTooltip (content, positionTarget) {
-    this.epaper.$.tooltip.fitInto = this.epaper.epaper;
-    this.epaper.$.tooltip.show(content, positionTarget);
+    // TODO remove hard coded app
+    const prect = this.epaper.getBoundingClientRect();
+    window.app.tooltip.show(content, {
+      height: positionTarget.height,
+      left: positionTarget.left + prect.left,
+      top: positionTarget.top + prect.top,
+      width: positionTarget.width
+    });
   }
 
   hideTooltip () {
-    if ( this.epaper.$.tooltip.hide !== undefined ) {
-      this.epaper.$.tooltip.hide();
-    }
+    // TODO port to casper-app
+    window.app.tooltip.hide();
   }
 }
 

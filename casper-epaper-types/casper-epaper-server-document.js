@@ -19,7 +19,6 @@
  */
 
 import '../casper-epaper-input.js';
-import '../casper-epaper-tooltip.js';
 import '../casper-epaper-servertip-helper.js';
 import '@polymer/iron-icon/iron-icon.js';
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
@@ -143,7 +142,6 @@ export class CasperEpaperServerDocument extends PolymerElement {
       <canvas id="canvas"></canvas>
     </div>
 
-    <casper-epaper-tooltip id="tooltip"></casper-epaper-tooltip>
     <casper-epaper-input id="input" epaper-document="[[__epaperDocument]]"></casper-epaper-input>
     <casper-epaper-servertip-helper id="servertip" epaper-document="[[__epaperDocument]]"></casper-epaper-servertip-helper>
     <slot name="casper-epaper-line-menu">
@@ -194,8 +192,6 @@ export class CasperEpaperServerDocument extends PolymerElement {
       this.$.input.epaper           = this;
       this.$.servertip.epaper       = this;
       this.$.servertip.input        = this.$.input;
-      this.$.tooltip.positionTarget = this.$.input;
-      this.$.tooltip.fitInto        = this.__canvas;
 
       this.__edition = false;
       this.__canvas.contentEditable = false;
