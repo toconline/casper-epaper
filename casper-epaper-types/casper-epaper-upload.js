@@ -126,7 +126,7 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
 
         :host([disabled]) casper-upload-dropzone {
           --casper-upload-dropzone-title: { color: var(--status-red); }
-          --casper-upload-dropzone-header-icon: { color: var(--status-red); }
+          --casper-upload-dropzone-icon: { color: var(--status-red); }
         }
 
         casper-upload-dropzone {
@@ -136,10 +136,10 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
 
       <casper-upload-dropzone
         id="upload"
+        icon="[[icon]]"
         title="[[title]]"
         target="[[target]]"
         accept="[[accept]]"
-        header-icon="[[icon]]"
         sub-title="[[subTitle]]"
         disabled="[[disabled]]"
         max-files="[[maxFiles]]"
