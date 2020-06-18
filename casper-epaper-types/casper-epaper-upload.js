@@ -132,18 +132,17 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
 
         :host([disabled]) casper-upload-dropzone {
           --casper-upload-dropzone-title: { color: var(--status-red); }
-          --casper-upload-dropzone-header-icon: {
-            width: 150px;
-            height: 150px;
-            color: var(--status-red);
-          }
+          --casper-upload-dropzone-header-icon: { color: var(--status-red); }
         }
 
         casper-upload-dropzone {
-          --casper-upload-dropzone-vaadin-upload: { padding: 35px; }
+          --casper-upload-dropzone-vaadin-upload: { padding: 10%; }
+          --casper-upload-dropzone-title: { margin-bottom: 30px; }
+          --casper-upload-dropzone-notice: { margin-bottom: 30px; }
           --casper-upload-dropzone-header-icon: {
-            width: 150px;
-            height: 150px;
+            margin-bottom: 30px;
+            width: 150px !important;
+            height: 150px !important;
           }
         }
       </style>
