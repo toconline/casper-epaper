@@ -81,11 +81,17 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
         observer: '__identifierChanged'
       },
       /**
-       * The vaadin-uploads's maximum number of files.
+       * The casper-upload-dropzone maximum number of files.
        *
        * @type {Number}
        */
       maxFiles: Number,
+      /**
+       * The casper-upload-dropzone maximum individual file size.
+       *
+       * @type {Number}
+       */
+      maxFileSize: Number,
       /**
        * The component's sub-title.
        *
@@ -151,6 +157,7 @@ class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
         sub-title="[[subTitle]]"
         disabled="[[disabled]]"
         max-files="[[maxFiles]]"
+        max-file-size="[[maxFileSize]]"
         add-file-button-text="[[addFileButtonText]]">
       </casper-upload-dropzone>
     `;
