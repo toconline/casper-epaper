@@ -476,7 +476,7 @@ class CasperEpaper extends PolymerElement {
           clipSize: 19,
           right: 15,
           width: 150,
-          height: 90,
+          height: 100,
           fontSize: 10,
           fullHeight: 180,
           paddingTop: 45,
