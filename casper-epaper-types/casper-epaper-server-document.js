@@ -275,8 +275,8 @@ export class CasperEpaperServerDocument extends PolymerElement {
   }
 
   __getPrintJob (print) {
-    let name  = 'Documento'; ///*this.i18n.apply(this, */this.document.filename_template;
-    let title = name;
+    let name  = this.document.name  || this.document.chapters[0].name  || 'Documento';
+    let title = this.document.title || this.document.chapters[0].title || name;
 
     if (!this.__isPrintableDocument()) return;
 
@@ -292,8 +292,8 @@ export class CasperEpaperServerDocument extends PolymerElement {
         path: print ? 'print' : 'download'
       },
       documents: this.document.chapters.map(chapter => ({
-        name: name,
-        title: title,
+        name: chapter.name || name,
+        title: chapter.title || title,
         jrxml: chapter.jrxml,
         number_of_copies: chapter.number_of_copies || 1,
         jsonapi: {
