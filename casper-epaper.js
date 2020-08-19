@@ -85,7 +85,7 @@ class CasperEpaper extends PolymerElement {
 
         .toolbar casper-icon-button,
         ::slotted(casper-icon-button),
-        ::slotted(casper-epaper-tabs) {
+        ::slotted(casper-tabs) {
           margin-left: 8px;
         }
 
@@ -476,7 +476,7 @@ class CasperEpaper extends PolymerElement {
           clipSize: 19,
           right: 15,
           width: 150,
-          height: 90,
+          height: 100,
           fontSize: 10,
           fullHeight: 180,
           paddingTop: 45,
@@ -535,7 +535,9 @@ class CasperEpaper extends PolymerElement {
       // If the zoom was already provided, no need to fit into the container.
       if (this.zoom) return;
 
-      this.zoom = Number(((this.shadowRoot.host.clientWidth - 80) / this.__epaperComponentWidth).toFixed(2));
+      const initialZoom = Number(((this.shadowRoot.host.clientWidth - 80) / this.__epaperComponentWidth).toFixed(2));
+
+      this.zoom = initialZoom > 0 ? initialZoom : 1;
     });
 
     this.__socket.addEventListener('casper-signed-in', () => {
@@ -953,7 +955,7 @@ class CasperEpaper extends PolymerElement {
     await this.$.serverDocument.open(this.__currentAttachment);
 
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT);
-    this.__enableOrDisableControlButtons({...{ zoom: true, print: true, paging: true, download: true }, ...this.__controlButtonsOptions });
+    this.__enableOrDisableControlButtons({ ...{ zoom: true, print: true, paging: true, download: true }, ...this.__controlButtonsOptions });
   }
 
   /**
@@ -964,7 +966,7 @@ class CasperEpaper extends PolymerElement {
     await this.$.image.open();
 
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.IMAGE);
-    this.__enableOrDisableControlButtons({...{ zoom: true, print: true, paging: false, download: true }, ...this.__controlButtonsOptions });
+    this.__enableOrDisableControlButtons({ ...{ zoom: true, print: true, paging: false, download: true }, ...this.__controlButtonsOptions });
   }
 
   /**
@@ -981,7 +983,7 @@ class CasperEpaper extends PolymerElement {
       await this.$.iframe.open();
     }
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.IFRAME);
-    this.__enableOrDisableControlButtons({...{ zoom: true, print: false, paging: false, download: true }, ...this.__controlButtonsOptions });
+    this.__enableOrDisableControlButtons({ ...{ zoom: true, print: false, paging: false, download: true }, ...this.__controlButtonsOptions });
   }
 
   /**
@@ -992,7 +994,7 @@ class CasperEpaper extends PolymerElement {
     await this.$.pdf.open();
 
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.PDF);
-    this.__enableOrDisableControlButtons({...{ zoom: true, print: true, paging: false, download: true }, ...this.__controlButtonsOptions});
+    this.__enableOrDisableControlButtons({ ...{ zoom: true, print: true, paging: false, download: true }, ...this.__controlButtonsOptions });
   }
 
   __handleContextMenu () {
