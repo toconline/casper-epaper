@@ -145,7 +145,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
     <casper-epaper-servertip-helper id="servertip" epaper-document="[[__epaperDocument]]"></casper-epaper-servertip-helper>
     <slot name="casper-epaper-line-menu">
     </slot>
-    <div id="default-context-menu" class="context-menu">
+    <div id="default-context-menu" class="context-menu" style="display: none;">
       <casper-icon-button icon="fa-light:plus"      class="line-menu-button"        tooltip="Adicionar linha" on-click="__addDocumentLine"></casper-icon-button>
       <casper-icon-button icon="fa-light:trash-alt" class="line-menu-button delete" tooltip="Remover linha"   on-click="__removeDocumentLine"></casper-icon-button>
     </div>
