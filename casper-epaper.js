@@ -89,15 +89,17 @@ class CasperEpaper extends PolymerElement {
           margin-left: 8px;
         }
 
+        ::slotted(casper-tabs) {
+          box-shadow: 0px 2px 12px -1px rgba(0, 0, 0, 0.6);
+        }
+
         .toolbar casper-icon-button,
         ::slotted(casper-icon-button) {
-          padding: 7px;
-          box-sizing: border-box;
           width: 32px;
           height: 32px;
-          -webkit-box-shadow: 0px 2px 12px -1px rgba(0, 0, 0, 0.61);
-          -moz-box-shadow:    0px 2px 12px -1px rgba(0, 0, 0, 0.61);
-          box-shadow:         0px 2px 12px -1px rgba(0, 0, 0, 0.61);
+          padding: 7px;
+          box-sizing: border-box;
+          box-shadow: 0px 2px 12px -1px rgba(0, 0, 0, 0.6);
         }
 
         .toolbar casper-icon-button[has-text],
