@@ -253,6 +253,9 @@ export class CasperEpaperServerDocument extends PolymerElement {
    * @param {Object} documentModel an object that specifies the layout and data of the document
    */
   async open (documentModel) {
+
+    if ( documentModel.epaper2 ) { this.__socket = app.socket2 }
+
     this.currentPage = 1; // # TODO goto page on open /
     if ( documentModel.backgroundColor ) {
       this.__setBackground(documentModel.backgroundColor);
