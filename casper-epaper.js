@@ -89,15 +89,17 @@ class CasperEpaper extends PolymerElement {
           margin-left: 8px;
         }
 
+        ::slotted(casper-tabs) {
+          box-shadow: 0px 2px 12px -1px rgba(0, 0, 0, 0.6);
+        }
+
         .toolbar casper-icon-button,
         ::slotted(casper-icon-button) {
-          padding: 7px;
-          box-sizing: border-box;
           width: 32px;
           height: 32px;
-          -webkit-box-shadow: 0px 2px 12px -1px rgba(0, 0, 0, 0.61);
-          -moz-box-shadow:    0px 2px 12px -1px rgba(0, 0, 0, 0.61);
-          box-shadow:         0px 2px 12px -1px rgba(0, 0, 0, 0.61);
+          padding: 7px;
+          box-sizing: border-box;
+          box-shadow: 0px 2px 12px -1px rgba(0, 0, 0, 0.6);
         }
 
         .toolbar casper-icon-button[has-text],
@@ -242,6 +244,20 @@ class CasperEpaper extends PolymerElement {
           --paper-spinner-layer-3-color: white;
           --paper-spinner-layer-4-color: white;
         }
+
+        .label {
+          border: 0;
+          display: inline;
+          align-items: center;
+          justify-content: center;
+          border-radius: 4px;
+          color: #525659;
+          padding: 5px;
+          background-color: #fff;
+          transition: color 100ms linear, background-color 100ms linear;
+        }
+
+
       </style>
       <div id="epaper-component-loading-overlay">
         <paper-spinner active></paper-spinner>
@@ -290,7 +306,8 @@ class CasperEpaper extends PolymerElement {
 
         <div id="epaper-container">
           <!--Epaper title-->
-          <h3>[[__currentAttachmentName]]</h3>
+
+          <h3 inner-h-t-m-l="[[__currentAttachmentName]]"></h3>
 
           <!--Sticky that will be used to display information about the component-->
           <div id="epaper-component-sticky"></div>
@@ -904,7 +921,7 @@ class CasperEpaper extends PolymerElement {
 
   async __openAttachment () {
     this.__customAttachmentFileType = false;
-    this.__currentAttachmentName = this.__currentAttachment.name;
+    this.__currentAttachmentName = this.__currentAttachment.name ? this.__currentAttachment.name : '';
     this.__updateDownloadIconAndTooltip();
 
     // Open the attachment.

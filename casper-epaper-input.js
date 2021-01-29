@@ -22,10 +22,9 @@ import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
 import { CasperEpaperServerDocument } from './casper-epaper-types/casper-epaper-server-document.js';
 import '@polymer/iron-input/iron-input.js';
 import '@polymer/iron-icon/iron-icon.js';
-import '@cloudware-casper/casper-icons/casper-icons.js';
 
 class CasperEpaperInput extends PolymerElement {
-  static get template() {
+  static get template () {
     return html`
     <style>
       :host {
@@ -143,29 +142,29 @@ class CasperEpaperInput extends PolymerElement {
     this.test = [];
 
     //this._input          = this.$.input;
-    this._binding        = undefined;
-    this._textArea       = this.$.textarea;//this.$.input.$.textarea;
+    this._binding = undefined;
+    this._textArea = this.$.textarea;//this.$.input.$.textarea;
     //this.$.date.inputBox = this.$.textarea;//this.$.input.$.textarea;
-    this._visible        = true;
+    this._visible = true;
     this.setVisible(false);
     this._select = this.$.select;
     // TODO this.$.combo.setPositionTarget(this);
 
-    this.addEventListener('keypress' , e => this._onKeypress(e));
-    this.addEventListener('keydown'  , e => this._onKeyDown(e));
+    this.addEventListener('keypress', e => this._onKeypress(e));
+    this.addEventListener('keydown', e => this._onKeyDown(e));
     //this.addEventListener('mousedown', e => this._onMouseDown(e));
     //this.addEventListener('mouseup'  , e => this._onMouseUp(e));
-    this.addEventListener('tap'      , e => this._onTap(e));
+    this.addEventListener('tap', e => this._onTap(e));
   }
 
   connectedCallback () {
     super.connectedCallback();
     this._initialSelection = false;
-    this._mode             = 'n';
-    this._comboFilter      = '';
-    this.overlayVisible    = false;
-    this._overlay          = undefined;
-    this._comboListQuery   = undefined;
+    this._mode = 'n';
+    this._comboFilter = '';
+    this.overlayVisible = false;
+    this._overlay = undefined;
+    this._comboListQuery = undefined;
   }
 
   disconnectedCallback () {
@@ -179,13 +178,13 @@ class CasperEpaperInput extends PolymerElement {
    * @param {boolean} visible
    */
   setVisible (visible) {
-    if ( this._visible !== visible ) {
-      if ( visible ) {
+    if (this._visible !== visible) {
+      if (visible) {
         this.style.display = 'inline-block';
       } else {
-        this.style.display                = 'none';
+        this.style.display = 'none';
         this.$.dropdown_btn.style.display = 'none';
-        this.$.edit_btn.style.display     = 'none';
+        this.$.edit_btn.style.display = 'none';
       }
       this._visible = visible;
     }
@@ -200,18 +199,18 @@ class CasperEpaperInput extends PolymerElement {
    * @param {number} h box height in px
    */
   alignPosition (x, y, w, h) {
-    this.style.left           = x + 'px';
-    this.style.top            = y + 'px';
-    this.style.width          = w + 'px';
-    this.style.height         = h + 'px';
-    /*_input*/this._textArea.style.left    = '0px';
-    /*_input*/this._textArea.style.top     = '0px';
-    /*_input*/this._textArea.style.width   = w + 'px';
-    /*_input*/this._textArea.style.height  = h + 'px';
-    /*_input*/this._textArea.scrollTop     = 0;
-    /*_input*/this._textArea.scrollLeft    = 0;
-    this._x                   = x;
-    this._y                   = y;
+    this.style.left = x + 'px';
+    this.style.top = y + 'px';
+    this.style.width = w + 'px';
+    this.style.height = h + 'px';
+    /*_input*/this._textArea.style.left = '0px';
+    /*_input*/this._textArea.style.top = '0px';
+    /*_input*/this._textArea.style.width = w + 'px';
+    /*_input*/this._textArea.style.height = h + 'px';
+    /*_input*/this._textArea.scrollTop = 0;
+    /*_input*/this._textArea.scrollLeft = 0;
+    this._x = x;
+    this._y = y;
   }
 
   /**
@@ -224,27 +223,27 @@ class CasperEpaperInput extends PolymerElement {
 
     // Make baseline and edge relative to input pox
     var ratio = this.epaperDocument.epaperCanvas.ratio;
-    var tl    = a_text_left / ratio - this._x;
-    var bl    = a_baseline  / ratio - this._y;
-      var top   = this._f_top / ratio;
+    var tl = a_text_left / ratio - this._x;
+    var bl = a_baseline / ratio - this._y;
+    var top = this._f_top / ratio;
 
     /*console.log(' ==> tl=' + tl + ' bl=' + bl + ' top=' + top);*/
 
     //this._textArea.style.padding     = '0px';
     //this._textArea.style.margin      = '0px';
-    this._textArea.style.marginLeft  = Math.max(tl,1) + 'px';
-    this._textArea.style.marginRight = Math.max(tl,1) + 'px';
+    this._textArea.style.marginLeft = Math.max(tl, 1) + 'px';
+    this._textArea.style.marginRight = Math.max(tl, 1) + 'px';
     //this._textArea.style.marginTop   = Math.max(bl + top, 1) + 'px';
-    this._textArea.style.fontFamily  = this.epaperDocument.fontSpec[CasperEpaperServerDocument.FONT_NAME_INDEX];
-    this._textArea.style.fontSize    = this.epaperDocument.fontSpec[CasperEpaperServerDocument.SIZE_INDEX] / ratio + 'px';
-    this._textArea.style.color       = this.epaper._text_color;
+    this._textArea.style.fontFamily = this.epaperDocument.fontSpec[CasperEpaperServerDocument.FONT_NAME_INDEX];
+    this._textArea.style.fontSize = this.epaperDocument.fontSpec[CasperEpaperServerDocument.SIZE_INDEX] / ratio + 'px';
+    this._textArea.style.color = this.epaper._text_color;
   }
 
   hideOverlays (hideButtons) {
     this.hideTooltip();
     // TODO this.$.combo.setVisible(false);
     //this.$.date.setVisible(false);
-    if ( hideButtons ) {
+    if (hideButtons) {
       this.$.dropdown_btn.style.display = 'none';
       this.$.edit_btn.style.display = 'none';
       this.$.clear_btn.style.display = 'nome';
@@ -254,8 +253,8 @@ class CasperEpaperInput extends PolymerElement {
   setCasperBinding (binding) {
     console.log(binding);
     this._binding = binding;
-    if ( binding !== undefined ) {
-      switch(binding.attachment.type) {
+    if (binding !== undefined) {
+      switch (binding.attachment.type) {
         case 'dropDownList':
         case 'dropDownTree':
           this.setMode('c');
@@ -270,7 +269,7 @@ class CasperEpaperInput extends PolymerElement {
       }
       // TODO this.$.combo.setCasperBinding(binding);
       this.setCombolistQuery(binding.attachment.route);
-      if ( binding.hint && binding.hint.expression && binding.hint.expression.length ) {
+      if (binding.hint && binding.hint.expression && binding.hint.expression.length) {
         this.showTooltip(binding.hint.expression);
       } else {
         this.hideTooltip();
@@ -291,75 +290,75 @@ class CasperEpaperInput extends PolymerElement {
 
     this.hideOverlays();
     this._comboFilter = '';
-    this._mode        = a_mode;
-    switch ( a_mode ) {
-    case 'c': // Client combo
-      this._textArea.style.cursor = 'pointer';
-      // TODO this._setOverlay(this.$.combo);
-      break;
-    case 'l': // Ledger mode
-      this._textArea.style.cursor = 'text';
-      // TODO this._setOverlay(this.$.combo);
-      break;
-    case 'd': // Date
-      this._textArea.style.cursor = 'text';
-      //this._setOverlay(this.$.date);
-      break;
-    case 'R': // Radio
-      this._textArea.style.cursor = 'pointer';
-      this._setOverlay(undefined);
-      break;
-    default: // Normal mode the default
-      this._textArea.style.cursor = 'text';
-      this._mode = 'n'
-      this._setOverlay(undefined);
-      break;
+    this._mode = a_mode;
+    switch (a_mode) {
+      case 'c': // Client combo
+        this._textArea.style.cursor = 'pointer';
+        // TODO this._setOverlay(this.$.combo);
+        break;
+      case 'l': // Ledger mode
+        this._textArea.style.cursor = 'text';
+        // TODO this._setOverlay(this.$.combo);
+        break;
+      case 'd': // Date
+        this._textArea.style.cursor = 'text';
+        //this._setOverlay(this.$.date);
+        break;
+      case 'R': // Radio
+        this._textArea.style.cursor = 'pointer';
+        this._setOverlay(undefined);
+        break;
+      default: // Normal mode the default
+        this._textArea.style.cursor = 'text';
+        this._mode = 'n'
+        this._setOverlay(undefined);
+        break;
     }
 
     btn_size = Math.floor(12 * this.epaperDocument.zoom);
-    width    = parseInt(this.style.width);
-    height   = parseInt(this.style.height);
+    width = parseInt(this.style.width);
+    height = parseInt(this.style.height);
 
     this.$.dropdown_btn.style.display = 'none';
     this.$.dropdown_btn.style.padding = '0px';
-    this.$.dropdown_btn.style.height  = btn_size + 'px';
-    this.$.dropdown_btn.style.width   = btn_size + 'px';
-    this.$.dropdown_btn.style.top     = ((height - btn_size) / 2) + 'px';
-    this.$.dropdown_btn.style.left    = (width - btn_size) + 'px';
+    this.$.dropdown_btn.style.height = btn_size + 'px';
+    this.$.dropdown_btn.style.width = btn_size + 'px';
+    this.$.dropdown_btn.style.top = ((height - btn_size) / 2) + 'px';
+    this.$.dropdown_btn.style.left = (width - btn_size) + 'px';
 
     this.$.clear_btn.style.display = 'none';
     this.$.clear_btn.style.padding = '0px';
-    this.$.clear_btn.style.height  = btn_size + 'px';
-    this.$.clear_btn.style.width   = btn_size + 'px';
-    this.$.clear_btn.style.top     = ((height - btn_size) / 2) + 'px';
-    this.$.clear_btn.style.left    = (width - btn_size) + 'px';
+    this.$.clear_btn.style.height = btn_size + 'px';
+    this.$.clear_btn.style.width = btn_size + 'px';
+    this.$.clear_btn.style.top = ((height - btn_size) / 2) + 'px';
+    this.$.clear_btn.style.left = (width - btn_size) + 'px';
 
     edit_btn_size = Math.floor(18 * this.epaperDocument.zoom);
     this.$.edit_btn.style.display = 'none'; // 'inline';
     this.$.edit_btn.style.padding = '0px';
-    this.$.edit_btn.style.height  = edit_btn_size + 'px';
-    this.$.edit_btn.style.width   = edit_btn_size + 'px';
-    this.$.edit_btn.style.top     = ((height - edit_btn_size) / 2) + 'px';
-    this.$.edit_btn.style.left    = (-edit_btn_size) + 'px';
+    this.$.edit_btn.style.height = edit_btn_size + 'px';
+    this.$.edit_btn.style.width = edit_btn_size + 'px';
+    this.$.edit_btn.style.top = ((height - edit_btn_size) / 2) + 'px';
+    this.$.edit_btn.style.left = (-edit_btn_size) + 'px';
 
-    switch ( this._mode ) {
-    case 'c': // Client combo
-    case 'l': // Ledger mode
-      this.$.dropdown_btn.icon = 'casper-icons:arrow-drop-down';
-      //this.$.dropdown_btn.style.display = 'none';
-      this._textArea.style.width = (width - btn_size) + 'px';
-      break;
-    case 'd': // Date
-      this.$.dropdown_btn.icon = 'casper-icons:date-range'
-      this.$.dropdown_btn.style.display = 'inline';
-      this._textArea.style.width = (width - btn_size) + 'px';
-      break;
-    case 'R': // Radio
-    default:  // Normal mode the default
-      this.$.dropdown_btn.style.display = 'none';
-      this.$.edit_btn.style.display = 'none';
-      this._textArea.style.width = (width) + 'px';
-      break;
+    switch (this._mode) {
+      case 'c': // Client combo
+      case 'l': // Ledger mode
+        this.$.dropdown_btn.icon = 'casper-icons:arrow-drop-down';
+        //this.$.dropdown_btn.style.display = 'none';
+        this._textArea.style.width = (width - btn_size) + 'px';
+        break;
+      case 'd': // Date
+        this.$.dropdown_btn.icon = 'casper-icons:date-range'
+        this.$.dropdown_btn.style.display = 'inline';
+        this._textArea.style.width = (width - btn_size) + 'px';
+        break;
+      case 'R': // Radio
+      default:  // Normal mode the default
+        this.$.dropdown_btn.style.display = 'none';
+        this.$.edit_btn.style.display = 'none';
+        this._textArea.style.width = (width) + 'px';
+        break;
     }
   }
 
@@ -411,7 +410,7 @@ class CasperEpaperInput extends PolymerElement {
   }
 
   _setOverlay (overlay) {
-    if ( this._overlay !== undefined ) {
+    if (this._overlay !== undefined) {
       this._overlay.setVisible(false);
     }
     this._overlay = overlay;
@@ -419,7 +418,7 @@ class CasperEpaperInput extends PolymerElement {
   }
 
   _toggleOverlay (event) {
-    if ( this._select.opened ) {
+    if (this._select.opened) {
       this._select.opened = false;
     } else {
       this._select.attachTo(this._textArea);
@@ -443,7 +442,7 @@ class CasperEpaperInput extends PolymerElement {
     //  }
     //  this.overlayVisible = this._overlay.isVisible();
     //}
-    if ( event !== undefined ) {
+    if (event !== undefined) {
       event.stopPropagation();
     }
   }
@@ -456,7 +455,7 @@ class CasperEpaperInput extends PolymerElement {
   _clearField (event) {
     this.epaperDocument.__sendCommand('set list item "";');
     this.epaperDocument.__sendCommand('set key "save";');
-    if ( event !== undefined ) {
+    if (event !== undefined) {
       event.stopPropagation();
     }
   }
@@ -469,10 +468,10 @@ class CasperEpaperInput extends PolymerElement {
     var page_margin = 40 * this.epaperDocument.epaperCanvas.ratio;
     var max_width, max_height;
 
-    var left  = parseInt(this.style.left);
+    var left = parseInt(this.style.left);
     var width = parseInt(this.style.width);
 
-    if ( (left / this.epaperDocument.epaperCanvas.sx) > this.epaperDocument.epaperCanvas.pageWidth / 2 ) {
+    if ((left / this.epaperDocument.epaperCanvas.sx) > this.epaperDocument.epaperCanvas.pageWidth / 2) {
       max_width = left + width /*+ this._open_combo_button._bb_w*/ - page_margin;
     } else {
       max_width = this.epaperDocument.epaperCanvas.pageWidth * this.epaperDocument.epaperCanvas.sx - page_margin - left;
@@ -486,7 +485,7 @@ class CasperEpaperInput extends PolymerElement {
   }
 
   setValue (value, displayValue) {
-    switch ( this._mode) {
+    switch (this._mode) {
       case 'c':
         this._setValueC(value, displayValue);
         break;
@@ -500,20 +499,20 @@ class CasperEpaperInput extends PolymerElement {
   }
 
   grabFocus () {
-    if ( this._initialSelection === true ) {
-      if ( this._mode === 'c' ) {
+    if (this._initialSelection === true) {
+      if (this._mode === 'c') {
         this._textArea.selectionStart = undefined;
-        this._textArea.selectionEnd   = undefined;
+        this._textArea.selectionEnd = undefined;
       } else {
         this._textArea.selectionStart = 0;
-        this._textArea.selectionEnd   = this._textArea.value.length;
+        this._textArea.selectionEnd = this._textArea.value.length;
       }
     }
     this._textArea.focus();
   }
 
   _onTap (event) {
-    switch ( this._mode) {
+    switch (this._mode) {
       case 'c':
         this._toggleOverlay();
         event.stopPropagation();
@@ -525,7 +524,7 @@ class CasperEpaperInput extends PolymerElement {
   }
 
   _onKeypress (event) {
-    switch ( this._mode) {
+    switch (this._mode) {
       case 'c':
         this._onKeypressC(event);
         break;
@@ -542,7 +541,7 @@ class CasperEpaperInput extends PolymerElement {
   }
 
   _onKeyDown (event) {
-    switch ( this._mode) {
+    switch (this._mode) {
       case 'c':
         this._onKeyDownC(event);
         break;
@@ -566,24 +565,24 @@ class CasperEpaperInput extends PolymerElement {
   /*****************************************************************************************/
 
   _setValueN (value) {
-    this._textArea.value          = value;
+    this._textArea.value = value;
     this._textArea.selectionStart = 0;
-    this._textArea.selectionEnd   = value.length;
-    this._initialSelection        = true;
+    this._textArea.selectionEnd = value.length;
+    this._initialSelection = true;
   }
 
   _onKeyDownN (event) {
     var vkey = this._keycodeToVkey(event);
 
-    if ( this._initialSelection === true || this._textArea.value.length === 0 ) {
-      if ( ['down', 'up', 'left', 'right'].indexOf(vkey) > -1 ) {
+    if (this._initialSelection === true || this._textArea.value.length === 0) {
+      if (['down', 'up', 'left', 'right'].indexOf(vkey) > -1) {
         this.epaperDocument.socket.moveCursor(this.epaperDocument.documentId, vkey);
         event.preventDefault();
         return;
-      } else if ( ['tab', 'shift+tab'].indexOf(vkey) > -1 ) {
-        if ( this._initialSelection === true ) {
+      } else if (['tab', 'shift+tab'].indexOf(vkey) > -1) {
+        if (this._initialSelection === true) {
           this._initialSelection = false;
-          if ( vkey === 'shift+tab') {
+          if (vkey === 'shift+tab') {
             this.epaperDocument.socket.sendKey(this.epaperDocument.documentId, vkey, 'shift');
           } else {
             this.epaperDocument.socket.sendKey(this.epaperDocument.documentId, vkey);
@@ -591,10 +590,10 @@ class CasperEpaperInput extends PolymerElement {
           event.preventDefault();
           return;
         }
-      } else if ( ['enter', 'F2'].indexOf(vkey) > -1 ) {
+      } else if (['enter', 'F2'].indexOf(vkey) > -1) {
         this._textArea.selectionStart = this._textArea.value.length;
         this._textArea.selectionEnd = this._textArea.value.length;
-        if ( this._initialSelection === true || vkey === 'F2' ) {
+        if (this._initialSelection === true || vkey === 'F2') {
           this._initialSelection = false;
           event.preventDefault();
           return;
@@ -604,11 +603,11 @@ class CasperEpaperInput extends PolymerElement {
       }
     }
 
-    if ( ['enter', 'tab', 'shift+tab'].indexOf(vkey) > -1 ) {
+    if (['enter', 'tab', 'shift+tab'].indexOf(vkey) > -1) {
       this.epaperDocument.socket.setText(this.epaperDocument.documentId,
-                                  this._textArea.value,
-                                  vkey === 'shift+tab' ? 'left' : 'right');
-                                 // this._setTextResponse.bind(this)); TODO WE HAVE A PROMISE NOW
+        this._textArea.value,
+        vkey === 'shift+tab' ? 'left' : 'right');
+      // this._setTextResponse.bind(this)); TODO WE HAVE A PROMISE NOW
       event.preventDefault();
       return;
     }
@@ -639,8 +638,8 @@ class CasperEpaperInput extends PolymerElement {
       this._textArea.value = displayValue;
     }
     // aqui
-    if ( displayValue.length !== 0 && this._binding !== undefined && this._binding.attachment !== undefined &&
-         this._binding.attachment.allowClear === true ) {
+    if (displayValue.length !== 0 && this._binding !== undefined && this._binding.attachment !== undefined &&
+      this._binding.attachment.allowClear === true) {
       this.$.clear_btn.style.display = 'inline';
     } else {
       this.$.dropdown_btn.style.display = 'inline';
@@ -661,7 +660,7 @@ class CasperEpaperInput extends PolymerElement {
       //this.$.combo.setQuery(this._comboFilter);
       event.preventDefault();
     }*/
-    if ( this.overlayVisible === false ) {
+    if (this.overlayVisible === false) {
       this._comboFilter += event.key;
       this._toggleOverlay(event);
     }
@@ -671,15 +670,15 @@ class CasperEpaperInput extends PolymerElement {
     let vkey;
 
     vkey = this._keycodeToVkey(event);
-    if ( this.overlayVisible === false ) {
-      if ( ['down', 'up', 'left', 'right'].indexOf(vkey) > -1 ) {
-        if ( this._comboFilter.length !== 0 && ['down', 'up'].indexOf(vkey) > -1) {
+    if (this.overlayVisible === false) {
+      if (['down', 'up', 'left', 'right'].indexOf(vkey) > -1) {
+        if (this._comboFilter.length !== 0 && ['down', 'up'].indexOf(vkey) > -1) {
           /* TODO this.$.combo.moveSelection(vkey); */
         } else {
           this.epaperDocument.socket.moveCursor(this.epaperDocument.documentId, vkey);
         }
         event.preventDefault();
-      } else if ( ['tab', 'shift+tab', 'enter'].indexOf(vkey) > -1 ) {
+      } else if (['tab', 'shift+tab', 'enter'].indexOf(vkey) > -1) {
         /*
         TODO
         if ( this.$.combo.getSelectedId() && this.$.combo.getSelectedId() !== this.$.combo.getInitialId() ) {
@@ -690,17 +689,17 @@ class CasperEpaperInput extends PolymerElement {
 
         //this.epaperDocument.__sendCommand('set key "'+vkey.replace(/\+/g, '"+"')+'";');
         event.preventDefault();
-      } else if ( vkey === 'alt' || vkey === 'shift+down' ) {
+      } else if (vkey === 'alt' || vkey === 'shift+down') {
         //this._comboFilter = event.key;
         this._toggleOverlay();
         //event.preventDefault();
       } //else if ( ['delete', 'backspace'].indexOf(vkey) > -1 ) {
-        //this._comboFilter = this._comboFilter.slice(0, -1);
-        //this.$.combo.setQuery(this._comboFilter, false);
-        //event.preventDefault();
+      //this._comboFilter = this._comboFilter.slice(0, -1);
+      //this.$.combo.setQuery(this._comboFilter, false);
+      //event.preventDefault();
       //}
     } else {
-      if ( vkey === 'esc' ) {
+      if (vkey === 'esc') {
         // TODO this.$.combo.setVisible(false);
         this.overlayVisible = false;
         event.preventDefault();
@@ -709,11 +708,11 @@ class CasperEpaperInput extends PolymerElement {
   }
 
   _onComboSelectionChanged (event) {
-    if ( event.detail.displayValue ) {
+    if (event.detail.displayValue) {
       this._textArea.value = event.detail.displayValue;
-      if ( this._mode === 'c' && this.overlayVisible === false) {
+      if (this._mode === 'c' && this.overlayVisible === false) {
         this._textArea.selectionStart = event.detail.matchStart;
-        this._textArea.selectionEnd   = event.detail.matchEnd;
+        this._textArea.selectionEnd = event.detail.matchEnd;
       }
     }
   }
@@ -722,22 +721,22 @@ class CasperEpaperInput extends PolymerElement {
     var key;
 
     this.overlayVisible = false;
-    this._comboFilter    = '';
+    this._comboFilter = '';
 
     key = event.detail.closingKey;
-    if ( event.detail.selectedId !== undefined && event.detail.selectedId !== event.detail.previousId ) {
-      this.epaperDocument.__sendCommand('set list item "' + event.detail.selectedId  + '";');
-      if ( key === 'shift+tab' ) {
+    if (event.detail.selectedId !== undefined && event.detail.selectedId !== event.detail.previousId) {
+      this.epaperDocument.__sendCommand('set list item "' + event.detail.selectedId + '";');
+      if (key === 'shift+tab') {
         this.epaperDocument.__sendCommand('set key "shift"+"tab";');
-      } else if ( key === 'enter' || key === 'tab' ) {
+      } else if (key === 'enter' || key === 'tab') {
         this.epaperDocument.__sendCommand('set key "tab";');
       } else {
         this.epaperDocument.__sendCommand('set key "save";');
       }
     } else {
-      if ( key === 'shift+tab' ) {
+      if (key === 'shift+tab') {
         this.epaperDocument.__sendCommand('set key "focus_left";');
-      } else if ( key === 'enter' || key === 'tab' ) {
+      } else if (key === 'enter' || key === 'tab') {
         this.epaperDocument.__sendCommand('set key "focus_right";');
       }
     }
@@ -759,18 +758,18 @@ class CasperEpaperInput extends PolymerElement {
   _onDateOverlayClosed (event) {
     this.overlayVisible = false;
     var vkey = event.detail.closingKey;
-    var cmd  = '';
+    var cmd = '';
 
-    if ( event.detail.previousDate !== event.detail.currentDate && vkey !== 'esc' ) {
-      cmd = 'set text "'+event.detail.currentDate+'" true; ';
-      if ( vkey === undefined ) {
+    if (event.detail.previousDate !== event.detail.currentDate && vkey !== 'esc') {
+      cmd = 'set text "' + event.detail.currentDate + '" true; ';
+      if (vkey === undefined) {
         vkey = 'save';
       }
     }
-    if ( vkey !== 'esc' && vkey !== undefined ) {
-      cmd += 'set key "'+vkey.replace(/\+/g, '"+"')+'";';
+    if (vkey !== 'esc' && vkey !== undefined) {
+      cmd += 'set key "' + vkey.replace(/\+/g, '"+"') + '";';
     }
-    if ( cmd.length ) {
+    if (cmd.length) {
       this.epaperDocument.__sendCommand(cmd);
     }
   }
@@ -786,18 +785,18 @@ class CasperEpaperInput extends PolymerElement {
   }
 
   _onKeyDownR (event) {
-    if ( event.keyCode === 32 || (event.keyCode === 88 && this._textArea.value.length === 0) ) {
+    if (event.keyCode === 32 || (event.keyCode === 88 && this._textArea.value.length === 0)) {
       // TODO debouncer this.debounce('casper-toggle', function () {
-        this.epaperDocument.socket.sendKey(this.epaperDocument.documentId, 'toggle');
+      this.epaperDocument.socket.sendKey(this.epaperDocument.documentId, 'toggle');
       //}.bind(this), 300);
     } else {
       var vkey = this._keycodeToVkey(event);
 
-      if ( ['down', 'up', 'left', 'right'].indexOf(vkey) > -1 ) {
+      if (['down', 'up', 'left', 'right'].indexOf(vkey) > -1) {
         this.epaperDocument.socket.moveCursor(this.epaperDocument.documentId, vkey);
-      } else if ( vkey === 'shift+tab' ) {
+      } else if (vkey === 'shift+tab') {
         this.epaperDocument.socket.moveCursor(this.epaperDocument.documentId, 'left');
-      } else if ( vkey === 'enter' || vkey === 'tab' ) {
+      } else if (vkey === 'enter' || vkey === 'tab') {
         this.epaperDocument.socket.moveCursor(this.epaperDocument.documentId, 'right');
       }
     }
@@ -819,70 +818,70 @@ class CasperEpaperInput extends PolymerElement {
    */
   _keycodeToVkey (event) {
     switch (event.keyCode) {
-    case  8: // backspace
-      return 'backspace';
-    case  9: // tab
-      if ( event.shiftKey === true ) {
-        return 'shift+tab';
-      } else {
-        return 'tab';
-      }
-      break;
-    case 13: // enter
-      return 'enter';
-    case 27: // escape
-      return 'esc';
-    case 32: // space
-      return ' ';
-    case 37: // left
-      return 'left';
-    case 39: // right
-      return 'right';
-    case 38: // up
-      if ( event.shiftKey === true ) {
-        return 'shift+up';
-      } else {
-        return 'up';
-      }
-      break;
-    case 40: // down
-      if ( event.shiftKey === true ) {
-        return 'shift+down';
-      } else {
-        return 'down';
-      }
-      break;
-    case 46:
-      return 'delete';
-    case 65:
-      if ( event.ctrlKey ) {
-        return 'ctrl+a';
-      }
-      break;
-    case 69:
-      if ( event.ctrlKey ) {
-        return 'ctrl+e';
-      }
-      break;
-    case 75:
-      if ( event.ctrlKey ) {
-        return 'ctrl+k';
-      }
-      break;
-    case 113:
-      return 'F2';
-    case 16:
-      return 'shift';
-    case 17:
-      return 'ctrl';
-    case 18:
-      return 'alt';
-    case 91:
-      return 'window+left';
-    case 92:
-      return 'window+right';
-    default:
-      break;
+      case 8: // backspace
+        return 'backspace';
+      case 9: // tab
+        if (event.shiftKey === true) {
+          return 'shift+tab';
+        } else {
+          return 'tab';
+        }
+        break;
+      case 13: // enter
+        return 'enter';
+      case 27: // escape
+        return 'esc';
+      case 32: // space
+        return ' ';
+      case 37: // left
+        return 'left';
+      case 39: // right
+        return 'right';
+      case 38: // up
+        if (event.shiftKey === true) {
+          return 'shift+up';
+        } else {
+          return 'up';
+        }
+        break;
+      case 40: // down
+        if (event.shiftKey === true) {
+          return 'shift+down';
+        } else {
+          return 'down';
+        }
+        break;
+      case 46:
+        return 'delete';
+      case 65:
+        if (event.ctrlKey) {
+          return 'ctrl+a';
+        }
+        break;
+      case 69:
+        if (event.ctrlKey) {
+          return 'ctrl+e';
+        }
+        break;
+      case 75:
+        if (event.ctrlKey) {
+          return 'ctrl+k';
+        }
+        break;
+      case 113:
+        return 'F2';
+      case 16:
+        return 'shift';
+      case 17:
+        return 'ctrl';
+      case 18:
+        return 'alt';
+      case 91:
+        return 'window+left';
+      case 92:
+        return 'window+right';
+      default:
+        break;
     }
     return null;
   }
@@ -894,11 +893,11 @@ class CasperEpaperInput extends PolymerElement {
   /*****************************************************************************************/
 
   _onMouseDown (event) {
-    if ( this._mode === 'R' ) {
+    if (this._mode === 'R') {
       event.preventDefault();
       this.epaperDocument.socket.sendKey(this.epaperDocument.documentId, 'toggle');
-    } else if ( this._mode === 'c' ) {
-      if ( this._select.opened ) {
+    } else if (this._mode === 'c') {
+      if (this._select.opened) {
         event.stopPropagation();
       }
     } else {
@@ -908,7 +907,7 @@ class CasperEpaperInput extends PolymerElement {
   }
 
   _onMouseUp (event) {
-    if ( this._mode === 'R' ) {
+    if (this._mode === 'R') {
       event.preventDefault();
     }
   }
@@ -935,18 +934,18 @@ class CasperEpaperInput extends PolymerElement {
     var mid_x, mid_y, bbi, bbc;
 
     bbc = this.epaper.$.canvas.getBoundingClientRect();
-    if ( this.$.input === undefined ) {
+    if (this.$.input === undefined) {
       return; // TODO
     }
     bbi = this.$.input.getBoundingClientRect();
-    mid_x = bbc.left + left + width  / 2;
-    mid_y = bbc.top  + top  + height / 2;
+    mid_x = bbc.left + left + width / 2;
+    mid_y = bbc.top + top + height / 2;
 
     // ... if the mid point of the tooltip hint is outside the editor bounding box discard it ...
-    if ( mid_x < bbi.left || mid_x > bbi.right || mid_y < bbi.top || mid_y > bbi.bottom ) {
+    if (mid_x < bbi.left || mid_x > bbi.right || mid_y < bbi.top || mid_y > bbi.bottom) {
       return;
     }
-    if ( content.length ) {
+    if (content.length) {
       console.log('Show tooltip:', content); // TODO port to casper-app
       //this.epaper.$.tooltip.show(content); // TODO port to casper-app
     } else {
@@ -967,7 +966,10 @@ class CasperEpaperInput extends PolymerElement {
 
   hideTooltip () {
     // TODO port to casper-app
-    window.app.tooltip.hide();
+    //window.app.tooltip.hide();
+    //if (this.epaper.$.tooltip.hide !== undefined) {
+    //  this.epaper.$.tooltip.hide();
+    //}
   }
 }
 

@@ -20,7 +20,7 @@
 
 import '../casper-epaper-input.js';
 import '../casper-epaper-servertip-helper.js';
-import '@polymer/iron-icon/iron-icon.js';
+import '@cloudware-casper/casper-icons/casper-icon-button.js';
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
 import { afterNextRender } from '@polymer/polymer/lib/utils/render-status.js';
 
@@ -118,22 +118,19 @@ export class CasperEpaperServerDocument extends PolymerElement {
       }
 
       .line-menu-button {
-        padding: 4px;
+        padding: 6px;
         margin-left: 4px;
         max-width: 28px;
         max-height: 28px;
         border-radius: 50%;
-        background-color: var(--primary-color);
-        --iron-icon-width: 100%;
-        --iron-icon-height: 100%;
-        --iron-icon-fill-color: white;
         -webkit-box-shadow: 0px 1px 6px -1px rgba(0, 0, 0, 0.61);
         -moz-box-shadow:    0px 1px 6px -1px rgba(0, 0, 0, 0.61);
         box-shadow:         0px 1px 6px -1px rgba(0, 0, 0, 0.61);
       }
 
       .delete {
-        background-color: var(--status-red);
+        --casper-icon-button-color: white;
+        --casper-icon-button-background-color: var(--status-red);
       }
 
     </style>
@@ -147,8 +144,8 @@ export class CasperEpaperServerDocument extends PolymerElement {
     <slot name="casper-epaper-line-menu">
     </slot>
     <div id="default-context-menu" class="context-menu" style="display: none;">
-      <paper-icon-button icon="casper-icons:plus"     class="line-menu-button"        tooltip="Adicionar linha" on-click="__addDocumentLine"></paper-icon-button>
-      <paper-icon-button icon="casper-icons:calendar" class="line-menu-button delete" tooltip="Remover linha"   on-click="__removeDocumentLine"></paper-icon-button>
+      <casper-icon-button icon="fa-light:plus"      class="line-menu-button"        tooltip="Adicionar linha" on-click="__addDocumentLine"></casper-icon-button>
+      <casper-icon-button icon="fa-light:trash-alt" class="line-menu-button delete" tooltip="Remover linha"   on-click="__removeDocumentLine"></casper-icon-button>
     </div>
     `;
   }
@@ -252,6 +249,9 @@ export class CasperEpaperServerDocument extends PolymerElement {
    * @param {Object} documentModel an object that specifies the layout and data of the document
    */
   async open (documentModel) {
+
+    if ( documentModel.epaper2 ) { this.__socket = app.socket2 }
+
     this.currentPage = 1; // # TODO goto page on open /
     if ( documentModel.backgroundColor ) {
       this.__setBackground(documentModel.backgroundColor);
@@ -294,7 +294,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
         number_of_copies: chapter.number_of_copies || 1,
         jsonapi: {
           // TODO extract list of relationships from the report!!!! // TODO NO TOCONLINE
-          urn: 'https://app.toconline.pt/' + chapter.path + '?' + ((undefined !== chapter.params && '' !== chapter.params) ? chapter.params : 'include=lines'),
+          urn: 'https://app.toconline.pt/' + chapter.path + (chapter.path.indexOf('?') != -1 ? '&' : '?') + ((undefined !== chapter.params && '' !== chapter.params) ? chapter.params : 'include=lines'),
           prefix: null,
           user_id: null,
           entity_id: null,
