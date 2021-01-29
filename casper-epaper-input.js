@@ -576,16 +576,16 @@ class CasperEpaperInput extends PolymerElement {
 
     if (this._initialSelection === true || this._textArea.value.length === 0) {
       if (['down', 'up', 'left', 'right'].indexOf(vkey) > -1) {
-        this.epaperDocument.socket.moveCursor(this.epaperDocument.documentId, vkey);
+        this.epaperDocument.__socket.moveCursor(this.epaperDocument.documentId, vkey);
         event.preventDefault();
         return;
       } else if (['tab', 'shift+tab'].indexOf(vkey) > -1) {
         if (this._initialSelection === true) {
           this._initialSelection = false;
           if (vkey === 'shift+tab') {
-            this.epaperDocument.socket.sendKey(this.epaperDocument.documentId, vkey, 'shift');
+            this.epaperDocument.__socket.sendKey(this.epaperDocument.documentId, vkey, 'shift');
           } else {
-            this.epaperDocument.socket.sendKey(this.epaperDocument.documentId, vkey);
+            this.epaperDocument.__socket.sendKey(this.epaperDocument.documentId, vkey);
           }
           event.preventDefault();
           return;
@@ -604,7 +604,7 @@ class CasperEpaperInput extends PolymerElement {
     }
 
     if (['enter', 'tab', 'shift+tab'].indexOf(vkey) > -1) {
-      this.epaperDocument.socket.setText(this.epaperDocument.documentId,
+      this.epaperDocument.__socket.setText(this.epaperDocument.documentId,
         this._textArea.value,
         vkey === 'shift+tab' ? 'left' : 'right');
       // this._setTextResponse.bind(this)); TODO WE HAVE A PROMISE NOW
@@ -675,7 +675,7 @@ class CasperEpaperInput extends PolymerElement {
         if (this._comboFilter.length !== 0 && ['down', 'up'].indexOf(vkey) > -1) {
           /* TODO this.$.combo.moveSelection(vkey); */
         } else {
-          this.epaperDocument.socket.moveCursor(this.epaperDocument.documentId, vkey);
+          this.epaperDocument.__socket.moveCursor(this.epaperDocument.documentId, vkey);
         }
         event.preventDefault();
       } else if (['tab', 'shift+tab', 'enter'].indexOf(vkey) > -1) {
@@ -684,8 +684,8 @@ class CasperEpaperInput extends PolymerElement {
         if ( this.$.combo.getSelectedId() && this.$.combo.getSelectedId() !== this.$.combo.getInitialId() ) {
         //  this.epaperDocument.__sendCommand('set list item "' + this.$.combo.getSelectedId()  + '";');
         }*/
-        //this.epaperDocument.socket.setText();
-        this.epaperDocument.socket.setText(this.epaperDocument.documentId, this.$.combo.getSelectedId(), 'right', true);
+        //this.epaperDocument.__socket.setText();
+        this.epaperDocument.__socket.setText(this.epaperDocument.documentId, this.$.combo.getSelectedId(), 'right', true);
 
         //this.epaperDocument.__sendCommand('set key "'+vkey.replace(/\+/g, '"+"')+'";');
         event.preventDefault();
@@ -787,17 +787,17 @@ class CasperEpaperInput extends PolymerElement {
   _onKeyDownR (event) {
     if (event.keyCode === 32 || (event.keyCode === 88 && this._textArea.value.length === 0)) {
       // TODO debouncer this.debounce('casper-toggle', function () {
-      this.epaperDocument.socket.sendKey(this.epaperDocument.documentId, 'toggle');
+      this.epaperDocument.__socket.sendKey(this.epaperDocument.documentId, 'toggle');
       //}.bind(this), 300);
     } else {
       var vkey = this._keycodeToVkey(event);
 
       if (['down', 'up', 'left', 'right'].indexOf(vkey) > -1) {
-        this.epaperDocument.socket.moveCursor(this.epaperDocument.documentId, vkey);
+        this.epaperDocument.__socket.moveCursor(this.epaperDocument.documentId, vkey);
       } else if (vkey === 'shift+tab') {
-        this.epaperDocument.socket.moveCursor(this.epaperDocument.documentId, 'left');
+        this.epaperDocument.__socket.moveCursor(this.epaperDocument.documentId, 'left');
       } else if (vkey === 'enter' || vkey === 'tab') {
-        this.epaperDocument.socket.moveCursor(this.epaperDocument.documentId, 'right');
+        this.epaperDocument.__socket.moveCursor(this.epaperDocument.documentId, 'right');
       }
     }
     event.preventDefault();
@@ -895,7 +895,7 @@ class CasperEpaperInput extends PolymerElement {
   _onMouseDown (event) {
     if (this._mode === 'R') {
       event.preventDefault();
-      this.epaperDocument.socket.sendKey(this.epaperDocument.documentId, 'toggle');
+      this.epaperDocument.__socket.sendKey(this.epaperDocument.documentId, 'toggle');
     } else if (this._mode === 'c') {
       if (this._select.opened) {
         event.stopPropagation();
