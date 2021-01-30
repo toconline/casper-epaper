@@ -614,12 +614,16 @@ export class CasperEpaperServerDocument extends PolymerElement {
 
   async __addDocumentLine () {
     // TODO spinner and errors
-    if (this.__contextMenuIndex !== - 1) {
-      const response = await this.__socket.addBand(
-        this.documentId,
-        this.__bands[this.__contextMenuIndex]._type,
-        this.__bands[this.__contextMenuIndex]._id
-      );
+    try {
+      if (this.__contextMenuIndex !== - 1) {
+        const response = await this.__socket.addBand(
+          this.documentId,
+          this.__bands[this.__contextMenuIndex]._type,
+          this.__bands[this.__contextMenuIndex]._id
+        );
+      }  
+    } catch (error) {
+      console.log(error);
     }
   }
 
