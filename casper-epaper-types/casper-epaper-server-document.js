@@ -2111,7 +2111,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
   //                                                                                       //
   //***************************************************************************************//
 
-  documentHandler (a_message) {
+  async documentHandler (a_message) {
     switch (a_message[0]) {
       //case 'S':
       //  if ( a_message.indexOf('S:ok:data:') === 0 ) {
@@ -2129,11 +2129,15 @@ export class CasperEpaperServerDocument extends PolymerElement {
 
         if ( notification.focus ) {
           if ( notification.focus === 'forward' ) {
-            this.nextChapter();
+            if ( this.epaper.nextChapter() === false ) {
+              // console todo add line ??
+              
+              await this.__socket.setText(this.documentId, this.$.input._textArea.value, 'left');
+            }
             return;
           }
           if ( notification.focus === 'backwards' ) {
-            this.previousChapter();
+            this.epaper.previousChapter();
             return;
           }
         }

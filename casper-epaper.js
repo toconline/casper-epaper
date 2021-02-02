@@ -816,9 +816,10 @@ class CasperEpaper extends PolymerElement {
   }
 
   getBatchPrintJob (print, documents) {
-    documents = documents || []
+    let name;
+    documents = documents || [];
 
-    first_document = documents[0]
+    first_document = documents[0];
 
     if (first_document !== undefined) {
       name = first_document.name || this.i18n.apply(this, first_document.filename_template)
@@ -826,7 +827,7 @@ class CasperEpaper extends PolymerElement {
     }
 
     name = name || this.i18n.apply(this, this._document.filename_template);
-    title = title || name
+    title = title || name;
 
     if (this.isPrintableDocument()) return undefined;
 

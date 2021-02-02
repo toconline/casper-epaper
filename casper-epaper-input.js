@@ -251,7 +251,7 @@ class CasperEpaperInput extends PolymerElement {
   }
 
   setCasperBinding (binding) {
-    console.log(binding);
+    //console.log(binding);
     this._binding = binding;
     if (binding !== undefined) {
       switch (binding.attachment.type) {
@@ -397,7 +397,7 @@ class CasperEpaperInput extends PolymerElement {
 
     this._select.items = ['123', '12334', 'abc'];
 
-    console.log(`setCombolistQuery = ${query}`);
+    // console.log(`setCombolistQuery = ${query}`);
     // TODO this.$.combo.clearModel();
     // TODO this.$.combo.$.spinner.active = true;
   }
