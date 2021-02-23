@@ -257,6 +257,139 @@ class CasperEpaper extends PolymerElement {
           transition: color 100ms linear, background-color 100ms linear;
         }
 
+        .document-checklist {
+          width: 300px;
+          position: absolute;
+          background: #ff2600;
+          box-shadow: 0 2px 9px 0 rgba(0,0,0,0.50);
+          border-radius: 4px;
+          z-index: 2;
+          font-size: 13px;
+
+          left: 0;
+          right: 0;
+          top: 12px;
+          margin-left: auto;
+          margin-right: auto;
+          transition: all 200ms linear;
+          transition: background 10ms linear;
+        }
+
+        .document-checklist:hover {
+          background: #ffffff;
+          top: 7px;
+          transition: top 200ms linear;
+        }
+
+
+        .document-checklist:hover .expanded{
+          display: initial;
+        }
+
+        .document-checklist:hover .collapsed, .document-checklist .expanded {
+          display: none;
+        }
+
+        .document-checklist .title-tasks {
+          color: #ffffff;
+        }
+
+        .document-checklist:hover .title-tasks {
+          color: var(--primary-color);
+          margin: 10px;
+        }
+
+        .document-checklist .title-tasks {
+          font-weight: bold;
+          margin: 5px;
+          text-transform: uppercase;
+        }
+
+        .document-checklist .collapsed > p > span {
+          display: inline-flex;
+          height: 18px;
+          vertical-align: bottom;
+        }
+
+        .document-checklist .collapsed > p > casper-icon {
+          color: #ffe100
+        }
+
+        .document-checklist > p, .document-checklist > div {
+          text-align: center;
+        }
+
+
+        .document-checklist ul {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+          color: #5F5F5F;
+        }
+
+        .document-checklist li {
+          padding: 10px;
+          border-top: 1px #D8D8D8 solid;
+          display: flex;
+          justify-content: space-between;
+        }
+
+        .document-checklist li span {
+          line-height: 20px;
+        }
+
+        .document-checklist .button{
+          border-top: 1px #D8D8D8 solid;
+          padding: 10px;
+        }
+
+        .document-checklist .button button {
+          width: 100%;
+          padding: 10px;
+
+          color: #5F5F5F;
+          background: #F9F9F9;
+          border: 1px solid #CCCCCC;
+          border-radius: 4px;
+          text-transform: uppercase;
+          transition: all 200ms linear;
+        }
+
+        .document-checklist .button button:hover {
+          cursor: pointer;
+          background: #2AABBF;
+          border: 1px solid #2192A3;
+          border-radius: 4px;
+          color: white;
+          transition: all 200ms linear;
+        }
+
+        .filled-parent {
+            display: block;
+            width: 18px;
+            height: 18px;
+            position: relative;
+            border-radius: 18px;
+            border: 2px #d6d6d6 solid;
+        }
+
+        .filled-centered-child {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            margin: auto auto;
+            background-color: #62E044;
+            width: 12px;
+            height: 12px;
+            border-radius: 12px;
+        }
+
+        .filled-centered-child[error] {
+          background-color: #ff2600;
+        }
+
 
       </style>
       <div id="epaper-component-loading-overlay">
@@ -298,6 +431,7 @@ class CasperEpaper extends PolymerElement {
           <casper-icon icon="fa-light:arrow-left"></casper-icon>
         </div>
 
+
         <!--Next attachment button-->
         <div id="next-attachment" on-click="__onNextAttachmentClick">
           <casper-icon icon="[[__nextAttachmentIcon]]"></casper-icon>
@@ -306,8 +440,43 @@ class CasperEpaper extends PolymerElement {
 
         <div id="epaper-container">
           <!--Epaper title-->
-
           <h3 inner-h-t-m-l="[[__currentAttachmentName]]"></h3>
+
+          <!--Epaper checklist tasks-->
+          <template is="dom-if" if="[[__currentAttachmentCheckList.tasks]]">
+
+            <div class="document-checklist">
+
+              <div class='collapsed'>
+                <p class='title-tasks' inner-h-t-m-l="[[__currentAttachmentCheckList.title]]"></p>
+              </div>
+
+              <div class='expanded'>
+                <p class='title-tasks'inner-h-t-m-l="[[__currentAttachmentCheckList.checklistTitle]]"></p>
+
+                <ul>
+                  <template is="dom-repeat" items="[[__currentAttachmentCheckList.tasks]]" index-as="index">
+                    <li>
+                      <span>[[item.prop]]</span>
+                      <span>
+                        <div class='filled-parent'>
+                          <div class='filled-centered-child' error$=[[!item.filled]]></div>
+                        </div>
+                      </span>
+                    </li>
+                  </template>
+                </ul>
+
+                <div class='button'>
+                  <button on-click="__tasksTrigger">[[__currentAttachmentCheckList.triggerButton]]</button>
+                </div>
+
+              </div>
+
+            </div>
+          </template>
+
+
 
           <!--Sticky that will be used to display information about the component-->
           <div id="epaper-component-sticky"></div>
@@ -653,6 +822,8 @@ class CasperEpaper extends PolymerElement {
       this.__currentAttachment = this.currentAttachment = { ...attachment };
     }
 
+    this.__currentAttachmentCheckList = attachment.tasks;
+
     this.__handleAttachmentNavigationButtons();
     this.__openAttachment();
   }
@@ -894,6 +1065,11 @@ class CasperEpaper extends PolymerElement {
 
     this.__handleAttachmentNavigationButtons();
     this.__openAttachment();
+  }
+
+
+  __tasksTrigger () {
+    this.__currentAttachmentCheckList.trigger_action(this.__currentAttachment)
   }
 
   __handleAttachmentNavigationButtons () {
