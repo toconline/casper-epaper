@@ -258,9 +258,9 @@ class CasperEpaper extends PolymerElement {
         }
 
         .document-checklist {
-          width: 300px;
+          width: 320px;
           position: absolute;
-          background: #ff2600;
+          background: var(--status-red);
           box-shadow: 0 2px 9px 0 rgba(0,0,0,0.50);
           border-radius: 4px;
           z-index: 2;
@@ -312,7 +312,8 @@ class CasperEpaper extends PolymerElement {
         }
 
         .document-checklist .collapsed > p > casper-icon {
-          color: #ffe100
+          color: white;
+          padding-right: 6px;
         }
 
         .document-checklist > p, .document-checklist > div {
