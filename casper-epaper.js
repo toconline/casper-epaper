@@ -213,6 +213,15 @@ class CasperEpaper extends PolymerElement {
         .epaper #epaper-container #epaper-component-sticky .text-bigger { font-size: 1.25em; }
         .epaper #epaper-container #epaper-component-sticky .text-biggest { font-size: 1.5em; }
 
+        .epaper #epaper-container .cta-button {
+          position: absolute;
+          right: -10px;
+          top: 6px;
+          z-index: 5;
+          margin: 0;
+          height: 40px;
+        }
+
         #epaper-component-loading-overlay {
           top: 0;
           right: 0;
@@ -443,6 +452,9 @@ class CasperEpaper extends PolymerElement {
           <!--Epaper title-->
           <h3 inner-h-t-m-l="[[__currentAttachmentName]]"></h3>
 
+          <!--Casper-cta-button-->
+          <p class='cta-button'><slot name='casper-cta-button'></slot></p>
+
           <!--Epaper checklist tasks-->
           <template is="dom-if" if="[[__currentAttachmentCheckList.tasks]]">
 
@@ -670,6 +682,12 @@ class CasperEpaper extends PolymerElement {
           paddingLeft: 10,
           paddingRight: 10,
           paddingBottom: 10
+        }
+      },
+      __epaperComponentStickyPosition: {
+        type: Object,
+        value: {
+          align: 'left'
         }
       },
       /** zoom factor when zoom is 1 one pt in report is one px in the screen */
@@ -1317,7 +1335,15 @@ class CasperEpaper extends PolymerElement {
 
       // Scale the post-it dimensions and position.
       this.__epaperComponentSticky.style.top = `${parseInt(50 - this.__epaperComponentStickyStyle.clipSize * this.zoom)}px`;
-      this.__epaperComponentSticky.style.right = `${parseInt(this.__epaperComponentStickyStyle.right * this.zoom)}px`;
+
+      if (this.__epaperComponentStickyPosition.align == 'left') {
+        this.__epaperComponentSticky.style.left = `${parseInt(this.__epaperComponentStickyStyle.right * this.zoom)}px`;
+      }
+
+      if (this.__epaperComponentStickyPosition.align == 'right') {
+        this.__epaperComponentSticky.style.right = `${parseInt(this.__epaperComponentStickyStyle.right * this.zoom)}px`;
+      }
+
       this.__epaperComponentSticky.style.width = `${parseInt(this.__epaperComponentStickyStyle.width * this.zoom)}px`;
       this.__epaperComponentSticky.style.fontSize = `${parseInt(this.__epaperComponentStickyStyle.fontSize * this.zoom)}px`;
       this.__epaperComponentSticky.style.paddingTop = `${parseInt(this.__epaperComponentStickyStyle.paddingTop * this.zoom)}px`;
