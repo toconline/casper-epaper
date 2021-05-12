@@ -1309,9 +1309,8 @@ class CasperEpaper extends PolymerElement {
 
   __updateStickyDimensions () {
     afterNextRender(this, () => {
-      this.__epaperComponentSticky.style.height = !this.disableStickyAnimation
-        ? `${parseInt(this.__epaperComponentStickyStyle.height * this.zoom)}px`
-        : `${parseInt((this.stickyMaximumHeight || this.__epaperComponentStickyStyle.fullHeight) * this.zoom)}px`
+      this.__epaperComponentSticky.style.height     = 'auto';
+      this.__epaperComponentSticky.style.minHeight  = `${parseInt(this.__epaperComponentStickyStyle.height * this.zoom)}px`
 
       if (this.disableStickyAnimation) {
         this.__epaperComponentSticky.style.opacity = 1;
