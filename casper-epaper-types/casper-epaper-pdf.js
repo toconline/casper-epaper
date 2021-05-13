@@ -113,8 +113,8 @@ class CasperEpaperPdf extends PolymerElement {
     this.__iframeElementLoader = this.shadowRoot.querySelector('#main > .loader');
 
     const newSource = this.source.includes('?')
-      ? `${this.source}&content-disposition=inline#view=Fit&toolbar=0&navpanes=0&scrollbar=0`
-      : `${this.source}?content-disposition=inline#view=Fit&toolbar=0&navpanes=0&scrollbar=0`;
+      ? `${this.source}&content-disposition=inline#view=Fit&toolbar=0`
+      : `${this.source}?content-disposition=inline#view=Fit&toolbar=0`;
 
     if (this.__currentSource === newSource) return;
 
