@@ -112,10 +112,9 @@ class CasperEpaperPdf extends PolymerElement {
     this.__iframeElement       = this.shadowRoot.querySelector('#main > .active');
     this.__iframeElementLoader = this.shadowRoot.querySelector('#main > .loader');
 
-
     const newSource = this.source.includes('?')
-      ? `${this.source}&content-disposition=inline#view=Fit&toolbar=0`
-      : `${this.source}?content-disposition=inline#view=Fit&toolbar=0`;
+      ? `${this.source}&content-disposition=inline#view=Fit&toolbar=0&navpanes=0&scrollbar=0`
+      : `${this.source}?content-disposition=inline#view=Fit&toolbar=0&navpanes=0&scrollbar=0`;
 
     if (this.__currentSource === newSource) return;
 
@@ -132,38 +131,50 @@ class CasperEpaperPdf extends PolymerElement {
           });
 
           if (!response.ok) return this.__rejectCallback();
+
+        } else {
+
+          let timer = setInterval(async () => {
+
+            let iframeDoc = this.__iframeElement?.contentDocument || this.__iframeElement?.contentWindow?.document ||  this.__iframeElement?.contentDocument?.getElementsByTagName('body')[0];
+            console.log("checking....", iframeDoc.readyState);
+
+            if (iframeDoc.readyState == 'complete' || iframeDoc.readyState == 'interactive') {
+                clearInterval(timer);
+                this.displayIframeAfterLoaded();
+                return;
+            }
+          }, 100);
+
         }
 
-        let timer = setInterval(async () => {
-          let iframeDoc = this.__iframeElement.contentDocument || this.__iframeElement.contentWindow.document;
-          console.log("checking....", iframeDoc.readyState);
-
-          if (iframeDoc.readyState == 'complete' || iframeDoc.readyState == 'interactive') {
-              clearInterval(timer);
-              console.log(`%cIFRAME onload ${this.__iframeElementLoader.contentWindow.document.readyState} - ${this.source}`, "background-color:green;padding:5px;color:white;font-size:10px;");
-
-              this.__iframeElementLoader.classList.remove('loader')
-              this.__iframeElementLoader.classList.add('active')
-
-              this.__iframeElement.classList.remove('active')
-              this.__iframeElement.classList.add('loader')
-
-              this.loading = false;
-              this.__resolveCallback('pdf loaded');
-
-              return;
-          }
-        }, 100);
 
         console.log(this.source)
         this.__iframeElementLoader.src = newSource
         this.__currentSource = newSource;
         this.loading = true;
 
+
+        if (CasperBrowser.isFirefox) {
+         this.displayIframeAfterLoaded();
+        }
+
       } catch (exception) {
         this.__rejectCallback();
       }
     });
+  }
+
+
+  displayIframeAfterLoaded() {
+    this.__iframeElementLoader.classList.remove('loader')
+    this.__iframeElementLoader.classList.add('active')
+
+    this.__iframeElement.classList.remove('active')
+    this.__iframeElement.classList.add('loader')
+
+    this.loading = false;
+    this.__resolveCallback('pdf loaded');
   }
 
   /**
