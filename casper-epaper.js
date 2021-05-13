@@ -748,7 +748,6 @@ class CasperEpaper extends PolymerElement {
 
       this.zoom = initialZoom > 0 ? initialZoom : 1;
 
-      document.addEventListener('keydown', this.checkKey.bind(this));
     });
 
     this.__socket.addEventListener('casper-signed-in', () => {
