@@ -58,44 +58,60 @@ class CasperEpaperPdf extends PolymerElement {
     return html`
       <style>
         :host,
-        iframe {
+        #main {
+          position: relative;
+          z-index: 0;
+        }
+        #main, #main iframe {
           width: 100%;
           height: 100%;
           border: none;
           display: block;
         }
+
+        #main iframe {
+          position: absolute;
+          left: 0;
+          top: 0;
+        }
+
+
+        #main iframe.active {
+          display: inline-block;
+          z-index: 2;
+          opacity: 1;
+          transition: opacity 1000ms ease;
+        }
+
+        #main iframe.loader {
+          z-index: 1;
+          opacity: 0;
+          transition: opacity 1000ms ease;
+        }
+
       </style>
-      <iframe></iframe>
+      <div id='main'>
+        <iframe class='loader'></iframe>
+        <iframe class='active'></iframe>
+      </div>
+      </div>
     `;
   }
 
   ready () {
     super.ready();
-
-    this.__iframeElement = this.shadowRoot.querySelector('iframe');
-    this.__iframeElement.addEventListener('load', () => {
-      if (!this.source) return;
-
-      afterNextRender(this, () => {
-        this.loading = false;
-
-        // Check if the iframe has an embed element, which would mean that the PDF was correctly rendered.
-        if (!CasperBrowser.isFirefox) {
-          !this.__iframeElement.contentDocument.querySelector('embed')
-            ? this.__rejectCallback()
-            : this.__resolveCallback();
-        } else {
-          this.__resolveCallback();
-        }
-      });
-    });
   }
 
   /**
    * Opens a PDF document specified in the source property.
    */
   async open () {
+
     if (!this.source) return;
+
+    this.__iframeElement       = this.shadowRoot.querySelector('#main > .active');
+    this.__iframeElementLoader = this.shadowRoot.querySelector('#main > .loader');
+
 
     const newSource = this.source.includes('?')
       ? `${this.source}&content-disposition=inline#view=Fit&toolbar=0`
@@ -118,10 +134,32 @@ class CasperEpaperPdf extends PolymerElement {
           if (!response.ok) return this.__rejectCallback();
         }
 
-        this.__iframeElement.src = newSource;
-        this.__currentSource = newSource;
+        let timer = setInterval(async () => {
+          let iframeDoc = this.__iframeElement.contentDocument || this.__iframeElement.contentWindow.document;
+          console.log("checking....", iframeDoc.readyState);
 
+          if (iframeDoc.readyState == 'complete' || iframeDoc.readyState == 'interactive') {
+              clearInterval(timer);
+              console.log(`%cIFRAME onload ${this.__iframeElementLoader.contentWindow.document.readyState} - ${this.source}`, "background-color:green;padding:5px;color:white;font-size:10px;");
+
+              this.__iframeElementLoader.classList.remove('loader')
+              this.__iframeElementLoader.classList.add('active')
+
+              this.__iframeElement.classList.remove('active')
+              this.__iframeElement.classList.add('loader')
+
+              this.loading = false;
+              this.__resolveCallback('pdf loaded');
+
+              return;
+          }
+        }, 100);
+
+        console.log(this.source)
+        this.__iframeElementLoader.src = newSource
+        this.__currentSource = newSource;
         this.loading = true;
+
       } catch (exception) {
         this.__rejectCallback();
       }
@@ -134,6 +172,7 @@ class CasperEpaperPdf extends PolymerElement {
   print () {
     this.__iframeElement.contentWindow.print();
   }
+
 }
 
 customElements.define(CasperEpaperPdf.is, CasperEpaperPdf);

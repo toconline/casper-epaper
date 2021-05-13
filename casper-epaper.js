@@ -189,7 +189,7 @@ class CasperEpaper extends PolymerElement {
         .epaper #epaper-container #epaper-component-container {
           display: none;
           position: relative;
-          background-color: white;
+          background-color: transparent;
         }
 
         .epaper #epaper-container #epaper-component-sticky {
@@ -289,6 +289,10 @@ class CasperEpaper extends PolymerElement {
           top: 7px;
           transition: top 200ms linear;
         }
+
+
+
+
 
 
         .document-checklist:hover .expanded{
@@ -743,6 +747,8 @@ class CasperEpaper extends PolymerElement {
       const initialZoom = Number(((this.shadowRoot.host.clientWidth - 80) / this.__epaperComponentWidth).toFixed(2));
 
       this.zoom = initialZoom > 0 ? initialZoom : 1;
+
+      document.addEventListener('keydown', this.checkKey.bind(this));
     });
 
     this.__socket.addEventListener('casper-signed-in', () => {
@@ -751,6 +757,7 @@ class CasperEpaper extends PolymerElement {
 
     this.__nextAttachment = this.$['next-attachment'];
     this.__previousAttachment = this.$['previous-attachment'];
+
 
     this.__epaperContainer = this.$['epaper-container'];
     this.__epaperComponentSticky = this.$['epaper-component-sticky'];
@@ -774,6 +781,7 @@ class CasperEpaper extends PolymerElement {
         this.__epaperComponentSticky.style.opacity = 0.2;
       }
     });
+
   }
 
   //***************************************************************************************//
@@ -1199,13 +1207,27 @@ class CasperEpaper extends PolymerElement {
     this.__enableOrDisableControlButtons({ ...{ zoom: true, print: false, paging: false, download: true }, ...this.__controlButtonsOptions });
   }
 
+
+  checkKey(e) {
+    e = e || window.event;
+
+    if (e.keyCode == '37') {
+      if (this.__previousAttachment.style.display != 'none') this.__onPreviousAttachmentClick(e)
+    }
+    else if (e.keyCode == '39') {
+      if (this.__nextAttachment.style.display != 'none') this.__onNextAttachmentClick(e)
+    }
+
+}
+
   /**
    * Open a PDF file.
    */
   async __openPDF () {
     this.$.pdf.source = `/file/${this.__currentAttachment.id}`;
+    console.log("BEFORE pdf open", this.$.pdf.source);
     await this.$.pdf.open();
-
+    console.log("AFTER pdf open", this.$.pdf.source);
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.PDF);
     this.__enableOrDisableControlButtons({ ...{ zoom: true, print: true, paging: false, download: true }, ...this.__controlButtonsOptions });
   }
