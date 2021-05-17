@@ -1172,6 +1172,7 @@ class CasperEpaper extends PolymerElement {
    * Open server document
    */
   async __openServerDocument () {
+    this.$.pdf.reset();
     await this.$.serverDocument.open(this.__currentAttachment);
 
     this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT);
@@ -1182,6 +1183,7 @@ class CasperEpaper extends PolymerElement {
    * Open a new image.
    */
   async __openImage () {
+    this.$.pdf.reset();
     this.$.image.source = `/file/${this.__currentAttachment.id}`;
     await this.$.image.open();
 
@@ -1195,6 +1197,7 @@ class CasperEpaper extends PolymerElement {
    * @param {String} iframeSource The iframe's source URL.
    */
   async __openIframe () {
+    this.$.pdf.reset();
     if (this.__currentAttachment.type === 'html') {
       this.$.iframe.$.iframe.srcdoc = this.__currentAttachment.html;
     } else {
@@ -1225,9 +1228,9 @@ class CasperEpaper extends PolymerElement {
   async __openPDF () {
     this.$.pdf.source = `/file/${this.__currentAttachment.id}`;
     console.log("BEFORE pdf open", this.$.pdf.source);
+    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.PDF);
     await this.$.pdf.open();
     console.log("AFTER pdf open", this.$.pdf.source);
-    this.__toggleBetweenEpaperTypes(CasperEpaper.EPAPER_TYPES.PDF);
     this.__enableOrDisableControlButtons({ ...{ zoom: true, print: true, paging: false, download: true }, ...this.__controlButtonsOptions });
   }
 
@@ -1310,12 +1313,23 @@ class CasperEpaper extends PolymerElement {
     this.__epaperType = epaperType;
     this.__epaperActiveComponent = this.$[epaperType.toLowerCase().replace(/([-_][a-z])/ig, lowercase => lowercase.toUpperCase().replace('_', ''))];
 
-    this.$.pdf.style.display = epaperType === CasperEpaper.EPAPER_TYPES.PDF ? '' : 'none';
+    this.$.pdf.style.display = epaperType === CasperEpaper.EPAPER_TYPES.PDF ? 'flex' : 'none';
     this.$.image.style.display = epaperType === CasperEpaper.EPAPER_TYPES.IMAGE ? '' : 'none';
     this.$.upload.style.display = epaperType === CasperEpaper.EPAPER_TYPES.UPLOAD ? '' : 'none';
     this.$.iframe.style.display = epaperType === CasperEpaper.EPAPER_TYPES.IFRAME ? '' : 'none';
     this.$.genericPage.style.display = epaperType === CasperEpaper.EPAPER_TYPES.GENERIC_PAGE ? '' : 'none';
     this.$.serverDocument.style.display = epaperType === CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT ? '' : 'none';
+    console.log("%c__toggleBetweenEpaperTypes", "padding:10px;background-color:black;color:pink;",epaperType, CasperEpaper.EPAPER_TYPES.PDF, this.__currentAttachment?.id, this.$.pdf.style.display);
+    console.groupCollapsed(`VISIBLITY ${this.__currentAttachment?.id}`)
+    console.log(" @ pdf => ", this.$.pdf.style.display);
+    console.log(" @ image => ", this.$.image.style.display);
+    console.log(" @ upload => ", this.$.upload.style.display);
+    console.log(" @ iframe => ", this.$.iframe.style.display);
+    console.log(" @ genericPage => ", this.$.genericPage.style.display);
+    console.log(" @ serverDocument => ", this.$.serverDocument.style.display);
+
+    console.groupEnd();
+
   }
 
   __zoomChanged () {
