@@ -1319,16 +1319,16 @@ class CasperEpaper extends PolymerElement {
     this.$.iframe.style.display = epaperType === CasperEpaper.EPAPER_TYPES.IFRAME ? '' : 'none';
     this.$.genericPage.style.display = epaperType === CasperEpaper.EPAPER_TYPES.GENERIC_PAGE ? '' : 'none';
     this.$.serverDocument.style.display = epaperType === CasperEpaper.EPAPER_TYPES.SERVER_DOCUMENT ? '' : 'none';
-    console.log("%c__toggleBetweenEpaperTypes", "padding:10px;background-color:black;color:pink;",epaperType, CasperEpaper.EPAPER_TYPES.PDF, this.__currentAttachment?.id, this.$.pdf.style.display);
-    console.groupCollapsed(`VISIBLITY ${this.__currentAttachment?.id}`)
-    console.log(" @ pdf => ", this.$.pdf.style.display);
-    console.log(" @ image => ", this.$.image.style.display);
-    console.log(" @ upload => ", this.$.upload.style.display);
-    console.log(" @ iframe => ", this.$.iframe.style.display);
-    console.log(" @ genericPage => ", this.$.genericPage.style.display);
-    console.log(" @ serverDocument => ", this.$.serverDocument.style.display);
-
-    console.groupEnd();
+    // console.log("%c__toggleBetweenEpaperTypes", "padding:10px;background-color:black;color:pink;",epaperType, CasperEpaper.EPAPER_TYPES.PDF, this.__currentAttachment?.id, this.$.pdf.style.display);
+    // console.groupCollapsed(`VISIBLITY ${this.__currentAttachment?.id}`)
+    // console.log(" @ pdf => ", this.$.pdf.style.display);
+    // console.log(" @ image => ", this.$.image.style.display);
+    // console.log(" @ upload => ", this.$.upload.style.display);
+    // console.log(" @ iframe => ", this.$.iframe.style.display);
+    // console.log(" @ genericPage => ", this.$.genericPage.style.display);
+    // console.log(" @ serverDocument => ", this.$.serverDocument.style.display);
+//
+    // console.groupEnd();
 
   }
 

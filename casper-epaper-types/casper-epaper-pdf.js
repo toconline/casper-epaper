@@ -82,7 +82,7 @@ class CasperEpaperPdf extends PolymerElement {
           display: inline-block;
           z-index: 2;
           opacity: 1;
-          transition: opacity 1000ms ease;
+          transition: opacity 600ms ease;
 
           /* height: 30%; */
           /* border: 6px green solid; */
@@ -91,7 +91,7 @@ class CasperEpaperPdf extends PolymerElement {
         #main iframe.loader {
           z-index: 1;
           opacity: 0;
-          transition: opacity 1000ms ease;
+          transition: opacity 600ms ease;
 
           /* height: 30%; */
           /* top: 400px; */
@@ -156,7 +156,7 @@ class CasperEpaperPdf extends PolymerElement {
         }
 
 
-        console.log(this.source)
+        // console.log('after src => ', this.source)
         this.__iframeElementLoader.src = newSource
         this.__currentSource = newSource;
 
@@ -173,7 +173,7 @@ class CasperEpaperPdf extends PolymerElement {
           if (counter > 7) {
             this.loading = true;
           }
-          if (counter > 6 && (iframeDoc.readyState == 'complete' || iframeDoc.readyState == 'interactive')) {
+          if (counter > 2 && (iframeDoc.readyState == 'complete' || iframeDoc.readyState == 'interactive')) {
               console.log(`checking.... ${counter}`, iframeDoc.readyState);
               clearInterval(this.checkTimer);
               this.displayIframeAfterLoaded();
@@ -207,11 +207,11 @@ class CasperEpaperPdf extends PolymerElement {
     active.classList.remove('active')
     active.classList.add('loader')
 
-    setTimeout( async () => {
-      this.__currentSource = undefined
-      this.shadowRoot.querySelector('.loader').removeAttribute("src")
-      console.log("CLEAR SRC")
-    },500);
+    // setTimeout( async () => {
+    //   this.__currentSource = undefined
+    //   this.shadowRoot.querySelector('.loader').removeAttribute("src")
+    //   console.log("CLEAR SRC")
+    // },500);
 
 
     this.loading = false;
