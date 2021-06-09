@@ -134,11 +134,6 @@ class CasperEpaperPdf extends PolymerElement {
       ? `${this.source}&content-disposition=inline#view=Fit&toolbar=0`
       : `${this.source}?content-disposition=inline#view=Fit&toolbar=0`;
 
-    // if (this.__currentSource === newSource) return;
-    if (this.__currentSource === newSource){
-      console.log("%cSAMMMMMMEEEE SOURCE", 'background-color:red;color:white;padding:20px')
-    }
-
     return new Promise(async (resolve, reject) => {
       this.__rejectCallback = reject;
       this.__resolveCallback = resolve;
