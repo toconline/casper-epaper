@@ -223,7 +223,7 @@ class CasperEpaperPdf extends PolymerElement {
 
   _openOnTab (publicLink) {
     try {
-      let win = window.open(publicLink, '_blank');
+      let win = window.open(publicLink, 'printing_tab');
       win.focus();
       this.close();
     } catch (e) {
