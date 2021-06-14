@@ -217,7 +217,19 @@ class CasperEpaperPdf extends PolymerElement {
    * Prints the currently rendered PDF document.
    */
   print () {
+    if (CasperBrowser.isSafari) return this._openOnTab(this.shadowRoot.querySelector('#main > .active').src);
     this.shadowRoot.querySelector('#main > .active').contentWindow.print();
+  }
+
+  _openOnTab (publicLink) {
+    try {
+      let win = window.open(publicLink, '_blank');
+      win.focus();
+      this.close();
+    } catch (e) {
+      this.close();
+      console.error("PDF blocked");
+    }
   }
 
 }
