@@ -915,8 +915,10 @@ class CasperEpaper extends PolymerElement {
       this.__epaperActiveComponent.download();
     } else {
       const downloadLink = document.createElement('a');
+
       if (this.__currentAttachment.name) {
-        downloadLink.setAttribute('href', `/file/${this.__currentAttachment.id}?filename=${this.__currentAttachment.name}`);
+        const stripedName = this.__currentAttachment.name.match(/.+\.\D{3}/)[0]
+        downloadLink.setAttribute('href', `/file/${this.__currentAttachment.id}?filename=${stripedName}`);
       } else {
         downloadLink.setAttribute('href', `/file/${this.__currentAttachment.id}`);
       }
