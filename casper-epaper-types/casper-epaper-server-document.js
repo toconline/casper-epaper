@@ -652,6 +652,23 @@ export class CasperEpaperServerDocument extends PolymerElement {
     return -1; // Not found!
   }
 
+  async getLineId () {
+    if ( this.__contextMenuIndex !== -1 ) {
+      const band = this.__bands[this.__contextMenuIndex];
+      if ( band._type === 'DT' && band._editable === true ) {
+        this.epaper.__loading = true;
+        const response = await this.__socket.getBandDri(this.documentId, 'DT', band._id);
+        this.epaper.__loading = false;
+        if ( response.errors !== undefined ) {
+          this.__clear();
+          throw new Error(response.errors);
+        }
+        return response.band.data;
+      }
+    }
+    return undefined;
+  }
+
   async getDataModelIndex () {
     if ( this.__contextMenuIndex === -1 ) {
       return -1;
@@ -659,7 +676,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
     let idx = 0;
 
     for (let band of this.__bands) {
-      if ( band._type === 'DT' && this.__bands[idx]._editable == true ) {
+      if ( band._type === 'DT' && this.__bands[idx]._editable === true ) {
         if ( idx == this.__contextMenuIndex ) {
           let response = await this.__socket.getBandDri(this.documentId,'DT',this.__bands[idx]._id);
 
