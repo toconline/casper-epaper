@@ -130,9 +130,10 @@ class CasperEpaperPdf extends PolymerElement {
     this.__iframeElement       = this.shadowRoot.querySelector('#main > .active');
     this.__iframeElementLoader = this.shadowRoot.querySelector('#main > .loader');
 
+    let cacheTimestamp = Date.now();
     const newSource = this.source.includes('?')
-      ? `${this.source}&content-disposition=inline#view=Fit&toolbar=0`
-      : `${this.source}?content-disposition=inline#view=Fit&toolbar=0`;
+      ? `${this.source}&timestamp=${cacheTimestamp}&content-disposition=inline#view=Fit&toolbar=0`
+      : `${this.source}?timestamp=${cacheTimestamp}&content-disposition=inline#view=Fit&toolbar=0`;
 
     return new Promise(async (resolve, reject) => {
       this.__rejectCallback = reject;
