@@ -132,30 +132,31 @@ class CasperEpaperPdf extends PolymerElement {
 
     let cacheTimestamp = Date.now();
     const newSource = this.source.includes('?')
-      ? `${this.source}&timestamp=${cacheTimestamp}&content-disposition=inline#view=Fit&toolbar=0`
-      : `${this.source}?timestamp=${cacheTimestamp}&content-disposition=inline#view=Fit&toolbar=0`;
+      ? `${this.source}&timestamp=${cacheTimestamp}&content-disposition=inline#view=Fit&toolbar=0&pagemode=none`
+      : `${this.source}?timestamp=${cacheTimestamp}&content-disposition=inline#view=Fit&toolbar=0&pagemode=none`;
 
     return new Promise(async (resolve, reject) => {
       this.__rejectCallback = reject;
       this.__resolveCallback = resolve;
 
       try {
-        if (CasperBrowser.isFirefox) {
-          // Since we can't inspect the iframe contents in Firefox, send a pre-flight request to see if we have access to the file.
-          const response = await fetch(this.source, {
-            method: 'HEAD',
-            headers: { 'Authorization': `Bearer ${this.app.socket.sessionCookie}` }
-          });
+        // if (CasperBrowser.isFirefox) {
+        //   // Since we can't inspect the iframe contents in Firefox, send a pre-flight request to see if we have access to the file.
+        //   const response = await fetch(newSource, {
+        //     method: 'HEAD',
+        //     headers: { 'Authorization': `Bearer ${this.app.socket.sessionCookie}` }
+        //   });
 
-          if (!response.ok) return this.__rejectCallback();
+        //   if (!response.ok) return this.__rejectCallback();
 
-        }
+        // }
 
 
         // console.log('after src => ', this.source)
         this.__iframeElementLoader.src = newSource
         this.__currentSource = newSource;
 
+        if (CasperBrowser.isFirefox) return this.displayIframeAfterLoaded();
 
         if (this.checkTimer) clearInterval(this.checkTimer);
 
@@ -176,11 +177,6 @@ class CasperEpaperPdf extends PolymerElement {
               return;
           }
         }, 100);
-
-
-        if (CasperBrowser.isFirefox) {
-         this.displayIframeAfterLoaded();
-        }
 
       } catch (exception) {
         this.__rejectCallback();
