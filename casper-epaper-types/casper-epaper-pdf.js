@@ -166,7 +166,7 @@ class CasperEpaperPdf extends PolymerElement {
           let iframeLoader = this.shadowRoot.querySelector('#main > .loader');
 
           let iframeDoc = iframeLoader?.contentDocument || iframeLoader?.contentWindow?.document ||  iframeLoader?.contentDocument?.getElementsByTagName('body')[0];
-          // console.log(`checking.... ${checkTimer}`, iframeLoader?.contentDocument?.getElementsByTagName('body')[0]);
+          console.log(`checking.... ${counter} -> ${this.checkTimer}`, iframeDoc, iframeDoc.readyState);
           if (counter > 7) {
             this.loading = true;
           }
