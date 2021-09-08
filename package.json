@@ -1,7 +1,7 @@
 {
   "description": "Casper ePaper document renderer",
   "name": "@cloudware-casper/casper-epaper",
-  "version": "2.37.4",
+  "version": "3.0.0",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
   },
