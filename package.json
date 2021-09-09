@@ -9,7 +9,6 @@
   "dependencies": {
     "@cloudware-casper/casper-icons": "^3.x",
     "@cloudware-casper/casper-upload-dropzone": "^2.x",
-    "@polymer/iron-component-page": "^4.x",
     "@polymer/iron-dropdown": "^3.x",
     "@polymer/iron-icon": "^3.x",
     "@polymer/iron-iconset-svg": "^3.x",
