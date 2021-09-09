@@ -2,25 +2,16 @@
 # yarn lockfile v1
 
 
-"@cloudware-casper/casper-button@^1.x":
-  version "1.4.0"
-  resolved "https://npm.pkg.github.com/download/@cloudware-casper/casper-button/1.4.0/e4730a14434f427a6d30dc31195b4dac4fc3d46addec09dd887abb156a3ffcb7#6c4e72d16daeb0a196916ac7929ccce9085eb0e4"
-  integrity sha512-Ts/Bm+jgh1XHMeJ4jk9rEJrlP0iP0T+FA2eRWkQHRlT35/LKnmaK0XSO15ojiVzc/i6TcigF18wmIqaHqu5Stw==
+"@cloudware-casper/casper-button@^2.x":
+  version "2.0.0"
+  resolved "https://npm.pkg.github.com/download/@cloudware-casper/casper-button/2.0.0/8f786a49890b3190ebc287d9448b16c741d5f7708db1e315efc8c5a521b6ba33#db533e822ac94fa029c2d5691150530752475a81"
+  integrity sha512-SngIWzc1zJx2oDnKSIbquyN+7CcG0ySUc3LBZ6TyDGlRO14x0y/4UscRjRDSnvs2yJQLpWKlYW2I653AH8z5eA==
   dependencies:
-    "@cloudware-casper/casper-icons" "^2.x"
-    "@polymer/iron-fit-behavior" "^3.x"
-    "@polymer/iron-overlay-behavior" "^3.x"
+    "@cloudware-casper/casper-icons" "^3.x"
     "@polymer/paper-button" "^3.x"
     "@polymer/paper-spinner" "^3.x"
     "@polymer/polymer" "^3.x"
     "@vaadin/vaadin-progress-bar" "^1.x"
-
-"@cloudware-casper/casper-icons@^2.x":
-  version "2.7.0"
-  resolved "https://npm.pkg.github.com/download/@cloudware-casper/casper-icons/2.7.0/d59b202cd0b3b0af02365046b328440bf9b809163c13d5e3a73f2441993b71c3#96566c00f57ff23dc8b93e4223073f0c8f37fa40"
-  integrity sha512-E6Ri3ox+iwnUKliVfM2FrxJwTLP5YyULeLeI1g3cbqzPLuynX2VKZrG7SBCchGfJZq6uZSV1cK6t8NHyaCzTyg==
-  dependencies:
-    "@polymer/polymer" "^3.x"
 
 "@cloudware-casper/casper-icons@^3.x":
   version "3.0.7"
@@ -30,22 +21,22 @@
     ink-ripple alex-saunders/ink-ripple
     lit "^2.0.0-rc.2"
 
-"@cloudware-casper/casper-notice@^1.x":
-  version "1.7.1"
-  resolved "https://npm.pkg.github.com/download/@cloudware-casper/casper-notice/1.7.1/3db667a8dab3883cfca3ed06cd6cb9e47307702d929127b3b4b547828dc00a08#d6d12b9e4a8836a331f43de50adbdcc987e5ca4e"
-  integrity sha512-zOTlNGy1zgRU07PR9WcuL6ZmfjXjp3tlUskRi/MLkQN+afLraVmJDj5eMZAr4u1a2q0FS4yRqBvHdQVkptivQA==
+"@cloudware-casper/casper-notice@^2.x":
+  version "2.0.0"
+  resolved "https://npm.pkg.github.com/download/@cloudware-casper/casper-notice/2.0.0/f1ca34c711de2bccec2dd3a93f030c550fff9838ac183b323c2f35a245781956#c3ed13b696e1f3de8e3a057779cdffa3ca192373"
+  integrity sha512-iEWtpxW2/EQMMfmBbQGHR+DRJ0sz8xHrGEzsTbvWRhiV5kf+GLmBa/2wreavIkTbX/qJhHUy6TlUpGJ5Oqk3mw==
   dependencies:
-    "@cloudware-casper/casper-icons" "^2.x"
+    "@cloudware-casper/casper-icons" "^3.x"
     "@polymer/polymer" "^3.x"
 
-"@cloudware-casper/casper-upload-dropzone@^1.x":
-  version "1.8.0"
-  resolved "https://npm.pkg.github.com/download/@cloudware-casper/casper-upload-dropzone/1.8.0/3795bf71d7fbfaca8540cca665c1cb323fd0cb75af0697ed2840e80e25b0e471#73445b9920a4e3d97d6638972dfdbf0cfe489d24"
-  integrity sha512-N/0TPJ7YGly0yyzNKYkbcx5Dqc/+18KppN7xx6+lKuMevPEb9oEsxJquu5zqs9Sm2HjKPfAz+IzOzh9am2AYNw==
+"@cloudware-casper/casper-upload-dropzone@^2.x":
+  version "2.0.1"
+  resolved "https://npm.pkg.github.com/download/@cloudware-casper/casper-upload-dropzone/2.0.1/780e6bfd0ae47c2ae916839b0d53f004c3fec062963bcee37f8b898d0e178766#8b083e4c25b177aee7b52eebcf707290517ce44c"
+  integrity sha512-9NEc9UcxVGppAvK7k0Mdx/BuOXefyAc4G26ruDiYtojNRh9w8iWISLqQeUen/JNyFCs/s/3eO6vZIZBi72CeKQ==
   dependencies:
-    "@cloudware-casper/casper-button" "^1.x"
-    "@cloudware-casper/casper-icons" "^2.x"
-    "@cloudware-casper/casper-notice" "^1.x"
+    "@cloudware-casper/casper-button" "^2.x"
+    "@cloudware-casper/casper-icons" "^3.x"
+    "@cloudware-casper/casper-notice" "^2.x"
     "@polymer/polymer" "^3.0.0"
     "@vaadin/vaadin-upload" "^4.x"
 
@@ -153,7 +144,7 @@
     "@polymer/neon-animation" "^3.0.0-pre.26"
     "@polymer/polymer" "^3.0.0"
 
-"@polymer/iron-fit-behavior@^3.0.0-pre.26", "@polymer/iron-fit-behavior@^3.x":
+"@polymer/iron-fit-behavior@^3.0.0-pre.26":
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/@polymer/iron-fit-behavior/-/iron-fit-behavior-3.0.2.tgz#2ec460d8a6b0151394b55631a72a68b92e14e2e0"
   integrity sha512-JndryJYbBR3gSN5IlST4rCHsd01+OyvYpRO6z5Zd3C6u5V/m07TwAtcf3aXwZ8WBNt2eLG28OcvdSO7XR2v2pg==
@@ -247,7 +238,7 @@
   dependencies:
     "@polymer/polymer" "^3.0.0"
 
-"@polymer/iron-overlay-behavior@^3.0.0-pre.27", "@polymer/iron-overlay-behavior@^3.x":
+"@polymer/iron-overlay-behavior@^3.0.0-pre.27":
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/@polymer/iron-overlay-behavior/-/iron-overlay-behavior-3.0.3.tgz#29c198e19e05bb2bcf7d86d3c11848cb93301d00"
   integrity sha512-Q/Fp0+uOQQ145ebZ7T8Cxl4m1tUKYjyymkjcL2rXUm+aDQGb1wA1M1LYxUF5YBqd+9lipE0PTIiYwA2ZL/sznA==
@@ -533,9 +524,9 @@
     lit-element "^3.0.0-rc.2"
 
 "@vaadin/vaadin-upload@^4.x":
-  version "4.4.1"
-  resolved "https://registry.yarnpkg.com/@vaadin/vaadin-upload/-/vaadin-upload-4.4.1.tgz#7714bf385e0c9f843dac4877edc6b49435cd280c"
-  integrity sha512-2ghzKd7AhdUAQ1SmXTeplNYpQ/q2Zx8WFzLj3l3BGpOTd4pmW204SvqBlBf1k0gxF+4gehV5xtEMqih4TQDuHg==
+  version "4.4.2"
+  resolved "https://registry.yarnpkg.com/@vaadin/vaadin-upload/-/vaadin-upload-4.4.2.tgz#c2bd143c47e8c49d56ca67c64e089d98f584b5bc"
+  integrity sha512-Ag1GvetdRU6vr9JCeUtvKvmZThVHY6nE/SmCSMGyEu+7uHunYdm7BBkHEQUFiJ94ukhBCuctp4FhIU3noco1dg==
   dependencies:
     "@polymer/polymer" "^3.0.0"
     "@vaadin/vaadin-button" "^2.4.0"
@@ -553,9 +544,9 @@
     "@vaadin/vaadin-development-mode-detector" "^2.0.0"
 
 "@webcomponents/shadycss@^1.9.1":
-  version "1.10.2"
-  resolved "https://registry.yarnpkg.com/@webcomponents/shadycss/-/shadycss-1.10.2.tgz#40e03cab6dc5e12f199949ba2b79e02f183d1e7b"
-  integrity sha512-9Iseu8bRtecb0klvv+WXZOVZatsRkbaH7M97Z+f+Pt909R4lDfgUODAnra23DOZTpeMTAkVpf4m/FZztN7Ox1A==
+  version "1.11.0"
+  resolved "https://registry.yarnpkg.com/@webcomponents/shadycss/-/shadycss-1.11.0.tgz#73e289996c002d8be694cd3be0e83c46ad25e7e0"
+  integrity sha512-L5O/+UPum8erOleNjKq6k58GVl3fNsEQdSOyh0EUhNmi7tHUyRuCJy1uqJiWydWcLARE5IPsMoPYMZmUGrz1JA==
 
 clipboard@^2.0.0:
   version "2.0.6"
