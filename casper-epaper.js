@@ -789,7 +789,7 @@ class CasperEpaper extends PolymerElement {
     this.openGenericPage(this.$['blank-page-template']);
   }
 
-  openGenericPage (template) {
+  openGenericPage (template, data = {}) {
     // Reset the current attachment settings.
     this.__landscape = false;
 
@@ -803,6 +803,7 @@ class CasperEpaper extends PolymerElement {
     this.__enableOrDisableControlButtons({ zoom: true, print: false, paging: false, download: false });
     this.__handleAttachmentNavigationButtons();
 
+    this.$.genericPage.data = data;
     this.$.genericPage.template = template;
   }
 
