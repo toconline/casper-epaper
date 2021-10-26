@@ -265,6 +265,7 @@ class CasperEpaper extends PolymerElement {
         }
 
         .document-checklist {
+          /*width: 450px;*/
           width: 320px;
           position: absolute;
           background: var(--status-red);
@@ -339,10 +340,21 @@ class CasperEpaper extends PolymerElement {
           border-top: 1px #D8D8D8 solid;
           display: flex;
           justify-content: space-between;
+          align-items: center;
         }
 
         .document-checklist li span {
           line-height: 20px;
+        }
+
+        .document-checklist li a {
+          color: var(--links-primary);
+          text-decoration: none;
+        }
+
+        .document-checklist li a:hover {
+          text-decoration: underline;
+          color: var(--links-secondary);
         }
 
         .document-checklist .button{
@@ -470,7 +482,29 @@ class CasperEpaper extends PolymerElement {
                 <ul>
                   <template is="dom-repeat" items="[[__currentAttachmentCheckList.tasks]]" index-as="index">
                     <li>
-                      <span>[[item.prop]]</span>
+                      <span style='text-align:left;padding-right: 10px;'>
+
+                        <span><b>[[item.prop]]</b></span>
+                        <template is="dom-if" if="[[item.errors]]">
+                          <template is="dom-if" if="[[item.errors.error]]">
+                            <br>
+                            <i style='color:gray'>[[item.errors.error]] : </i>
+                          </template>
+
+                          <template is="dom-if" if="[[item.errors.error]]">
+                            <template is="dom-if" if="[[item.errors.errorHandler]]">
+                              <a href$="[[item.errors.errorHandler]]" data-click$="[[item.errors.errorHandler]]">[[item.errors.error_description]]</a>
+                            </template>
+
+                            <template is="dom-if" if="[[!item.errors.onClick]]">
+                              <span>[[item.errors.error_description]]</span>
+                            </template>
+
+                          </template>
+
+                        </template>
+
+                      </span>
                       <span>
                         <div class='filled-parent'>
                           <div class='filled-centered-child' error$=[[!item.filled]]></div>
