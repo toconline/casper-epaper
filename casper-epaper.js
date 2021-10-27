@@ -413,7 +413,7 @@ class CasperEpaper extends PolymerElement {
       </style>
       <div id="epaper-component-loading-overlay">
         <paper-spinner active></paper-spinner>
-        A carregar o documento
+        [[currentLoadingOverlayText]]
       </div>
 
       <div class="toolbar">
@@ -740,6 +740,10 @@ class CasperEpaper extends PolymerElement {
       __loading: {
         type: Boolean,
         observer: '__loadingChanged'
+      },
+      loadingOverlayText: {
+        type: String,
+        value: 'A carregar o documento'
       }
     };
   }
@@ -1468,7 +1472,9 @@ class CasperEpaper extends PolymerElement {
     }
   }
 
-  __displayLoadingOverlay () {
+  __displayLoadingOverlay (text) {
+    this.currentLoadingOverlayText = text ? text : this.loadingOverlayText;
+
     this.__epaperComponentLoadingOverlay.style.display = 'flex';
     this.__epaperComponentLoadingOverlay.style.width = '100%';
     this.__epaperComponentLoadingOverlay.style.height = '100%';
