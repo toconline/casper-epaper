@@ -492,8 +492,8 @@ class CasperEpaper extends PolymerElement {
                           </template>
 
                           <template is="dom-if" if="[[item.errors.error]]">
-                            <template is="dom-if" if="[[item.errors.errorHandler]]">
-                              <a href$="[[item.errors.errorHandler]]" data-click$="[[item.errors.errorHandler]]">[[item.errors.error_description]]</a>
+                            <template is="dom-if" if="[[item.errorHandler]]">
+                              <a href$="[[item.errorHandler]]" data-click$="[[item.errorHandler]]">[[item.errors.error_description]]</a>
                             </template>
 
                             <template is="dom-if" if="[[!item.errors.onClick]]">
