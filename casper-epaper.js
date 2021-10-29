@@ -271,9 +271,7 @@ class CasperEpaper extends PolymerElement {
           background: var(--status-red);
           box-shadow: 0 2px 9px 0 rgba(0,0,0,0.50);
           border-radius: 4px;
-          z-index: 2;
           font-size: 13px;
-
           left: 0;
           right: 0;
           top: 12px;
@@ -286,6 +284,7 @@ class CasperEpaper extends PolymerElement {
         .document-checklist:hover {
           background: #ffffff;
           top: 7px;
+          z-index: 2;
           transition: top 200ms linear;
         }
 
