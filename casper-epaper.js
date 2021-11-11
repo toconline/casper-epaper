@@ -485,18 +485,37 @@ class CasperEpaper extends PolymerElement {
 
                         <span><b>[[item.prop]]</b></span>
                         <template is="dom-if" if="[[item.errors]]">
-                          <template is="dom-if" if="[[item.errors.error]]">
+
+
+                          <template is="dom-if" if="[[item.errors.translated]]">
                             <br>
-                            <i style='color:gray'>[[item.errors.error]] : </i>
-                          </template>
+                            <template is="dom-if" if="[[item.errors.error]]">
+                              <span>[[item.errors.error_description]]</span>
 
-                          <template is="dom-if" if="[[item.errors.error]]">
-                            <span>[[item.errors.error_description]]</span>
+                              <template is="dom-if" if="[[item.errorHandler]]">
+                                <p style="margin: 0;"><a href$="[[item.errorHandler]]" data-click$="[[item.errorHandler]]">[[item.errorLinkText]]</a></p>
+                              </template>
 
-                            <template is="dom-if" if="[[item.errorHandler]]">
-                              <p style="margin: 0;"><a href$="[[item.errorHandler]]" data-click$="[[item.errorHandler]]">[[item.errorLinkText]]</a></p>
                             </template>
 
+                          </template>
+
+
+                          <template is="dom-if" if="[[!item.errors.translated]]">
+
+                            <template is="dom-if" if="[[item.errors.error]]">
+                              <br>
+                              <i style='color:gray'>[[item.errors.error]] : </i>
+                            </template>
+
+                            <template is="dom-if" if="[[item.errors.error]]">
+                              <span>[[item.errors.error_description]]</span>
+
+                              <template is="dom-if" if="[[item.errorHandler]]">
+                                <p style="margin: 0;"><a href$="[[item.errorHandler]]" data-click$="[[item.errorHandler]]">[[item.errorLinkText]]</a></p>
+                              </template>
+
+                            </template>
                           </template>
 
                         </template>
