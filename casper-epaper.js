@@ -215,7 +215,7 @@ class CasperEpaper extends PolymerElement {
           position: absolute;
           right: -10px;
           top: 6px;
-          z-index: 5;
+          z-index: 2;
           margin: 0;
           height: 40px;
         }
