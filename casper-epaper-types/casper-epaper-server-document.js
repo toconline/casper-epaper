@@ -250,7 +250,11 @@ export class CasperEpaperServerDocument extends PolymerElement {
    */
   async open (documentModel) {
 
-    if ( documentModel.epaper2 ) { this.__socket = app.socket2 }
+    if ( documentModel.epaper2 ) { 
+      this.__socket = app.socket2;
+    } else {
+      this.__socket = app.socket;
+    }
 
     this.currentPage = 1; // # TODO goto page on open /
     if ( documentModel.backgroundColor ) {
@@ -277,7 +281,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
     if (!this.__isPrintableDocument()) return;
 
     return {
-      tube: 'casper-print-queue',
+      tube: ( this.document.epaper2 ? 'casper-print-queue-2' : 'casper-print-queue'),
       name: name,
       validity: 3600,
       locale: this.__locale,
@@ -294,7 +298,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
         number_of_copies: chapter.number_of_copies || 1,
         jsonapi: {
           // TODO extract list of relationships from the report!!!! // TODO NO TOCONLINE
-          urn: 'https://app.toconline.pt/' + chapter.path + (chapter.path.indexOf('?') != -1 ? '&' : '?') + ((undefined !== chapter.params && '' !== chapter.params) ? chapter.params : 'include=lines'),
+          urn: 'https://app.toconline.pt/' + chapter.path + (chapter.path.indexOf('?') != -1 ? '&' : '?') + ((undefined !== chapter.params && '' !== chapter.params) ? chapter.params : this.document.epaper2 ? '' : 'include=lines'),
           prefix: null,
           user_id: null,
           entity_id: null,
@@ -528,6 +532,7 @@ export class CasperEpaperServerDocument extends PolymerElement {
     response = await this.__socket.loadDocument({
       id:       this.documentId,
       editable: this.__chapter.editable,
+      limit:    this.__chapter.limit,
       path:     this.__chapter.path,
       scale:    this.__sx,
       focus:    this.__openFocus,
@@ -2236,6 +2241,15 @@ export class CasperEpaperServerDocument extends PolymerElement {
 
       case 'D':
         this._onPaintMessage(a_message);
+        break;
+
+      case 'J':
+        this.__r_idx   = 2; // J:
+        this.__message = a_message;
+        if ( this._svgRenderer ) {
+          const page = JSON.parse(this.__message.substring(this.__r_idx, this.__message.length - 1));
+          this._svgRenderer.renderPage(page);
+        }
         break;
 
       default:

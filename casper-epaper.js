@@ -910,7 +910,10 @@ class CasperEpaper extends PolymerElement {
    */
   goToPreviousPage () {
     if (this.__currentPage > 1) {
-      this.__currentPage--;
+      this.__currentPage--;      
+      if ( 2.0 === this.__socket._version ) { // [AG] - HB: required on v2...
+        this.__epaper.$.serverDocument.__currentPageChanged(this.__currentPage)
+      }
     }
   }
 
@@ -918,8 +921,13 @@ class CasperEpaper extends PolymerElement {
    * Navigate to the next page.
    */
   goToNextPage () {
-    if (this.__currentPage < this.__totalPageCount) {
+    if ( 2.0 === this.__socket._version ) { // [AG] - HB: required on v2...
       this.__currentPage++;
+      this.__epaper.$.serverDocument.__currentPageChanged(this.__currentPage)
+    } else {
+      if (this.__currentPage < this.__totalPageCount) {
+        this.__currentPage++;
+      }
     }
   }
 
@@ -1086,7 +1094,7 @@ class CasperEpaper extends PolymerElement {
     if (this.isPrintableDocument()) return undefined;
 
     let job = {
-      tube: 'casper-print-queue',
+      tube: ( 2.0 === this.__socket._version ? 'casper-print-queue-2' : 'casper-print-queue' ),
       name: name,
       validity: 3600,
       locale: this._locale,
@@ -1104,13 +1112,20 @@ class CasperEpaper extends PolymerElement {
 
       for (let j = 0; j < _document.chapters.length; j++) {
         _chapter = _document.chapters[j]
+        let urn;
+
+        if ( 2.0 === this.__socket._version ) {
+          urn = _chapter.path;
+        } else {
+          urn = _chapter.path + '?include=lines';
+        }
 
         _print_document = {
           name: _document.name || _document_name || name,
           title: _document.title || _document_name || title,
           jrxml: _chapter.jrxml + '.jrxml',
           jsonapi: {
-            urn: _chapter.path + '?include=lines', // Make this optional on CPQ???
+            urn: urn,
             prefix: null,
             user_id: null,
             company_id: null,
