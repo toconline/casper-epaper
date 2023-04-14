@@ -770,7 +770,7 @@ class CasperEpaper extends PolymerElement {
     this.__epaper = this;
     this.__currentPage = 1;
     this.__totalPageCount = 0;
-    this.__socket = this.app.socket;
+    this.__socket = app.socket || this.app.socket;
     this.openBlankPage();
 
     // Adjust the background color depending on the vendor due to the PDF viewer.
