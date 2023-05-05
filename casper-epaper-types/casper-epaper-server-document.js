@@ -484,6 +484,12 @@ export class CasperEpaperServerDocument extends PolymerElement {
    * @param {number} pageNumber page starts at 1
    */
   async __openChapter (pageNumber) {
+    if (this.__chapter && this.__chapter.path.includes('commercial_sales_documents_for_print')) {
+      let url = new URL('localhost:' + this.__chapter.path);
+      url.searchParams.append('filter[from_epaper]', 'true');
+      this.__chapter.path = url.pathname + url.search;
+    }
+
     this.loading = true;
 
     this.__inputBoxDrawString = undefined;
@@ -1943,7 +1949,11 @@ export class CasperEpaperServerDocument extends PolymerElement {
             img.onerror = function() {
               this.__images[img_info._path] = undefined;
             }.bind(this);
-            img.src = this._uploaded_assets_url + img_info._path;
+            if (img_info._path.includes('/file/c')) {
+              img.src = img_info._path;
+            } else {
+              img.src = this._uploaded_assets_url + img_info._path;
+            }
             this.__images[img_info._path] = img;
           }
           if ( img && img.complete && typeof img.naturalWidth !== undefined && img.naturalWidth !== 0 ) {
