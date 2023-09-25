@@ -603,7 +603,7 @@ class CasperEpaper extends PolymerElement {
             left: 0;
             top: 36px;
             width: 100%;
-            height: calc(100% - 36px);
+            height: 100%;
             display: flex;
             font-size: 18px;
             font-weight: bold;
