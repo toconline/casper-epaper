@@ -596,11 +596,40 @@ class CasperEpaper extends PolymerElement {
           #page-container casper-icon {
             width: 100px;
             height: 100px;
-            margin-bottom: 10px;
+            /* margin-bottom: 10px; */
+          }
+
+          .grid-no-items {
+            left: 0;
+            top: 36px;
+            width: 100%;
+            height: calc(100% - 36px);
+            display: flex;
+            font-size: 18px;
+            font-weight: bold;
+            position: absolute;
+            text-align: center;
+            align-items: center;
+            flex-direction: column;
+            justify-content: center;
+            color: var(--status-gray);
+            background: transparent;
+          }
+
+          .grid-no-items casper-icon {
+            background: var(--no-grid--icon--background-color);
+            padding: var(--no-grid--icon--padding);
+            border-radius: var(--no-grid--icon--border-radius);
+            border: var(--no-grid--icon--border);
+
+            width: 100px;
+            height: 100px;
+            margin-bottom: 25px;
+            color: var(--no-grid--icon--color, var(--status-gray));
           }
         </style>
-        <div id="page-container">
-          <casper-icon icon="fa-light:clipboard"></casper-icon>
+        <div id="page-container" class='grid-no-items'>
+          <casper-icon icon="custom/empty-state"></casper-icon>
           Sem resultado
         </div>
       </template>
