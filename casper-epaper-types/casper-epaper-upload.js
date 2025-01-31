@@ -18,11 +18,11 @@
   -
  */
 
-import '@cloudware-casper/casper-icons/casper-icon.js';
-import '@cloudware-casper/casper-button/casper-button.js';
-import '@cloudware-casper/casper-upload-dropzone/casper-upload-dropzone.js';
+import '@toconline/casper-icons/casper-icon.js';
+import '@toconline/casper-button/casper-button.js';
+import '@toconline/casper-upload-dropzone/casper-upload-dropzone.js';
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
-import { Casper } from '@cloudware-casper/casper-common-ui/casper-i18n-behavior.js';
+import { Casper } from '@toconline/casper-common-ui/casper-i18n-behavior.js';
 
 class CasperEpaperUpload extends Casper.I18n(PolymerElement) {
 

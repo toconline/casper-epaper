@@ -1,14 +1,14 @@
 {
   "description": "Casper ePaper document renderer",
-  "name": "@cloudware-casper/casper-epaper",
+  "name": "@toconline/casper-epaper",
   "version": "3.2.4",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com/"
   },
   "main": "casper-epaper.js",
   "dependencies": {
-    "@cloudware-casper/casper-icons": "^3.x",
-    "@cloudware-casper/casper-upload-dropzone": "^2.x",
+    "@toconline/casper-icons": "^3.x",
+    "@toconline/casper-upload-dropzone": "^2.x",
     "@polymer/iron-dropdown": "^3.x",
     "@polymer/iron-icon": "^3.x",
     "@polymer/iron-iconset-svg": "^3.x",
