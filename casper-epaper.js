@@ -18,8 +18,8 @@
   -
  */
 
-import '@cloudware-casper/casper-icons/casper-icon-button.js';
-import { CasperBrowser } from '@cloudware-casper/casper-utils/casper-utils.js';
+import '@toconline/casper-icons/casper-icon-button.js';
+import { CasperBrowser } from '@toconline/casper-utils/casper-utils.js';
 import { PolymerElement, html } from '@polymer/polymer/polymer-element.js';
 import { afterNextRender } from '@polymer/polymer/lib/utils/render-status.js';
 
@@ -200,7 +200,7 @@ class CasperEpaper extends PolymerElement {
           flex-direction: column;
           background-size: cover;
           background-repeat: no-repeat;
-          background-image: url('/node_modules/@cloudware-casper/casper-epaper/static/epaper-sticky.svg');
+          background-image: url('/node_modules/@toconline/casper-epaper/static/epaper-sticky.svg');
           transition: opacity 200ms linear;
         }
 
